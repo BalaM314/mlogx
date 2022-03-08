@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"lib": [
+			"ES2021"
+		],
+		"module": "CommonJS",
+		"target": "ES2021",
+		"removeComments": true,
+		"types": [
+			"node"
+		]
+	}
+}

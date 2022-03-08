@@ -1,0 +1,6 @@
+print "[red] An error has occured:"
+print _err
+print "\nMake sure all necessary blocks"
+print "are_linked_and_units_exist."
+printflush message1
+end
