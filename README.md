@@ -1,3 +1,9 @@
-A compiler(technically a transpiler) for Mindustry Logic(mlog.)
+A standard library for Mindustry Logic.
+Standardizes function calls, variable names, etc.
+Comes with its own compiler!
 
-Currently absolutely useless, just removes comments that are already removed by Mindustry.
+Usage: `node compiler/compile.js`
+
+See [spec.md](spec.md) for more information.
+
+More useful stuff coming soon

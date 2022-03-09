@@ -1,0 +1,9 @@
+set _author BalaM314
+set _name stdlib
+set _err "No error message"
+set stdout message1
+set stderr message2
+set stack1 31415
+set stack1 @counter
+op add stack1 stack1 3
+jump count_block_type always

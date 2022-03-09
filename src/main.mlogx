@@ -1,0 +1,12 @@
+#This is an example program!
+set _author BalaM314
+set _name stdlib
+set _err "No error message"
+set _stdout message1
+set _stderr message2
+set _stack1 31415
+set _building_type @pulse-conduit
+call _count_building_type
+print _num_buildings
+printflush _stdout
+throw "program actually worked"

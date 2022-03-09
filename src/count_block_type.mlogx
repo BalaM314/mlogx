@@ -1,0 +1,14 @@
+#Counts the number of linked buildings of a certain type.
+#function count_building_type(_building_type)
+_count_building_type:
+set _num_buildings 0
+set __i -1
+__next_loop:
+increment __i 1
+getlink __building __i
+sensor __building_type __building @type
+jump __check_exit_loop notEqual _building_type __building_type
+op add _num_buildings _num_buildings 1
+__check_exit_loop:
+jump __next_loop lessThan __i @links
+return
