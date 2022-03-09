@@ -1,9 +1,7 @@
 A standard library for Mindustry Logic.
-Standardizes function calls, variable names, etc.
-Comes with its own compiler!
 
-Usage: `node compiler/compile.js`
+Standardizes function calls, variable names, etc. Has a list of builtin functions, more coming soon.
+Comes with its own transpiler and extended instruction set, see [spec.md](spec.md) for more information.
 
-See [spec.md](spec.md) for more information.
 
-More useful stuff coming soon
+This project is a work in progress, more useful stuff coming soon™
