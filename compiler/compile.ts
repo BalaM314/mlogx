@@ -1,9 +1,12 @@
 const fs = require("fs");
 const programArgs = process.argv.slice(2);
+if(process.cwd().match(/compiler$/gi)){
+	process.chdir("..");
+}
 
 function compileMlogxToMlog(data:string[]):string[] {
 	
-	//todo: add code for labels
+	//todo: add comments
 	let outputData = [];
 	for(var line of data){
 		if(line.startsWith("#") || line.startsWith("//")){
@@ -31,30 +34,41 @@ function compileMlogxToMlog(data:string[]):string[] {
 }
 
 function main(){
+	//Option to specify directory to compile in
 	if(programArgs[0]){
 		console.log("Compiling in directory " + programArgs[0]);
 		process.chdir(programArgs[0]);
 	}
 
+	//Look for an src directory to compile from
 	if(!fs.existsSync(process.cwd() + "/src")){
 		console.error("No src directory found!");
 		return;
 	}
-	if(!fs.existsSync(process.cwd() + "/target")){
-		fs.mkdirSync(process.cwd() + "/target");
+	//Create a build folder if it doesn't already exist
+	if(!fs.existsSync(process.cwd() + "/build")){
+		fs.mkdirSync(process.cwd() + "/build");
 	}
+
 	/**List of filenames ending in .mlogx in the src directory. */
-	let filelist:string[] = fs.readdirSync(process.cwd() + "/src").filter(filename => filename.match(/.mlogx$/));
-	console.log("Files to compile: ", filelist);
+	let filelist_mlogx:string[] = fs.readdirSync(process.cwd() + "/src").filter(filename => filename.match(/.mlogx$/));
+	/**List of filenames ending in .mlog in the src directory. */
+	let filelist_mlog:string[] = fs.readdirSync(process.cwd() + "/src").filter(filename => filename.match(/.mlog$/));
+	console.log("Files to compile: ", filelist_mlogx);
 
 	let compiledData: {
 		[index: string]: string;
 	} = {};
 	let mainData = "";
-	for(var filename of filelist){
+
+	for(let filename of filelist_mlogx){
+		//For each filename in the file list
+
 		console.log(`Compiling file ${filename}`);
 		let data:string[] = fs.readFileSync(`src/${filename}`, 'utf-8').split("\r\n");
+		//Load the data
 		let outputData;
+		//Compile, but handle errors
 		try {
 			outputData = compileMlogxToMlog(data).join("\r\n");
 		} catch(err){
@@ -62,14 +76,26 @@ function main(){
 			console.error(err.message);
 			return;
 		}
+		//Write .mlog files to /build
 		fs.writeFileSync(
-			`target/${filename.slice(0,-1)}`,
+			`build/${filename.slice(0,-1)}`,
 			outputData
 		);
+		//If the filename is not main, add it to the list of compiled data, otherwise, set mainData to it
 		if(filename != "main.mlogx"){
 			compiledData[filename] = outputData;
 		} else {
 			mainData = outputData;
+		}
+	}
+
+	for(let filename of filelist_mlog){
+		//For each filename in the other file list
+		//If the filename is not main, add it to the list of compiled data, otherwise, set mainData to it
+		if(filename != "main.mlog"){
+			compiledData[filename] = fs.readFileSync(`src/${filename}`, 'utf-8');
+		} else {
+			mainData = fs.readFileSync(`src/${filename}`, 'utf-8');
 		}
 	}
 	console.log("Compiled all files successfully.");

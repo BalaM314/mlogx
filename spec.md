@@ -3,7 +3,8 @@ Specification for stdlib
 This project is a work in progress! These instructions are not complete!
 
 ## Guide to making programs
-Running the compiler turns .mlogx files into .mlog files, and then combines all your separate files into one, which you paste into a processor in-game.
+Place your .mlog or .mlogx(supports the extended instruction set in this document) files in /src.
+Running the compiler transpiles .mlogx files into .mlog files, and then combines all your separate files into one(out.mlog), which you paste into a processor in-game.
 
 ## List of custom instructions
 

@@ -1,5 +1,8 @@
 const fs = require("fs");
 const programArgs = process.argv.slice(2);
+if (process.cwd().match(/compiler$/gi)) {
+    process.chdir("..");
+}
 function compileMlogxToMlog(data) {
     let outputData = [];
     for (var line of data) {
@@ -41,14 +44,15 @@ function main() {
         console.error("No src directory found!");
         return;
     }
-    if (!fs.existsSync(process.cwd() + "/target")) {
-        fs.mkdirSync(process.cwd() + "/target");
+    if (!fs.existsSync(process.cwd() + "/build")) {
+        fs.mkdirSync(process.cwd() + "/build");
     }
-    let filelist = fs.readdirSync(process.cwd() + "/src").filter(filename => filename.match(/.mlogx$/));
-    console.log("Files to compile: ", filelist);
+    let filelist_mlogx = fs.readdirSync(process.cwd() + "/src").filter(filename => filename.match(/.mlogx$/));
+    let filelist_mlog = fs.readdirSync(process.cwd() + "/src").filter(filename => filename.match(/.mlog$/));
+    console.log("Files to compile: ", filelist_mlogx);
     let compiledData = {};
     let mainData = "";
-    for (var filename of filelist) {
+    for (let filename of filelist_mlogx) {
         console.log(`Compiling file ${filename}`);
         let data = fs.readFileSync(`src/${filename}`, 'utf-8').split("\r\n");
         let outputData;
@@ -60,12 +64,20 @@ function main() {
             console.error(err.message);
             return;
         }
-        fs.writeFileSync(`target/${filename.slice(0, -1)}`, outputData);
+        fs.writeFileSync(`build/${filename.slice(0, -1)}`, outputData);
         if (filename != "main.mlogx") {
             compiledData[filename] = outputData;
         }
         else {
             mainData = outputData;
+        }
+    }
+    for (let filename of filelist_mlog) {
+        if (filename != "main.mlog") {
+            compiledData[filename] = fs.readFileSync(`src/${filename}`, 'utf-8');
+        }
+        else {
+            mainData = fs.readFileSync(`src/${filename}`, 'utf-8');
         }
     }
     console.log("Compiled all files successfully.");

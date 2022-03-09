@@ -1,12 +1,14 @@
-#This is an example program!
-set _author BalaM314
-set _name stdlib
-set _err "No error message"
+#This is an example program! It counts the amount of pulse conduits linked.
+set author BalaM314
+set name example_program
+#Store names so they can be seen by program viewers
 set _stdout message1
 set _stderr message2
-set _stack1 31415
+#This is a function call! See spec.md for more details.
 set _building_type @pulse-conduit
 call _count_building_type
+#Print the output
 print _num_buildings
 printflush _stdout
-throw "program actually worked"
+#throw an error, just to test the error function
+throw "I don't know what to do next"
