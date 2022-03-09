@@ -31,6 +31,8 @@ Functions do not check if the input is set, for speed.
 
 mlogx has extra instructions to make writing code easier.
 
+### call
+
 `call [function_name]`
 
 Calls a function. Equivalent instructions:
@@ -41,7 +43,7 @@ Calls a function. Equivalent instructions:
 
 `jump [function_name] always`
 
-
+### increment
 
 `increment [variable_name] [amount(5)]`
 
@@ -49,7 +51,7 @@ Increments a variable by a number. Equivalent instructions:
 
 `op add [variable_name] [variable_name] [amount]`
 
-
+### return
 
 `return`
 
@@ -57,7 +59,7 @@ Returns from a function. Equivalent instructions:
 
 `set @counter _stack1`
 
-
+### throw
 
 `throw [error_message]`
 
@@ -72,11 +74,11 @@ Throws an error. Equivalent instructions:
 More coming Soon™.
 
 ## List of variables
-<_stdout>: default [Message] to output messages. Standard output.
+_stdout: default [Message] to output messages. Standard output.
 
-<_stderr>: default [Message] to output errors. Can be the same as <_stdout>.
+_stderr: default [Message] to output errors. Can be the same as _stdout.
 
-<_stack1>: Contains an address that should be jumped back to once a function call is complete. You should never need to set this, the `call` instruction does it for you.
+_stack1: Contains an address that should be jumped back to once a function call is complete. You should never need to set this, the `call` instruction does it for you.
 
 ## List of functions
 
@@ -90,6 +92,8 @@ Instruction count: 4+6*@links
 
 _err(_err)
 
-Outputs a message in red to <stderr> and terminates.
+Outputs a message in red to _stderr and terminates.
+
+Yes I know it's confusing that the function and parameter have the same name. :cringe:
 
 More coming Soon™.
