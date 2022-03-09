@@ -1,4 +1,4 @@
-Specification for stdlib
+Specification for stdlib and mlogx(mindustry logic extended)
 
 This project is a work in progress! These instructions are not complete!
 
@@ -6,6 +6,8 @@ This project is a work in progress! These instructions are not complete!
 This guide assumes you already know how to make mlog programs, but are frustrated when you try to make larger projects.
 Place your .mlog or .mlogx(supports the extended instruction set in this document) files in /src.
 Running the compiler with `node compiler/compile.js` transpiles .mlogx files into .mlog files, and then combines all your separate files into one(out.mlog), which you paste into a processor in-game.
+
+Note that you don't *need* to use mlogx, you can call functions and bundle your files with vanilla MLOG(it'll just be annoying to write function calls without `call`).
 
 Need help? I'm BalaM314#4781, you can ping me in the #logic channel of the official Mindustry discord.
 
@@ -26,6 +28,8 @@ Functions do not check if the input is set, for speed.
 "Under the hood", functions are simply a jump label that expects a variable to be set, can write to a variable, and use @counter and <stack1> to jump back to where you called them.
 
 ## List of custom instructions
+
+mlogx has extra instructions to make writing code easier.
 
 `call [function_name]`
 
