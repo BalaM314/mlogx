@@ -6,9 +6,18 @@ set _stdout message1
 set _stderr message2
 #This is a function call! See spec.md for more details.
 set _building_type @pulse-conduit
-call _count_building_type
+call _count_buildings
+set _unit_type @omura
+call _count_units
 #Print the output
+print "Number of "
+print _building_type
+print "s: "
 print _num_buildings
+print "\nNumber of "
+print _unit_type
+print "s: "
+print _num_units
 printflush _stdout
 #throw an error, just to test the error function
 throw "I don't know what to do next"

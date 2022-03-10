@@ -11,5 +11,5 @@ This project is a work in progress, more useful stuff coming soon™
 Planned features:
 [ ] more functions
 [ ] more extra instructions
-[ ] intelligent error checking
+[?] intelligent error checking
 [ ] become an npm package

@@ -86,7 +86,7 @@ let commands: {
 		args: [new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.building), new Arg(ArgType.number), new Arg(ArgType.variable)]
 	},
 	sensor: {
-		args: [new Arg(ArgType.variable), new Arg(ArgType.building), new Arg(ArgType.type)]
+		args: [new Arg(ArgType.variable), new Arg(ArgType.any), new Arg(ArgType.type)]
 	},
 	set: {
 		args: [new Arg(ArgType.variable), new Arg(ArgType.any)]
@@ -104,7 +104,7 @@ let commands: {
 		args: []
 	},
 	jump: {
-		args: [new Arg(ArgType.number), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any)]
+		args: [new Arg(ArgType.number), new Arg(ArgType.any), new Arg(ArgType.any, true), new Arg(ArgType.any, true)]
 	},
 	ubind: {
 		args: [new Arg(ArgType.type)]
@@ -170,11 +170,10 @@ class CompilerError extends Error {
 	}
 }
 
-function compileMlogxToMlog(data:string[]):string[] {
-	
+function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
 	
 	let outputData = [];
-	for(var line of data){
+	for(var line of program){
 
 		if(line.includes("#") || line.includes("//")){
 			//Remove comments
@@ -184,8 +183,11 @@ function compileMlogxToMlog(data:string[]):string[] {
 			}
 		}
 		if(line == "") continue;
+
+		line = line.split(/ /).map(arg => arg.startsWith("__") ? `__${data.filename}${arg}` : arg).join(" ");
+
 		if(line.match(/:$/)){
-			//line is a label
+			//line is a label, don't touch it
 			outputData.push(line);
 			continue;
 		}
@@ -212,7 +214,7 @@ function compileMlogxToMlog(data:string[]):string[] {
 			throw new CompilerError(`Unknown command ${args[0]}\nat ${line}`);
 		}
 
-		if(args.length - 1 != command.args.length){
+		if(args.length - 1 > command.args.length || args.length - 1 < command.args.filter(arg => !arg.optional).length){
 			throw new CompilerError(
 `Incorrect number of arguments for command ${args[0]}
 at ${line}
@@ -232,11 +234,12 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 
 		if(command.replace){
 			for(var replaceLine of command.replace){
-				replaceLine = replaceLine.replace(/%1/, args[1]);
-				replaceLine = replaceLine.replace(/%2/, args[2]);
-				replaceLine = replaceLine.replace(/%3/, args[3]);
+				replaceLine = replaceLine.replace(/%1/g, args[1]);
+				replaceLine = replaceLine.replace(/%2/g, args[2]);
+				replaceLine = replaceLine.replace(/%3/g, args[3]);
 				outputData.push(replaceLine);
 			}
+			continue;
 		}
 
 		outputData.push(line);
@@ -283,7 +286,9 @@ function main(){
 		let outputData;
 		//Compile, but handle errors
 		try {
-			outputData = compileMlogxToMlog(data).join("\r\n");
+			outputData = compileMlogxToMlog(data, {
+				filename: filename.split(".mlogx")[0] == "main.mlogx" ? "" : filename.split(".mlogx")[0]
+			}).join("\r\n");
 		} catch(err){
 			console.error(`Failed to compile file ${filename}!`);
 			console.error(err.message);

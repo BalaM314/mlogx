@@ -1,6 +1,6 @@
 #function _count_buildings(_building_type) -> _num_buildings
 #Counts the number of linked buildings of a certain type.
-_count_building_type:
+_count_buildings:
 set _num_buildings 0
 set __i -1
 __next_loop:

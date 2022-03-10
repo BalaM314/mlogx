@@ -4,6 +4,6 @@ _err:
 print "[red] An error has occured: "
 print _err
 print "\nMake sure all necessary blocks"
-print "are linked and units exist."
+print " are linked and units exist."
 printflush _stderr
 end
