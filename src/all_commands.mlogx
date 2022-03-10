@@ -1,0 +1,23 @@
+#include never
+#Contains every command. Isn't included in the compiled output.
+#Mainly used for testing purposes.
+read result cell1 0
+write result cell1 0
+draw clear 0 0 0 0 0 0
+print "frog"
+drawflush display1
+printflush message1
+getlink result 0
+control enabled block1 0 0 0 0
+radar enemy any any distance turret1 1 result
+sensor result block1 @copper
+set result 0
+op add result a b
+wait 0.5
+lookup item result 0
+end
+jump -1 notEqual x false
+ubind @poly
+ucontrol move 0 0 0 0 0
+uradar enemy any any distance 0 1 result
+ulocate building core true @copper outx outy found building

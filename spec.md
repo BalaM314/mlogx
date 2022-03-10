@@ -9,6 +9,9 @@ Running the compiler with `node compiler/compile.js` transpiles .mlogx files int
 
 Note that you don't *need* to use mlogx, you can call functions and bundle your files with vanilla MLOG(it'll just be annoying to write function calls without `call`).
 
+Note: Without jump or call statements, the only file executed is main.mlog(x). Your other files should contain functions or subroutines that you can call. By default, all functions are included in your final program even if you don't use them, however, they don't make your program any slower unless they are executed.
+
+
 Need help? I'm BalaM314#4781, you can ping me in the #logic channel of the official Mindustry discord.
 
 ## Functions
