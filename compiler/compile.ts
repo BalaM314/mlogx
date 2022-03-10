@@ -15,7 +15,7 @@ enum ArgType {
 	any="any",
 	null="null"
 }
-class Arg{
+class Arg {
 	constructor(public type:ArgType, public optional = false){
 		
 	}
@@ -120,6 +120,10 @@ let commands: {
 	},
 };
 
+let settings = {
+	errorlevel: "warn"
+};
+
 function typeofArg(arg:string):ArgType {
 	if(arg == "") return ArgType.null;
 	if(arg.match(/@[a-z\-]+/i)){
@@ -171,6 +175,14 @@ class CompilerError extends Error {
 }
 
 function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
+
+	function err(message){
+		if(settings.errorlevel == "warn"){
+			console.warn("Warning: " + message);
+		} else {
+			throw new CompilerError(message);
+		}
+	}
 	
 	let outputData = [];
 	for(var line of program){
@@ -211,11 +223,11 @@ function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
 		}
 		let command = commands[args[0].toLowerCase()];
 		if(!command){
-			throw new CompilerError(`Unknown command ${args[0]}\nat ${line}`);
+			err(`Unknown command ${args[0]}\nat ${line}`);
 		}
 
 		if(args.length - 1 > command.args.length || args.length - 1 < command.args.filter(arg => !arg.optional).length){
-			throw new CompilerError(
+			err(
 `Incorrect number of arguments for command ${args[0]}
 at ${line}
 Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
@@ -224,7 +236,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 
 		for(let arg in command.args){
 			if(!isArgOfType(args[+arg+1], command.args[+arg].type)){
-				throw new CompilerError(
+				err(
 `Type mismatch: value ${args[+arg+1]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(args[+arg+1])}
 \tat \`${line}\``
 				);
