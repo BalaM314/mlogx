@@ -13,7 +13,9 @@ enum ArgType {
 	unit="unit",
 	function="function",
 	any="any",
-	null="null"
+	null="null",
+	operand_test="operand_test",
+	targetClass="targetClass"
 }
 class Arg {
 	constructor(public type:ArgType, public optional = false){
@@ -83,7 +85,7 @@ let commands: {
 		args: [new Arg(ArgType.any), new Arg(ArgType.building), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any)]
 	},
 	radar: {
-		args: [new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.building), new Arg(ArgType.number), new Arg(ArgType.variable)]
+		args: [new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.any), new Arg(ArgType.building), new Arg(ArgType.number), new Arg(ArgType.variable)]
 	},
 	sensor: {
 		args: [new Arg(ArgType.variable), new Arg(ArgType.any), new Arg(ArgType.type)]
@@ -104,7 +106,7 @@ let commands: {
 		args: []
 	},
 	jump: {
-		args: [new Arg(ArgType.number), new Arg(ArgType.any), new Arg(ArgType.any, true), new Arg(ArgType.any, true)]
+		args: [new Arg(ArgType.number), new Arg(ArgType.operand_test), new Arg(ArgType.any, true), new Arg(ArgType.any, true)]
 	},
 	ubind: {
 		args: [new Arg(ArgType.type)]
@@ -113,7 +115,7 @@ let commands: {
 		args: [new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.type), new Arg(ArgType.number), new Arg(ArgType.any)]
 	},
 	uradar: {
-		args: [new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.variable)]
+		args: [new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.variable)]
 	},
 	ulocate: {
 		args: [new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.type), new Arg(ArgType.variable), new Arg(ArgType.variable), new Arg(ArgType.variable), new Arg(ArgType.variable)]
@@ -126,6 +128,7 @@ let settings = {
 
 function typeofArg(arg:string):ArgType {
 	if(arg == "") return ArgType.null;
+	arg = arg.toLowerCase();
 	if(arg.match(/@[a-z\-]+/i)){
 		if(arg == "@counter") return ArgType.variable;
 		if(arg == "@unit") return ArgType.unit;
@@ -141,6 +144,8 @@ function typeofArg(arg:string):ArgType {
 		if(arg == "@maph") return ArgType.number;
 		return ArgType.type;
 	}
+	if(["equal", "notequal", "strictequal", "greaterthan", "lessthan", "greaterthaneq", "lessthaneq", "always"].includes(arg)) return ArgType.operand_test;
+	if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return ArgType.targetClass;
 	if(arg == "true") return ArgType.number;
 	if(arg.match(/^-?[\d]+$/)) return ArgType.number;
 	if(arg.match(/^"[^"]*"$/gi)) return ArgType.string;
@@ -152,6 +157,7 @@ function isArgOfType(arg:string, type:ArgType):boolean {
 	if(type == ArgType.any) return true;
 	if(arg == "0") return true;
 	if(arg == "") return false;
+	arg = arg.toLowerCase();
 	let knownType:ArgType = typeofArg(arg);
 	switch(type){
 		case ArgType.variable: return knownType == type;
@@ -162,6 +168,9 @@ function isArgOfType(arg:string, type:ArgType):boolean {
 		case ArgType.unit:
 		case ArgType.function:
 			return knownType == type || knownType == ArgType.variable;
+		case ArgType.operand_test:
+		case ArgType.targetClass:
+			return knownType == type;
 	}
 
 

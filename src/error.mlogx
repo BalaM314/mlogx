@@ -1,5 +1,5 @@
-#Throws an error.
 #function err(_err)
+#Throws an error.
 _err:
 print "[red] An error has occured: "
 print _err
