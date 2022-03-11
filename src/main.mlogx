@@ -4,6 +4,7 @@ set name example_program
 #Store names so they can be seen by program viewers
 set _stdout message1
 set _stderr message2
+## The above code is required if you want to print to stdout instead of message1. You could name this whatever you want but I'd like to standardize things :)
 #This is a function call! See spec.md for more details.
 set _building_type @pulse-conduit
 call _count_buildings

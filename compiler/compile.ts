@@ -262,9 +262,16 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 
 function main(){
 	//Option to specify directory to compile in
-	if(programArgs[0]){
-		console.log("Compiling in directory " + programArgs[0]);
-		process.chdir(programArgs[0]);
+	if(programArgs[0] == "--directory" && programArgs[1]){
+		console.log("Compiling in directory " + programArgs[1]);
+		process.chdir(programArgs[1]);
+	}
+	if(programArgs[0] == "--help"){
+		if(!commands[programArgs[1]])
+			console.log(`Unknown command ${programArgs[1]}`);
+		else
+			console.log(`Usage: ${programArgs[1]} ${commands[programArgs[1]].args.map(arg => arg.toString()).join(" ")}`);
+		return;
 	}
 
 	//Look for an src directory to compile from
@@ -338,5 +345,6 @@ function main(){
 	);
 	console.log("Done!");
 }
+
 
 main();

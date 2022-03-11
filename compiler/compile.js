@@ -254,9 +254,16 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`)
     return outputData;
 }
 function main() {
-    if (programArgs[0]) {
-        console.log("Compiling in directory " + programArgs[0]);
-        process.chdir(programArgs[0]);
+    if (programArgs[0] == "--directory" && programArgs[1]) {
+        console.log("Compiling in directory " + programArgs[1]);
+        process.chdir(programArgs[1]);
+    }
+    if (programArgs[0] == "--help") {
+        if (!commands[programArgs[1]])
+            console.log(`Unknown command ${programArgs[1]}`);
+        else
+            console.log(`Usage: ${programArgs[1]} ${commands[programArgs[1]].args.map(arg => arg.toString()).join(" ")}`);
+        return;
     }
     if (!fs.existsSync(process.cwd() + "/src")) {
         console.error("No src directory found!");
