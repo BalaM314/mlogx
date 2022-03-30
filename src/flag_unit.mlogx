@@ -1,0 +1,21 @@
+#function _flag_unit(_unit_type) -> @unit
+#Counts the number of linked buildings of a certain type.
+_flag_unit:
+#Bind a unit
+ubind _unit_type
+#Check if it's dead, and if it is try again
+sensor dead @unit @dead
+jump _flag_unit notEqual dead false
+#Check its flag and whether it's being controlled
+sensor __flag @unit @flag
+sensor __controlled @unit @controlled
+op equal __unitUnflagged __flag 0
+op equal __unitHasOurFlag __flag _cookie
+op equal __unitNotControlled __controlled false
+op or __unitFlagOk __unitUnflagged __unitHasOurFlag
+#If the unit is controlled, or the unit's flag is not ok, then try again
+jump _flag_unit notEqual __unitFlagOk true
+jump _flag_unit notEqual __unitNotControlled true
+#Flag the unit and return
+ucontrol flag _cookie @thisy 0 0 0
+return

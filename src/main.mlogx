@@ -5,6 +5,9 @@ set name example_program
 set _stdout message1
 set _stderr message2
 ## The above code is required if you want to print to stdout instead of message1. You could name this whatever you want but I'd like to standardize things :)
+op mul _cookie @thisx @maph
+op add _cookie thisflag @thisy
+## Sets a unique cookie, used for flagging units.
 #This is a function call! See spec.md for more details.
 set _building_type @pulse-conduit
 call _count_buildings
@@ -20,5 +23,10 @@ print _unit_type
 print "s: "
 print _num_units
 printflush _stdout
+jump move_unit notEqual @unit null
+uflag @flare
+move_unit:
+ucontrol move @thisx @thisy 0 0 0
+ucontrol target @thisx @thisy 1 0 0
 #throw an error, just to test the error function
 throw "I don't know what to do next"

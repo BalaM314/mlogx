@@ -38,82 +38,116 @@ let commands = {
             "set _stack1 @counter",
             "op add _stack1 _stack1 2",
             "jump %1 always"
-        ]
+        ],
+        description: "Calls a function."
     },
     increment: {
         args: [new Arg(ArgType.variable), new Arg(ArgType.number)],
-        replace: ["op add %1 %1 %2"]
+        replace: ["op add %1 %1 %2"],
+        description: "Adds a number to a variable."
     },
     return: {
         args: [],
-        replace: ["set @counter _stack1"]
+        replace: ["set @counter _stack1"],
+        description: "Returns to the main program from a function."
     },
     throw: {
         args: [new Arg(ArgType.string)],
         replace: [
             "set _err %1",
             "jump _err always"
-        ]
+        ],
+        description: "Throws an error."
+    },
+    uflag: {
+        args: [new Arg(ArgType.type)],
+        replace: [
+            "set _unit_type %1",
+            "set _stack1 @counter",
+            "op add _stack1 _stack1 2",
+            "jump _flag_unit always",
+        ],
+        description: "Binds and flags a unit of specified type."
     },
     read: {
-        args: [new Arg(ArgType.variable), new Arg(ArgType.building), new Arg(ArgType.number)]
+        args: [new Arg(ArgType.variable), new Arg(ArgType.building), new Arg(ArgType.number)],
+        description: "Reads a value from a memory cell."
     },
     write: {
-        args: [new Arg(ArgType.variable), new Arg(ArgType.building), new Arg(ArgType.number)]
+        args: [new Arg(ArgType.variable), new Arg(ArgType.building), new Arg(ArgType.number)],
+        description: "Writes a value to a memory cell."
     },
     draw: {
-        args: [new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number)]
+        args: [new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number)],
+        description: "Adds draw instructions to the draw buffer."
     },
     print: {
-        args: [new Arg(ArgType.string)]
+        args: [new Arg(ArgType.string)],
+        description: "Prints a value to the message buffer."
     },
     drawflush: {
-        args: [new Arg(ArgType.building)]
+        args: [new Arg(ArgType.building)],
+        description: "Flushes queued draw instructions to a display."
     },
     printflush: {
-        args: [new Arg(ArgType.building)]
+        args: [new Arg(ArgType.building)],
+        description: "Flushes queued print instructions to a message block."
     },
     getlink: {
-        args: [new Arg(ArgType.variable), new Arg(ArgType.number)]
+        args: [new Arg(ArgType.variable), new Arg(ArgType.number)],
+        description: "Gets the nth linked building. Useful when looping over all buildings."
     },
     control: {
-        args: [new Arg(ArgType.any), new Arg(ArgType.building), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any)]
+        args: [new Arg(ArgType.any), new Arg(ArgType.building), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any)],
+        description: "Controls a building. Can only be used on linked buildings."
     },
     radar: {
-        args: [new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.any), new Arg(ArgType.building), new Arg(ArgType.number), new Arg(ArgType.variable)]
+        args: [new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.any), new Arg(ArgType.building), new Arg(ArgType.number), new Arg(ArgType.variable)],
+        description: "Finds nearby units of specified type."
     },
     sensor: {
-        args: [new Arg(ArgType.variable), new Arg(ArgType.any), new Arg(ArgType.type)]
+        args: [new Arg(ArgType.variable), new Arg(ArgType.any), new Arg(ArgType.type)],
+        description: "Gets information about a unit or building, does not need to be linked or on the same team."
     },
     set: {
-        args: [new Arg(ArgType.variable), new Arg(ArgType.any)]
+        args: [new Arg(ArgType.variable), new Arg(ArgType.any)],
+        description: "Sets a variable."
     },
     op: {
-        args: [new Arg(ArgType.any), new Arg(ArgType.variable), new Arg(ArgType.number), new Arg(ArgType.number)]
+        args: [new Arg(ArgType.any), new Arg(ArgType.variable), new Arg(ArgType.number), new Arg(ArgType.number)],
+        description: "Performs an operation."
     },
     wait: {
-        args: [new Arg(ArgType.number)]
+        args: [new Arg(ArgType.number)],
+        description: "Waits the specified number of seconds."
     },
     lookup: {
-        args: [new Arg(ArgType.any), new Arg(ArgType.variable), new Arg(ArgType.number)]
+        args: [new Arg(ArgType.any), new Arg(ArgType.variable), new Arg(ArgType.number)],
+        description: "Looks up an item, building, fluid, or unit type."
     },
     end: {
-        args: []
+        args: [],
+        description: "Terminates execution."
     },
     jump: {
-        args: [new Arg(ArgType.number), new Arg(ArgType.operand_test), new Arg(ArgType.any, true), new Arg(ArgType.any, true)]
+        args: [new Arg(ArgType.number), new Arg(ArgType.operand_test), new Arg(ArgType.any, true), new Arg(ArgType.any, true)],
+        description: "Jumps to an address or label if a condition is met."
     },
     ubind: {
-        args: [new Arg(ArgType.type)]
+        args: [new Arg(ArgType.type)],
+        description: "Binds a unit of specified type. May return dead units."
     },
     ucontrol: {
-        args: [new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.type), new Arg(ArgType.number), new Arg(ArgType.any)]
+        args: [new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.type), new Arg(ArgType.number), new Arg(ArgType.any)],
+        description: "Controls the bound unit."
     },
     uradar: {
-        args: [new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.variable)]
+        args: [new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.variable)],
+        description: "Finds other units of specified class near the bound unit."
     },
     ulocate: {
-        args: [new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.type), new Arg(ArgType.variable), new Arg(ArgType.variable), new Arg(ArgType.variable), new Arg(ArgType.variable)]
+        args: [new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.type), new Arg(ArgType.variable), new Arg(ArgType.variable), new Arg(ArgType.variable), new Arg(ArgType.variable)],
+        description: "Finds buildings of specified type near the bound unit."
     },
 };
 let settings = {
@@ -239,11 +273,14 @@ function compileMlogxToMlog(program, data) {
         let command = commands[args[0].toLowerCase()];
         if (!command) {
             err(`Unknown command ${args[0]}\nat ${line}`);
+            continue;
         }
         if (args.length - 1 > command.args.length || args.length - 1 < command.args.filter(arg => !arg.optional).length) {
             err(`Incorrect number of arguments for command ${args[0]}
 at ${line}
 Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`);
+            if (command.replace)
+                continue;
         }
         for (let arg in command.args) {
             if (!isArgOfType(args[+arg + 1], command.args[+arg].type)) {
@@ -273,7 +310,7 @@ function main() {
         if (!commands[programArgs[1]])
             console.log(`Unknown command ${programArgs[1]}`);
         else
-            console.log(`Usage: ${programArgs[1]} ${commands[programArgs[1]].args.map(arg => arg.toString()).join(" ")}`);
+            console.log(`${programArgs[1]}: ${commands[programArgs[1]]}\nUsage: ${programArgs[1]} ${commands[programArgs[1]].args.map(arg => arg.toString()).join(" ")}`);
         return;
     }
     if (!fs.existsSync(process.cwd() + "/src")) {
@@ -299,7 +336,10 @@ function main() {
         }
         catch (err) {
             console.error(`Failed to compile file ${filename}!`);
-            console.error(err.message);
+            if (err instanceof CompilerError)
+                console.error(err.message);
+            else
+                console.error(err);
             return;
         }
         fs.writeFileSync(`build/${filename.slice(0, -1)}`, outputData);

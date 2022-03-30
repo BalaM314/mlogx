@@ -9,7 +9,11 @@ You can use this to manage large projects and split your code into multiple file
 This project is a work in progress, more useful stuff coming soon™
 
 Planned features:
+
 [ ] more functions
+
 [ ] more extra instructions
+
 [?] intelligent error checking
+
 [ ] become an npm package

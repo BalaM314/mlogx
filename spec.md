@@ -9,7 +9,7 @@ Running the compiler with `node compiler/compile.js` transpiles .mlogx files int
 
 Note that you don't *need* to use mlogx, you can call functions and bundle your files with vanilla MLOG(it'll just be annoying to write function calls without `call`).
 
-Note: Without jump or call statements, the only file executed is main.mlog(x). Your other files should contain functions or subroutines that you can call. By default, all functions are included in your final program even if you don't use them, however, they don't make your program any slower unless they are executed.
+Note: Without jump or call statements, the only file executed is main.mlog(x). Your other files should contain functions or subroutines that you can call. Functions are only included in your final program if you use them, however, they don't make your program any slower unless they are executed.
 
 
 Need help? I'm BalaM314#4781, you can ping me in the #logic channel of the official Mindustry discord.
@@ -72,10 +72,6 @@ Throws an error. Equivalent instructions:
 
 `call _err`
 
-
-
-More coming Soon™.
-
 ## List of variables
 _stdout: default [Message] to output messages. Standard output.
 
@@ -98,5 +94,17 @@ _err(_err)
 Outputs a message in red to _stderr and terminates.
 
 Yes I know it's confusing that the function and parameter have the same name. :cringe:
+
+
+
+_count_unit(_unit_type) -> _num_units
+
+Returns the amount of (alive) units of a particular type.
+
+
+
+_flag_unit(_unit_type) -> @unit
+
+Binds and flags an unused unit.
 
 More coming Soon™.
