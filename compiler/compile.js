@@ -28,22 +28,23 @@ var CommandErrorType;
     CommandErrorType[CommandErrorType["type"] = 1] = "type";
 })(CommandErrorType || (CommandErrorType = {}));
 class Arg {
-    constructor(type, optional = false) {
+    constructor(type, name = "WIP", optional = false) {
         this.type = type;
+        this.name = name;
         this.optional = optional;
     }
     toString() {
-        if (this.optional) {
-            return `(${this.type})`;
-        }
-        else {
-            return `[${this.type}]`;
-        }
+        if (!GenericArgType[this.type])
+            return `${this.type}`;
+        if (this.optional)
+            return `(${this.name}:${this.type})`;
+        else
+            return `[${this.name}:${this.type}]`;
     }
 }
 let commands = {
     call: [{
-            args: [new Arg(GenericArgType.function)],
+            args: [new Arg(GenericArgType.function, "function")],
             replace: [
                 "set _stack1 @counter",
                 "op add _stack1 _stack1 2",
@@ -52,7 +53,7 @@ let commands = {
             description: "Calls a function."
         }],
     increment: [{
-            args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.number)],
+            args: [new Arg(GenericArgType.variable, "variable"), new Arg(GenericArgType.number, "amount")],
             replace: ["op add %1 %1 %2"],
             description: "Adds a number to a variable."
         }],
@@ -62,7 +63,7 @@ let commands = {
             description: "Returns to the main program from a function."
         }],
     throw: [{
-            args: [new Arg(GenericArgType.string)],
+            args: [new Arg(GenericArgType.string, "error")],
             replace: [
                 "set _err %1",
                 "jump _err always"
@@ -70,7 +71,7 @@ let commands = {
             description: "Throws an error."
         }],
     uflag: [{
-            args: [new Arg(GenericArgType.type)],
+            args: [new Arg(GenericArgType.type, "type")],
             replace: [
                 "set _unit_type %1",
                 "set _stack1 @counter",
@@ -80,90 +81,90 @@ let commands = {
             description: "Binds and flags a unit of specified type."
         }],
     read: [{
-            args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.building), new Arg(GenericArgType.number)],
+            args: [new Arg(GenericArgType.variable, "output"), new Arg(GenericArgType.building, "cell"), new Arg(GenericArgType.number, "index")],
             description: "Reads a value from a memory cell."
         }],
     write: [{
-            args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.building), new Arg(GenericArgType.number)],
+            args: [new Arg(GenericArgType.variable, "value"), new Arg(GenericArgType.building, "cell"), new Arg(GenericArgType.number, "index")],
             description: "Writes a value to a memory cell."
         }],
     draw: [
         {
-            args: [new Arg("clear"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("clear"), new Arg(GenericArgType.number, "r"), new Arg(GenericArgType.number, "g"), new Arg(GenericArgType.number, "b")],
             description: "Clears the display."
         },
         {
-            args: [new Arg("color"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("color"), new Arg(GenericArgType.number, "r"), new Arg(GenericArgType.number, "g"), new Arg(GenericArgType.number, "b"), new Arg(GenericArgType.number, "a")],
             description: "Sets the draw color."
         },
         {
-            args: [new Arg("stroke"), new Arg(GenericArgType.number)],
+            args: [new Arg("stroke"), new Arg(GenericArgType.number, "width")],
             description: "Sets the stroke width."
         },
         {
-            args: [new Arg("line"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("line"), new Arg(GenericArgType.number, "x1"), new Arg(GenericArgType.number, "y1"), new Arg(GenericArgType.number, "x2"), new Arg(GenericArgType.number, "y2")],
             description: "Draws a line between two points."
         },
         {
-            args: [new Arg("rect"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("rect"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "width"), new Arg(GenericArgType.number, "height")],
             description: "Draws a rectangle."
         },
         {
-            args: [new Arg("linerect"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("linerect"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "width"), new Arg(GenericArgType.number, "height")],
             description: "Draws the outline of a rectangle."
         },
         {
-            args: [new Arg("poly"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("poly"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "sides"), new Arg(GenericArgType.number, "radius"), new Arg(GenericArgType.number, "rotation")],
             description: "Draws a (regular) polygon."
         },
         {
-            args: [new Arg("linepoly"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("linepoly"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "sides"), new Arg(GenericArgType.number, "radius"), new Arg(GenericArgType.number, "rotation")],
             description: "Draws the outline of a polygon."
         },
         {
-            args: [new Arg("triangle"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("triangle"), new Arg(GenericArgType.number, "x1"), new Arg(GenericArgType.number, "y1"), new Arg(GenericArgType.number, "x2"), new Arg(GenericArgType.number, "y2"), new Arg(GenericArgType.number, "x3"), new Arg(GenericArgType.number, "y3")],
             description: "Draws a triangle."
         },
         {
-            args: [new Arg("image"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.type), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("image"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.type, "image"), new Arg(GenericArgType.number, "size"), new Arg(GenericArgType.number, "rotation")],
             description: "Displays an image."
         },
     ],
     print: [{
-            args: [new Arg(GenericArgType.string)],
+            args: [new Arg(GenericArgType.string, "message")],
             description: "Prints a value to the message buffer."
         }],
     drawflush: [{
-            args: [new Arg(GenericArgType.building)],
+            args: [new Arg(GenericArgType.building, "display")],
             description: "Flushes queued draw instructions to a display."
         }],
     printflush: [{
-            args: [new Arg(GenericArgType.building)],
+            args: [new Arg(GenericArgType.building, "messageblock")],
             description: "Flushes queued print instructions to a message block."
         }],
     getlink: [{
-            args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.number)],
+            args: [new Arg(GenericArgType.variable, "output"), new Arg(GenericArgType.number, "number")],
             description: "Gets the nth linked building. Useful when looping over all buildings."
         }],
     control: [
         {
-            args: [new Arg("enabled"), new Arg(GenericArgType.building), new Arg(GenericArgType.number)],
+            args: [new Arg("enabled"), new Arg(GenericArgType.building, "building"), new Arg(GenericArgType.number, "enabled")],
             description: "Sets whether a building is enabled."
         },
         {
-            args: [new Arg("shoot"), new Arg(GenericArgType.building), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("shoot"), new Arg(GenericArgType.building, "turret"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "shoot")],
             description: "Sets the shoot position of a turret."
         },
         {
-            args: [new Arg("shootp"), new Arg(GenericArgType.building), new Arg(GenericArgType.unit), new Arg(GenericArgType.number)],
+            args: [new Arg("shootp"), new Arg(GenericArgType.building, "turret"), new Arg(GenericArgType.unit, "unit"), new Arg(GenericArgType.number, "shoot")],
             description: "Sets the shoot position of a turret to a unit with velocity prediction."
         },
         {
-            args: [new Arg("config"), new Arg(GenericArgType.building), new Arg(GenericArgType.valid)],
+            args: [new Arg("config"), new Arg(GenericArgType.building, "building"), new Arg(GenericArgType.valid, "config")],
             description: "Sets the config of a building."
         },
         {
-            args: [new Arg("color"), new Arg(GenericArgType.building), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("color"), new Arg(GenericArgType.building, "illuminator"), new Arg(GenericArgType.number, "r"), new Arg(GenericArgType.number, "g"), new Arg(GenericArgType.number, "b")],
             description: "Sets the color of an illuminator."
         },
     ],
@@ -202,7 +203,7 @@ let commands = {
             description: "Terminates execution."
         }],
     jump: [{
-            args: [new Arg(GenericArgType.jumpAddress), new Arg(GenericArgType.operandTest), new Arg(GenericArgType.valid, true), new Arg(GenericArgType.valid, true)],
+            args: [new Arg(GenericArgType.jumpAddress), new Arg(GenericArgType.operandTest), new Arg(GenericArgType.valid, "var1", true), new Arg(GenericArgType.valid, "var2", true)],
             description: "Jumps to an address or label if a condition is met."
         }],
     ubind: [{
@@ -367,7 +368,7 @@ function compileMlogxToMlog(program, data) {
         }
         let commandList = commands[args[0].toLowerCase()];
         if (!commandList) {
-            err(`Unknown command ${args[0]}\nat ${line}`);
+            err(`Unknown command ${args[0]}\nat \`${line}\``);
             continue;
         }
         let error;
@@ -386,7 +387,7 @@ function compileMlogxToMlog(program, data) {
         }
         else {
             err(`Line
-	${line}
+	\`${line}\`
 	did not match any overloads for command ${args[0]}`);
         }
         if (!commandList[0].replace) {
@@ -409,7 +410,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
         if (!isArgOfType(arguments[+arg], command.args[+arg].type)) {
             return {
                 type: CommandErrorType.type,
-                message: `Type mismatch: value ${args[+arg]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(args[+arg])}
+                message: `Type mismatch: value ${arguments[+arg]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(arguments[+arg])}
 	at \`${line}\``
             };
         }
@@ -460,7 +461,9 @@ function main() {
         else
             console.log(`${programArgs["info"]}
 Usage:
-${commands[programArgs["info"]].map(command => programArgs["info"] + " " + command.args.map(arg => arg.toString()).join(" ") + "\t| " + command.description).join("\n")}`);
+
+${commands[programArgs["info"]].map(command => programArgs["info"] + " " + command.args.map(arg => arg.toString()).join(" ") + "\n" + command.description).join("\n\n")}
+`);
         return;
     }
     if (!fs.existsSync(process.cwd() + "/src")) {

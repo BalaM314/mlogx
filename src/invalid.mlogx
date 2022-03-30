@@ -1,0 +1,7 @@
+#include never
+#Is invalid.
+draw linerect 0 0 50 50 31
+draw image @copper 50 50
+ubind "poly"
+jump -1 never
+amogus
