@@ -1,10 +1,11 @@
 const fs = require("fs");
-const programArgs = process.argv.slice(2);
+const programArgs = parseArgs(process.argv.slice(2));
+//If we're in the compiler directory, go up a directory
 if(process.cwd().match(/compiler$/gi)){
 	process.chdir("..");
 }
 
-enum ArgType {
+enum GenericArgType {
 	variable="variable",
 	number="number",
 	string="string",
@@ -14,13 +15,28 @@ enum ArgType {
 	function="function",
 	any="any",
 	null="null",
-	operand_test="operand_test",
-	targetClass="targetClass"
+	operandTest="operandTest",
+	targetClass="targetClass",
+	unitSortCriteria="unitSortCriteria",
+	valid="valid",
+	operandType="operandType",
+	lookupType="lookupType",
+	jumpAddress="jumpAddress"
 }
+
+enum CommandErrorType {
+	argumentCount,
+	type
+}
+interface CommandError {
+	type: CommandErrorType;
+	message: string;
+}
+
+type ArgType = GenericArgType | string;
+/**Represents an argument(type) for a command.*/
 class Arg {
-	constructor(public type:ArgType, public optional = false){
-		
-	}
+	constructor(public type:ArgType, public optional:boolean = false){}
 	toString(){
 		if(this.optional){
 			return `(${this.type})`;
@@ -30,43 +46,46 @@ class Arg {
 	}
 }
 
-//Contains the arguments for all types.
+
+interface Command {
+	args: Arg[];
+	replace?: string[];
+	description: string;
+}
+
+/** Contains the arguments for all types.*/
 let commands: {
-	[index: string]: {
-		args: Arg[];
-		replace?: string[];
-		description: string;
-	};
+	[index: string]: Command[];
 } = {
-	call: {
-		args: [new Arg(ArgType.function)],
+	call: [{
+		args: [new Arg(GenericArgType.function)],
 		replace: [
 			"set _stack1 @counter",
 			"op add _stack1 _stack1 2",
 			"jump %1 always"
 		],
 		description: "Calls a function."
-	},
-	increment: {
-		args: [new Arg(ArgType.variable), new Arg(ArgType.number)],
+	}],
+	increment: [{
+		args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.number)],
 		replace: ["op add %1 %1 %2"],
 		description: "Adds a number to a variable."
-	},
-	return: {
+	}],
+	return: [{
 		args: [],
 		replace: ["set @counter _stack1"],
 		description: "Returns to the main program from a function."
-	},
-	throw: {
-		args: [new Arg(ArgType.string)],
+	}],
+	throw: [{
+		args: [new Arg(GenericArgType.string)],
 		replace: [
 			"set _err %1",
 			"jump _err always"
 		],
 		description: "Throws an error."
-	},
-	uflag: {
-		args: [new Arg(ArgType.type)],
+	}],
+	uflag: [{
+		args: [new Arg(GenericArgType.type)],
 		replace: [
 			"set _unit_type %1",
 			"set _stack1 @counter",
@@ -74,141 +93,220 @@ let commands: {
 			"jump _flag_unit always",
 		],
 		description: "Binds and flags a unit of specified type."
-	},
-	read: {
-		args: [new Arg(ArgType.variable), new Arg(ArgType.building), new Arg(ArgType.number)],
+	}],
+	read: [{
+		args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.building), new Arg(GenericArgType.number)],
 		description: "Reads a value from a memory cell."
-	},
-	write: {
-		args: [new Arg(ArgType.variable), new Arg(ArgType.building), new Arg(ArgType.number)],
+	}],
+	write: [{
+		args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.building), new Arg(GenericArgType.number)],
 		description: "Writes a value to a memory cell."
-	},
-	draw: {
-		args: [new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.number)],
-		description: "Adds draw instructions to the draw buffer."
-	},
-	print: {
-		args: [new Arg(ArgType.string)],
+	}],
+	draw: [
+		{
+			args: [new Arg("clear"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Clears the display."
+		},
+		{
+			args: [new Arg("color"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Sets the draw color."
+		},
+		{
+			args: [new Arg("stroke"), new Arg(GenericArgType.number)],
+			description: "Sets the stroke width."
+		},
+		{
+			args: [new Arg("line"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Draws a line between two points."
+		},
+		{
+			args: [new Arg("rect"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Draws a rectangle."
+		},
+		{
+			args: [new Arg("lineRect"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Draws the outline of a rectangle."
+		},
+		{
+			args: [new Arg("poly"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Draws a (regular) polygon."
+		},
+		{
+			args: [new Arg("linePoly"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Draws the outline of a polygon."
+		},
+		{
+			args: [new Arg("triangle"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Draws a triangle."
+		},
+		{
+			args: [new Arg("image"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.type), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Displays an image."
+		},
+	],
+	print: [{
+		args: [new Arg(GenericArgType.string)],
 		description: "Prints a value to the message buffer."
-	},
-	drawflush: {
-		args: [new Arg(ArgType.building)],
+	}],
+	drawflush: [{
+		args: [new Arg(GenericArgType.building)],
 		description: "Flushes queued draw instructions to a display."
-	},
-	printflush: {
-		args: [new Arg(ArgType.building)],
+	}],
+	printflush: [{
+		args: [new Arg(GenericArgType.building)],
 		description: "Flushes queued print instructions to a message block."
-	},
-	getlink: {
-		args: [new Arg(ArgType.variable), new Arg(ArgType.number)],
+	}],
+	getlink: [{
+		args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.number)],
 		description: "Gets the nth linked building. Useful when looping over all buildings."
-	},
-	control: {
-		args: [new Arg(ArgType.any), new Arg(ArgType.building), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.any)],
-		description: "Controls a building. Can only be used on linked buildings."
-	},
-	radar: {
-		args: [new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.any), new Arg(ArgType.building), new Arg(ArgType.number), new Arg(ArgType.variable)],
+	}],
+	control: [
+		{
+			args: [new Arg("enabled"), new Arg(GenericArgType.building), new Arg(GenericArgType.number)],
+			description: "Sets whether a building is enabled."
+		},
+		{
+			args: [new Arg("shoot"), new Arg(GenericArgType.building), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Sets the shoot position of a turret."
+		},
+		{
+			args: [new Arg("shootp"), new Arg(GenericArgType.building), new Arg(GenericArgType.unit), new Arg(GenericArgType.number)],
+			description: "Sets the shoot position of a turret to a unit with velocity prediction."
+		},
+		{
+			args: [new Arg("config"), new Arg(GenericArgType.building), new Arg(GenericArgType.valid)],
+			description: "Sets the config of a building."
+		},
+		{
+			args: [new Arg("color"), new Arg(GenericArgType.building), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+			description: "Sets the color of an illuminator."
+		},
+	],
+	radar: [{
+		args: [new Arg(GenericArgType.targetClass), new Arg(GenericArgType.targetClass), new Arg(GenericArgType.targetClass), new Arg(GenericArgType.unitSortCriteria), new Arg(GenericArgType.building), new Arg(GenericArgType.number), new Arg(GenericArgType.variable)],
 		description: "Finds nearby units of specified type."
-	},
-	sensor: {
-		args: [new Arg(ArgType.variable), new Arg(ArgType.any), new Arg(ArgType.type)],
-		description: "Gets information about a unit or building, does not need to be linked or on the same team."
-	},
-	set: {
-		args: [new Arg(ArgType.variable), new Arg(ArgType.any)],
+	}],
+	sensor: [
+		{
+			args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.building), new Arg(GenericArgType.type)],
+			description: "Gets information about a building, does not need to be linked or on the same team."
+		},
+		{
+			args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.unit), new Arg(GenericArgType.type)],
+			description: "Gets information about a unit, does not need to be on the same team."
+		},
+	],
+	set: [{
+		args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.valid)],
 		description: "Sets a variable."
-	},
-	op: {
-		args: [new Arg(ArgType.any), new Arg(ArgType.variable), new Arg(ArgType.number), new Arg(ArgType.number)],
+	}],
+	op: [{
+		args: [new Arg(GenericArgType.operandType), new Arg(GenericArgType.variable), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
 		description: "Performs an operation."
-	},
-	wait: {
-		args: [new Arg(ArgType.number)],
+	}],
+	wait: [{
+		args: [new Arg(GenericArgType.number)],
 		description: "Waits the specified number of seconds."
-	},
-	lookup: {
-		args: [new Arg(ArgType.any), new Arg(ArgType.variable), new Arg(ArgType.number)],
+	}],
+	lookup: [{
+		args: [new Arg(GenericArgType.lookupType), new Arg(GenericArgType.variable), new Arg(GenericArgType.number)],
 		description: "Looks up an item, building, fluid, or unit type."
-	},
-	end: {
+	}],
+	end: [{
 		args: [],
 		description: "Terminates execution."
-	},
-	jump: {
-		args: [new Arg(ArgType.number), new Arg(ArgType.operand_test), new Arg(ArgType.any, true), new Arg(ArgType.any, true)],
+	}],
+	jump: [{
+		args: [new Arg(GenericArgType.jumpAddress), new Arg(GenericArgType.operandTest), new Arg(GenericArgType.valid, true), new Arg(GenericArgType.valid, true)],
 		description: "Jumps to an address or label if a condition is met."
-	},
-	ubind: {
-		args: [new Arg(ArgType.type)],
+	}],
+	ubind: [{
+		args: [new Arg(GenericArgType.type)],
 		description: "Binds a unit of specified type. May return dead units."
-	},
-	ucontrol: {
-		args: [new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.type), new Arg(ArgType.number), new Arg(ArgType.any)],
+	}],
+	ucontrol: [{
+		args: [new Arg(GenericArgType.any), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.any), new Arg(GenericArgType.number), new Arg(GenericArgType.any)],
 		description: "Controls the bound unit."
-	},
-	uradar: {
-		args: [new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.targetClass), new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.number), new Arg(ArgType.variable)],
+	}],
+	uradar: [{
+		args: [new Arg(GenericArgType.targetClass), new Arg(GenericArgType.targetClass), new Arg(GenericArgType.targetClass), new Arg(GenericArgType.unitSortCriteria), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.variable)],
 		description: "Finds other units of specified class near the bound unit."
-	},
-	ulocate: {
-		args: [new Arg(ArgType.any), new Arg(ArgType.any), new Arg(ArgType.number), new Arg(ArgType.type), new Arg(ArgType.variable), new Arg(ArgType.variable), new Arg(ArgType.variable), new Arg(ArgType.variable)],
+	}],
+	ulocate: [{
+		args: [new Arg(GenericArgType.any), new Arg(GenericArgType.any), new Arg(GenericArgType.number), new Arg(GenericArgType.type), new Arg(GenericArgType.variable), new Arg(GenericArgType.variable), new Arg(GenericArgType.variable), new Arg(GenericArgType.variable)],
 		description: "Finds buildings of specified type near the bound unit."
-	},
+	}],
 };
 
 let settings = {
 	errorlevel: "warn"
 };
 
-function typeofArg(arg:string):ArgType {
-	if(arg == "") return ArgType.null;
+function typeofArg(arg:string):GenericArgType {
+	if(arg == "") return GenericArgType.null;
+	if(arg == undefined) return GenericArgType.null;
 	arg = arg.toLowerCase();
 	if(arg.match(/@[a-z\-]+/i)){
-		if(arg == "@counter") return ArgType.variable;
-		if(arg == "@unit") return ArgType.unit;
-		if(arg == "@thisx") return ArgType.number;
-		if(arg == "@thisy") return ArgType.number;
-		if(arg == "@this") return ArgType.building;
-		if(arg == "@ipt") return ArgType.number;
-		if(arg == "@links") return ArgType.number;
-		if(arg == "@time") return ArgType.number;
-		if(arg == "@ipt") return ArgType.number;
-		if(arg == "@tick") return ArgType.number;
-		if(arg == "@mapw") return ArgType.number;
-		if(arg == "@maph") return ArgType.number;
-		return ArgType.type;
+		if(arg == "@counter") return GenericArgType.variable;
+		if(arg == "@unit") return GenericArgType.unit;
+		if(arg == "@thisx") return GenericArgType.number;
+		if(arg == "@thisy") return GenericArgType.number;
+		if(arg == "@this") return GenericArgType.building;
+		if(arg == "@ipt") return GenericArgType.number;
+		if(arg == "@links") return GenericArgType.number;
+		if(arg == "@time") return GenericArgType.number;
+		if(arg == "@ipt") return GenericArgType.number;
+		if(arg == "@tick") return GenericArgType.number;
+		if(arg == "@mapw") return GenericArgType.number;
+		if(arg == "@maph") return GenericArgType.number;
+		return GenericArgType.type;
 	}
-	if(["equal", "notequal", "strictequal", "greaterthan", "lessthan", "greaterthaneq", "lessthaneq", "always"].includes(arg)) return ArgType.operand_test;
-	if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return ArgType.targetClass;
-	if(arg == "true") return ArgType.number;
-	if(arg.match(/^-?[\d]+$/)) return ArgType.number;
-	if(arg.match(/^"[^"]*"$/gi)) return ArgType.string;
-	if(arg.match(/^[a-z]+[\d]+$/gi)) return ArgType.building;
-	if(arg.match(/^[^"]+$/i)) return ArgType.variable;
-	return ArgType.null;
+	if(["equal", "notequal", "strictequal", "greaterthan", "lessthan", "greaterthaneq", "lessthaneq", "always"].includes(arg)) return GenericArgType.operandTest;
+	if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
+	if(arg == "true" || arg == "false") return GenericArgType.number;
+	if(arg.match(/^-?[\d]+$/)) return GenericArgType.number;
+	if(arg.match(/^"[^"]*"$/gi)) return GenericArgType.string;
+	if(arg.match(/^[a-z]+[\d]+$/gi)) return GenericArgType.building;
+	if(arg.match(/^[^"]+$/i)) return GenericArgType.variable;
+	return GenericArgType.null;
 }
 function isArgOfType(arg:string, type:ArgType):boolean {
-	if(type == ArgType.any) return true;
+	if(type === GenericArgType.any) return true;
 	if(arg == "0") return true;
 	if(arg == "") return false;
+	if(arg == undefined) return false;
 	arg = arg.toLowerCase();
-	let knownType:ArgType = typeofArg(arg);
-	switch(type){
-		case ArgType.variable: return knownType == type;
-		case ArgType.type:
-		case ArgType.number:
-		case ArgType.string:
-		case ArgType.building:
-		case ArgType.unit:
-		case ArgType.function:
-			return knownType == type || knownType == ArgType.variable;
-		case ArgType.operand_test:
-		case ArgType.targetClass:
-			return knownType == type;
+	if(GenericArgType[type] == undefined){
+		return arg === type;
 	}
-
-
+	let knownType:GenericArgType = typeofArg(arg);
+	if(knownType == type) return true;
+	switch(type){
+		case GenericArgType.type:
+		case GenericArgType.number:
+		case GenericArgType.string:
+		case GenericArgType.building:
+		case GenericArgType.unit:
+		case GenericArgType.function:
+			return knownType == GenericArgType.variable;
+		case GenericArgType.operandTest:
+			return ["equal", "notequal", "strictequal", "greaterthan", "lessthan", "greaterthaneq", "lessthaneq", "always"].includes(arg);
+		case GenericArgType.operandType:
+			return true;
+		case GenericArgType.lookupType:
+			return ["building", "unit", "fluid", "item"].includes(arg);
+		case GenericArgType.targetClass:
+			return ["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg);
+		case GenericArgType.operandTest:
+			return true;//todo make the super long array
+		case GenericArgType.unitSortCriteria:
+			return ["distance", "health", "shield", "armor", "maxHealth"].includes(arg);
+		case GenericArgType.valid:
+			return true;//this needs intellijence
+		case GenericArgType.jumpAddress:
+			return knownType == GenericArgType.number || knownType == GenericArgType.variable;
+	}
+	return false;
 }
 
 class CompilerError extends Error {
@@ -222,15 +320,16 @@ function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
 
 	function err(message){
 		if(settings.errorlevel == "warn"){
-			console.warn("Warning: " + message);
+			console.warn("Error: " + message);
 		} else {
 			throw new CompilerError(message);
 		}
 	}
 	
 	let outputData = [];
+	//OMG I USED A JS LABEL
+	nextLine:
 	for(var line of program){
-
 		if(line.includes("#") || line.includes("//")){
 			//Remove comments
 			if(!false){
@@ -238,11 +337,16 @@ function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
 				line = line.split("//")[0];
 			}
 		}
+
+		line = line.replace("\t", "");
+		//Remove tab characters 
+
 		if(line == "") continue;
 
-		line = line.split(/ /).map(arg => arg.startsWith("__") ? `__${data.filename}${arg}` : arg).join(" ");
+		line = line.split(" ").map(arg => arg.startsWith("__") ? `__${data.filename}${arg}` : arg).join(" ");
+		//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
-		if(line.match(/:$/)){
+		if(line.match(/[^ ]+:$/)){
 			//line is a label, don't touch it
 			outputData.push(line);
 			continue;
@@ -264,59 +368,121 @@ function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
 				}
 			}
 			args = replacementLine.join("").split(" ").map(arg => arg.replaceAll("\uFFFD", " "));
+			//smort logic so "amogus sus" is parsed as one arg
 		}
-		let command = commands[args[0].toLowerCase()];
-		if(!command){
+
+		let commandList = commands[args[0].toLowerCase()];
+		if(!commandList){
 			err(`Unknown command ${args[0]}\nat ${line}`);
 			continue;
 		}
 
-		if(args.length - 1 > command.args.length || args.length - 1 < command.args.filter(arg => !arg.optional).length){
+		let error:CommandError;
+		for(let command of commandList){
+			let result = checkCommand(args, command, line);
+			if(result instanceof Array){
+				outputData.push(...result);
+				continue nextLine;
+			} else {
+				error = result;
+			}
+		}
+		if(commandList.length == 1){
+			err(error.message);
+		} else {
 			err(
-`Incorrect number of arguments for command ${args[0]}
-at ${line}
-Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
+	`Line
+	${line}
+	did not match any overloads for command ${args[0]}`
 			);
-			if(command.replace) continue;
 		}
-
-		for(let arg in command.args){
-			if(!isArgOfType(args[+arg+1], command.args[+arg].type)){
-				err(
-`Type mismatch: value ${args[+arg+1]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(args[+arg+1])}
-\tat \`${line}\``
-				);
-			}
-			
+		if(!commandList[0].replace){
+			outputData.push(line + "#Error");
 		}
-
-		if(command.replace){
-			for(var replaceLine of command.replace){
-				replaceLine = replaceLine.replace(/%1/g, args[1]);
-				replaceLine = replaceLine.replace(/%2/g, args[2]);
-				replaceLine = replaceLine.replace(/%3/g, args[3]);
-				outputData.push(replaceLine);
-			}
-			continue;
-		}
-
-		outputData.push(line);
 
 	}
 	return outputData;
 }
 
+function checkCommand(args:string[], command:Command, line:string): string[] | CommandError {
+	let arguments = args.slice(1);
+	if(arguments.length > command.args.length || arguments.length < command.args.filter(arg => !arg.optional).length){
+		return {
+			type: CommandErrorType.argumentCount,
+			message:
+`Incorrect number of arguments for command ${args[0]}
+	at \`${line}\`
+Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
+		};
+	}
+
+	for(let arg in arguments){
+		if(!isArgOfType(arguments[+arg], command.args[+arg].type)){
+			return {
+				type: CommandErrorType.type,
+				message:
+`Type mismatch: value ${args[+arg]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(args[+arg])}
+	at \`${line}\``
+			};
+		}
+		
+	}
+
+	if(command.replace){
+		let out = [];
+		for(var replaceLine of command.replace){
+			replaceLine = replaceLine.replace(/%1/g, args[1]);
+			replaceLine = replaceLine.replace(/%2/g, args[2]);
+			replaceLine = replaceLine.replace(/%3/g, args[3]);
+			out.push(replaceLine);
+		}
+		return out;
+	}
+
+	return [line];
+}
+
+function parseArgs(args: string[]){
+	let parsedArgs: {
+		[index: string]: string;
+	} = {};
+	let argName:string = "null";
+	for (let arg of args) {
+		if(arg.startsWith("--")){
+			argName = arg.slice(2);
+			parsedArgs[arg.toLowerCase().slice(2)] = "null";
+		} else if(argName){
+			parsedArgs[argName] = arg.toLowerCase();
+			argName = "null";
+		}
+	}
+	return parsedArgs;
+}
+
 function main(){
 	//Option to specify directory to compile in
-	if(programArgs[0] == "--directory" && programArgs[1]){
-		console.log("Compiling in directory " + programArgs[1]);
-		process.chdir(programArgs[1]);
+	if(programArgs["directory"]){
+		console.log("Compiling in directory " + programArgs["directory"]);
+		process.chdir(programArgs["directory"]);
 	}
-	if(programArgs[0] == "--help"){
-		if(!commands[programArgs[1]])
-			console.log(`Unknown command ${programArgs[1]}`);
+	if(programArgs["help"]){
+		console.log(
+`Usage: compile [--help] [--directory <directory>] [--info <command>]
+\t--help\tDisplays this help message and exits.
+\t--info\tShows information about a command.
+\t--directory\tCompiles in a different directory.`
+		);
+	}
+	if(programArgs["info"]){
+		if(programArgs["info"] == "null") return console.log("Please specify a command to get information on.");
+		if(!commands[programArgs["info"]])
+			console.log(`Unknown command ${programArgs["info"]}`);
 		else
-			console.log(`${programArgs[1]}: ${commands[programArgs[1]]}\nUsage: ${programArgs[1]} ${commands[programArgs[1]].args.map(arg => arg.toString()).join(" ")}`);
+			console.log(
+`${programArgs["info"]}
+Usage:
+${commands[programArgs["info"]].map(command => programArgs["info"] + " " + command.args.map(arg => arg.toString()).join(" ") + "\t| " + command.description).join("\n")}`
+			);//todo clean this up ^^
 		return;
 	}
 

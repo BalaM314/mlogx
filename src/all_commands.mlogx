@@ -3,12 +3,21 @@
 #Mainly used for testing purposes.
 read result cell1 0
 write result cell1 0
-draw clear 0 0 0 0 0 0
+draw clear 128 128 128
+draw color 128 128 128 255
+draw stroke 5
+draw line 5 10 55 60
+draw rect 5 10 55 60
+draw lineRect 5 10 55 60
+draw poly 5 10 5 40 180
+draw linePoly 5 10 5 40 180
+draw triangle 5 10 55 60 5 60
+draw image 5 10 @copper 60 180
 print "frog"
 drawflush display1
 printflush message1
 getlink result 0
-control enabled block1 0 0 0 0
+control enabled block1 0
 radar enemy any any distance turret1 1 result
 sensor result block1 @copper
 set result 0
