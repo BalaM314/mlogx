@@ -109,15 +109,15 @@ let commands = {
             description: "Draws a rectangle."
         },
         {
-            args: [new Arg("lineRect"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("linerect"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
             description: "Draws the outline of a rectangle."
         },
         {
-            args: [new Arg("poly"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("poly"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
             description: "Draws a (regular) polygon."
         },
         {
-            args: [new Arg("linePoly"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg("linepoly"), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
             description: "Draws the outline of a polygon."
         },
         {
