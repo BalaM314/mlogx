@@ -18,5 +18,6 @@ Features:
 * [x] use --info for information about a command
 * [ ] more functions
 * [ ] more extra instructions
-* [?] intelligent error checking
+* [ ] intelligent error checking(remembers variable types)
 * [ ] become an npm package
+* [ ] not always include all functions
