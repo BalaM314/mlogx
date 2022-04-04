@@ -35,11 +35,15 @@ interface CommandError {
 
 type ArgType = GenericArgType | string;
 
+function isGenericArg(val:string): val is GenericArgType {
+	return GenericArgType[val as GenericArgType] != undefined;
+}
+
 /**Represents an argument(type) for a command.*/
 class Arg {
 	constructor(public type:ArgType, public name:string = "WIP", public optional:boolean = false){}
 	toString(){
-		if(!GenericArgType[this.type])
+		if(!isGenericArg(this.type))
 			return `${this.type}`;
 		if(this.optional)
 			return `(${this.name}:${this.type})`;
@@ -227,7 +231,7 @@ let commands: {
 		description: "Binds a unit of specified type. May return dead units."
 	}],
 	ucontrol: [{
-		args: [new Arg(GenericArgType.any), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.any), new Arg(GenericArgType.number), new Arg(GenericArgType.any)],
+		args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
 		description: "Controls the bound unit."
 	}],
 	uradar: [{
@@ -239,6 +243,15 @@ let commands: {
 		description: "Finds buildings of specified type near the bound unit."
 	}],
 };
+
+let var_code: {
+	[index: string]: string[];
+} = {
+	"cookie": [
+		`op mul _cookie @thisx @maph`,
+		`op add _cookie @thisy @cookie`
+	]
+}
 
 let settings = {
 	errorlevel: "warn"
@@ -278,7 +291,7 @@ function isArgOfType(arg:string, type:ArgType):boolean {
 	if(arg == "") return false;
 	if(arg == undefined) return false;
 	arg = arg.toLowerCase();
-	if(GenericArgType[type] == undefined){
+	if(!isGenericArg(type)){
 		return arg === type;
 	}
 	let knownType:GenericArgType = typeofArg(arg);
@@ -318,9 +331,11 @@ class CompilerError extends Error {
 	}
 }
 
-function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
+function compileMlogxToMlog(program:string[], options:{filename:string, isMain:boolean}):string[] {
 
-	function err(message){
+	let [programType, requiredVars] = parsePreprocessorDirectives(program);
+
+	function err(message:string){
 		if(settings.errorlevel == "warn"){
 			console.warn("Error: " + message);
 		} else {
@@ -329,9 +344,18 @@ function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
 	}
 	
 	let outputData = [];
+
+	for(let requiredVar of requiredVars){
+		if(var_code[requiredVar])
+			outputData.push(...var_code[requiredVar]);
+		else
+			err("Unknown require " + requiredVar);
+	}
+	
 	//OMG I USED A JS LABEL
 	nextLine:
-	for(var line of program){
+	for(let line of program){
+
 		if(line.includes("#") || line.includes("//")){
 			//Remove comments
 			if(!false){
@@ -345,7 +369,8 @@ function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
 
 		if(line == "") continue;
 
-		line = line.split(" ").map(arg => arg.startsWith("__") ? `__${data.filename}${arg}` : arg).join(" ");
+		if(!options.isMain)
+			line = line.split(" ").map(arg => arg.startsWith("__") ? `__${options.filename}${arg}` : arg).join(" ");
 		//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 		if(line.match(/[^ ]+:$/)){
@@ -370,7 +395,9 @@ function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
 				}
 			}
 			args = replacementLine.join("").split(" ").map(arg => arg.replaceAll("\uFFFD", " "));
-			//smort logic so "amogus sus" is parsed as one arg
+			//smort logic so `"amogus sus"` is parsed as one arg
+			//hmm I've automatically used backticks to make it clear that the quotes are included
+			//wonder if anyone understands that
 		}
 
 		let commandList = commands[args[0].toLowerCase()];
@@ -379,7 +406,7 @@ function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
 			continue;
 		}
 
-		let error:CommandError;
+		let error:any;//typescript why
 		for(let command of commandList){
 			let result = checkCommand(args, command, line);
 			if(result instanceof Array){
@@ -407,8 +434,8 @@ function compileMlogxToMlog(program:string[], data:{filename:string}):string[] {
 }
 
 function checkCommand(args:string[], command:Command, line:string): string[] | CommandError {
-	let arguments = args.slice(1);
-	if(arguments.length > command.args.length || arguments.length < command.args.filter(arg => !arg.optional).length){
+	let commandArguments = args.slice(1);
+	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.optional).length){
 		return {
 			type: CommandErrorType.argumentCount,
 			message:
@@ -418,12 +445,12 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 		};
 	}
 
-	for(let arg in arguments){
-		if(!isArgOfType(arguments[+arg], command.args[+arg].type)){
+	for(let arg in commandArguments){
+		if(!isArgOfType(commandArguments[+arg], command.args[+arg].type)){
 			return {
 				type: CommandErrorType.type,
 				message:
-`Type mismatch: value ${arguments[+arg]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(arguments[+arg])}
+`Type mismatch: value ${commandArguments[+arg]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(commandArguments[+arg])}
 	at \`${line}\``
 			};
 		}
@@ -444,6 +471,25 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 	return [line];
 }
 
+function parsePreprocessorDirectives(data:string[]): [string, string[]] {
+	let program_type:string = "unknown";
+	let required_vars:string[] = [];
+	for(let line of data){
+		if(line.startsWith("#require ")){
+			required_vars.push(...line.split("#require ")[1].split(",").map(el => el.replaceAll(" ", "")).filter(el => el != ""));
+		}
+		if(line.startsWith("#program_type ")){
+			let type = line.split("#program_type ")[1];
+			if(type == "never" || type == "main" || type == "function"){
+				program_type = type;
+			}
+		}
+	}
+
+	return [program_type, required_vars];
+
+}
+
 function parseArgs(args: string[]){
 	let parsedArgs: {
 		[index: string]: string;
@@ -461,7 +507,7 @@ function parseArgs(args: string[]){
 	return parsedArgs;
 }
 
-function main(){
+function init(){
 	//Option to specify directory to compile in
 	if(programArgs["directory"]){
 		console.log("Compiling in directory " + programArgs["directory"]);
@@ -491,6 +537,10 @@ ${commands[programArgs["info"]].map(
 			);//todo clean this up ^^
 		return;
 	}
+}
+
+function main(){
+
 
 	//Look for an src directory to compile from
 	if(!fs.existsSync(process.cwd() + "/src")){
@@ -503,9 +553,9 @@ ${commands[programArgs["info"]].map(
 	}
 
 	/**List of filenames ending in .mlogx in the src directory. */
-	let filelist_mlogx:string[] = fs.readdirSync(process.cwd() + "/src").filter(filename => filename.match(/.mlogx$/));
+	let filelist_mlogx:string[] = (fs.readdirSync(process.cwd() + "/src") as string[]).filter(filename => filename.match(/.mlogx$/));
 	/**List of filenames ending in .mlog in the src directory. */
-	let filelist_mlog:string[] = fs.readdirSync(process.cwd() + "/src").filter(filename => filename.match(/.mlog$/));
+	let filelist_mlog:string[] = (fs.readdirSync(process.cwd() + "/src") as string[]).filter(filename => filename.match(/.mlog$/));
 	console.log("Files to compile: ", filelist_mlogx);
 
 	let compiledData: {
@@ -524,7 +574,8 @@ ${commands[programArgs["info"]].map(
 		//Compile, but handle errors
 		try {
 			outputData = compileMlogxToMlog(data, {
-				filename: filename.split(".mlogx")[0] == "main.mlogx" ? "" : filename.split(".mlogx")[0]
+				filename,
+				isMain: parsePreprocessorDirectives(data)[0] == "main"
 			}).join("\r\n");
 		} catch(err){
 			console.error(`Failed to compile file ${filename}!`);
@@ -539,8 +590,8 @@ ${commands[programArgs["info"]].map(
 			`build/${filename.slice(0,-1)}`,
 			outputData
 		);
-		//if #include is never, then skip saving the compiled data
-		if(data[0] == "#include never") continue;
+		//if #program_type is never, then skip saving the compiled data
+		if(data.includes("#program_type never")) continue;
 		//If the filename is not main, add it to the list of compiled data, otherwise, set mainData to it
 		if(filename != "main.mlogx"){
 			compiledData[filename] = outputData;
@@ -567,5 +618,5 @@ ${commands[programArgs["info"]].map(
 	console.log("Done!");
 }
 
-
+init();
 main();

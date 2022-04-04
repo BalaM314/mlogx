@@ -1,3 +1,4 @@
+"use strict";
 const fs = require("fs");
 const programArgs = parseArgs(process.argv.slice(2));
 if (process.cwd().match(/compiler$/gi)) {
@@ -27,6 +28,9 @@ var CommandErrorType;
     CommandErrorType[CommandErrorType["argumentCount"] = 0] = "argumentCount";
     CommandErrorType[CommandErrorType["type"] = 1] = "type";
 })(CommandErrorType || (CommandErrorType = {}));
+function isGenericArg(val) {
+    return GenericArgType[val] != undefined;
+}
 class Arg {
     constructor(type, name = "WIP", optional = false) {
         this.type = type;
@@ -34,7 +38,7 @@ class Arg {
         this.optional = optional;
     }
     toString() {
-        if (!GenericArgType[this.type])
+        if (!isGenericArg(this.type))
             return `${this.type}`;
         if (this.optional)
             return `(${this.name}:${this.type})`;
@@ -211,7 +215,7 @@ let commands = {
             description: "Binds a unit of specified type. May return dead units."
         }],
     ucontrol: [{
-            args: [new Arg(GenericArgType.any), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.any), new Arg(GenericArgType.number), new Arg(GenericArgType.any)],
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
             description: "Controls the bound unit."
         }],
     uradar: [{
@@ -222,6 +226,12 @@ let commands = {
             args: [new Arg(GenericArgType.any), new Arg(GenericArgType.any), new Arg(GenericArgType.number), new Arg(GenericArgType.type), new Arg(GenericArgType.variable), new Arg(GenericArgType.variable), new Arg(GenericArgType.variable), new Arg(GenericArgType.variable)],
             description: "Finds buildings of specified type near the bound unit."
         }],
+};
+let var_code = {
+    "cookie": [
+        `op mul _cookie @thisx @maph`,
+        `op add _cookie @thisy @cookie`
+    ]
 };
 let settings = {
     errorlevel: "warn"
@@ -285,7 +295,7 @@ function isArgOfType(arg, type) {
     if (arg == undefined)
         return false;
     arg = arg.toLowerCase();
-    if (GenericArgType[type] == undefined) {
+    if (!isGenericArg(type)) {
         return arg === type;
     }
     let knownType = typeofArg(arg);
@@ -324,7 +334,8 @@ class CompilerError extends Error {
         this.name = "CompilerError";
     }
 }
-function compileMlogxToMlog(program, data) {
+function compileMlogxToMlog(program, options) {
+    let [programType, requiredVars] = parsePreprocessorDirectives(program);
     function err(message) {
         if (settings.errorlevel == "warn") {
             console.warn("Error: " + message);
@@ -334,7 +345,13 @@ function compileMlogxToMlog(program, data) {
         }
     }
     let outputData = [];
-    nextLine: for (var line of program) {
+    for (let requiredVar of requiredVars) {
+        if (var_code[requiredVar])
+            outputData.push(...var_code[requiredVar]);
+        else
+            err("Unknown require " + requiredVar);
+    }
+    nextLine: for (let line of program) {
         if (line.includes("#") || line.includes("//")) {
             if (!false) {
                 line = line.split("#")[0];
@@ -344,7 +361,8 @@ function compileMlogxToMlog(program, data) {
         line = line.replace("\t", "");
         if (line == "")
             continue;
-        line = line.split(" ").map(arg => arg.startsWith("__") ? `__${data.filename}${arg}` : arg).join(" ");
+        if (!options.isMain)
+            line = line.split(" ").map(arg => arg.startsWith("__") ? `__${options.filename}${arg}` : arg).join(" ");
         if (line.match(/[^ ]+:$/)) {
             outputData.push(line);
             continue;
@@ -397,8 +415,8 @@ function compileMlogxToMlog(program, data) {
     return outputData;
 }
 function checkCommand(args, command, line) {
-    let arguments = args.slice(1);
-    if (arguments.length > command.args.length || arguments.length < command.args.filter(arg => !arg.optional).length) {
+    let commandArguments = args.slice(1);
+    if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.optional).length) {
         return {
             type: CommandErrorType.argumentCount,
             message: `Incorrect number of arguments for command ${args[0]}
@@ -406,11 +424,11 @@ function checkCommand(args, command, line) {
 Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
         };
     }
-    for (let arg in arguments) {
-        if (!isArgOfType(arguments[+arg], command.args[+arg].type)) {
+    for (let arg in commandArguments) {
+        if (!isArgOfType(commandArguments[+arg], command.args[+arg].type)) {
             return {
                 type: CommandErrorType.type,
-                message: `Type mismatch: value ${arguments[+arg]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(arguments[+arg])}
+                message: `Type mismatch: value ${commandArguments[+arg]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(commandArguments[+arg])}
 	at \`${line}\``
             };
         }
@@ -427,6 +445,22 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
     }
     return [line];
 }
+function parsePreprocessorDirectives(data) {
+    let program_type = "unknown";
+    let required_vars = [];
+    for (let line of data) {
+        if (line.startsWith("#require ")) {
+            required_vars.push(...line.split("#require ")[1].split(",").map(el => el.replaceAll(" ", "")).filter(el => el != ""));
+        }
+        if (line.startsWith("#program_type ")) {
+            let type = line.split("#program_type ")[1];
+            if (type == "never" || type == "main" || type == "function") {
+                program_type = type;
+            }
+        }
+    }
+    return [program_type, required_vars];
+}
 function parseArgs(args) {
     let parsedArgs = {};
     let argName = "null";
@@ -442,7 +476,7 @@ function parseArgs(args) {
     }
     return parsedArgs;
 }
-function main() {
+function init() {
     if (programArgs["directory"]) {
         console.log("Compiling in directory " + programArgs["directory"]);
         process.chdir(programArgs["directory"]);
@@ -466,6 +500,8 @@ ${commands[programArgs["info"]].map(command => programArgs["info"] + " " + comma
 `);
         return;
     }
+}
+function main() {
     if (!fs.existsSync(process.cwd() + "/src")) {
         console.error("No src directory found!");
         return;
@@ -484,7 +520,8 @@ ${commands[programArgs["info"]].map(command => programArgs["info"] + " " + comma
         let outputData;
         try {
             outputData = compileMlogxToMlog(data, {
-                filename: filename.split(".mlogx")[0] == "main.mlogx" ? "" : filename.split(".mlogx")[0]
+                filename,
+                isMain: parsePreprocessorDirectives(data)[0] == "main"
             }).join("\r\n");
         }
         catch (err) {
@@ -496,7 +533,7 @@ ${commands[programArgs["info"]].map(command => programArgs["info"] + " " + comma
             return;
         }
         fs.writeFileSync(`build/${filename.slice(0, -1)}`, outputData);
-        if (data[0] == "#include never")
+        if (data.includes("#program_type never"))
             continue;
         if (filename != "main.mlogx") {
             compiledData[filename] = outputData;
@@ -518,4 +555,5 @@ ${commands[programArgs["info"]].map(command => programArgs["info"] + " " + comma
     fs.writeFileSync(`out.mlog`, mainData + "\r\nend\r\n\r\n" + Object.values(compiledData).join("\r\n\r\n"));
     console.log("Done!");
 }
+init();
 main();

@@ -107,4 +107,35 @@ _flag_unit(_unit_type) -> @unit
 
 Binds and flags an unused unit.
 
+WARNING: will block if no units are available.
+
 More coming Soon™.
+
+## Preprocessor directives
+
+They're cool so I added them.
+
+`#program_type [function, main, never]`
+
+never: Causes a file to never be included in the compiled program. Must be on the very first line. Useful for files like all_commands.mlogx.
+
+main: Specifies that a file is a main program, and functions should be appended to it.
+
+function: Specifies that a file is a function, and should be appended to main programs.
+
+`#require [var1, var2...]`
+
+A list of variables you want to include.
+
+## Requireable vars
+Not prefixed with an underscore, so take note if you're using them!
+
+`cookie`
+
+Generates a random cookie based on the processor's x and y coordinates. Useful for flagging units.
+
+`core`
+
+Uses a unit to ulocate the nearest core. Errors if no units are available.
+
+
