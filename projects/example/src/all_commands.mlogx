@@ -1,4 +1,4 @@
-#include never
+#program_type never
 #Contains every command. Isn't included in the compiled output.
 #Mainly used for testing purposes.
 read result cell1 0

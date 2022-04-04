@@ -4,6 +4,10 @@ This project is a work in progress! These instructions are not complete!
 
 ## Guide to making programs
 This guide assumes you already know how to make mlog programs, but are frustrated when you try to make larger projects.
+
+Need help? I'm BalaM314#4781, you can ping me in the #logic channel of the official Mindustry discord.
+
+### For larger projects
 Place your .mlog or .mlogx(supports the extended instruction set in this document) files in /src.
 Running the compiler with `node compiler/compile.js` transpiles .mlogx files into .mlog files, and then combines all your separate files into one(out.mlog), which you paste into a processor in-game.
 
@@ -11,8 +15,9 @@ Note that you don't *need* to use mlogx, you can call functions and bundle your 
 
 Note: Without jump or call statements, the only file executed is main.mlog(x). Your other files should contain functions or subroutines that you can call. Functions are only included in your final program if you use them, however, they don't make your program any slower unless they are executed.
 
+### For standalone files
+Create a folder and place a single .mlogx file inside. It will be compiled into a .mlog file.
 
-Need help? I'm BalaM314#4781, you can ping me in the #logic channel of the official Mindustry discord.
 
 ## Functions
 yeah we have functions! See count_block_type.mlogx for an example.

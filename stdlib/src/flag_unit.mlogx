@@ -17,5 +17,5 @@ op or __unitFlagOk __unitUnflagged __unitHasOurFlag
 jump _flag_unit notEqual __unitFlagOk true
 jump _flag_unit notEqual __unitNotControlled true
 #Flag the unit and return
-ucontrol flag _cookie @thisy 0 0 0
+ucontrol flag _cookie
 return
