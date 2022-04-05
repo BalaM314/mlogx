@@ -1,6 +1,7 @@
 import fs = require("fs");
 import path = require("path");
 const [programArgs, fileNames] = parseArgs(process.argv.slice(2));
+const stdlibDirectory = path.join(process.argv[1], "..", "..", "stdlib", "build");
 
 
 enum GenericArgType {
@@ -335,14 +336,14 @@ class CompilerError extends Error {
 	}
 }
 
-function compileMlogxToMlog(program:string[], options:{filename:string}):string[] {
+function compileMlogxToMlog(program:string[], options:{filename:string, errorlevel:string, compilerMode:string}):string[] {
 
 	let [programType, requiredVars] = parsePreprocessorDirectives(program);
 
-	let isMain = programType == "main" || settings.compilerMode == "single";
+	let isMain = programType == "main" || options.compilerMode == "single";
 
 	function err(message:string){
-		if(settings.errorlevel == "warn"){
+		if(options.errorlevel == "warn"){
 			console.warn("Error: " + message);
 		} else {
 			throw new CompilerError(message);
@@ -519,7 +520,7 @@ function parseArgs(args: string[]): [
 	return [parsedArgs, mainArgs];
 }
 
-function init(){
+function main(){
 	//Option to specify directory to compile in
 
 	if(programArgs["help"]){
@@ -553,26 +554,32 @@ ${commands[programArgs["info"]].map(
 	}
 	try {
 		if(fs.existsSync(path.join(fileNames[0], "src")) && fs.lstatSync(path.join(fileNames[0], "src")).isDirectory()){
-			settings.compilerMode = "project";	
+			settings.compilerMode = "project";
+			console.log("Compiling project " + fileNames[0]);
 		} else if(fs.existsSync(fileNames[0]) && fs.lstatSync(fileNames[0]).isDirectory()){
 			settings.compilerMode = "single";
+			console.log("Compiling folder " + fileNames[0]);
 		} else {
 			exit("Invalid directory specified!");
 		}
-		process.chdir(path.join(process.cwd(), fileNames[0]));
+		// process.chdir(path.join(process.cwd(), fileNames[0]));
 	} catch(err){
 		exit("Invalid directory specified.");
 	}
 
+	compile_directory(fileNames[0], settings);
 }
 
-function main(){
+function compile_directory(directory:string, options: {
+	compilerMode: string,
+	errorlevel: string
+}){
 
-	const sourceDirectory = settings.compilerMode == "project" ? path.join(process.cwd(), "src") : process.cwd();
-	const outputDirectory = settings.compilerMode == "project" ? path.join(process.cwd(), "build") : sourceDirectory;
+	const sourceDirectory = options.compilerMode == "project" ? path.join(directory, "src") : directory;
+	const outputDirectory = options.compilerMode == "project" ? path.join(directory, "build") : sourceDirectory;
 
 
-	if(settings.compilerMode == "project" && !fs.existsSync(outputDirectory)){
+	if(options.compilerMode == "project" && !fs.existsSync(outputDirectory)){
 		fs.mkdirSync(outputDirectory);
 	}
 
@@ -580,12 +587,21 @@ function main(){
 	let filelist_mlogx:string[] = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/.mlogx$/));
 	/**List of filenames ending in .mlog in the src directory. */
 	let filelist_mlog:string[] = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/.mlog$/));
+
+	let filelist_stdlib:string[] = fs.readdirSync(stdlibDirectory).filter(filename => filename.match(/.mlog$/));
 	console.log("Files to compile: ", filelist_mlogx);
 
 	let compiledData: {
 		[index: string]: string;
 	} = {};
+	let stdlibData: {
+		[index: string]: string;
+	} = {};
 	let mainData = "";
+
+	for(let filename of filelist_stdlib){
+		stdlibData[filename] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8');
+	}
 
 	for(let filename of filelist_mlogx){
 		//For each filename in the file list
@@ -598,7 +614,8 @@ function main(){
 		//Compile, but handle errors
 		try {
 			outputData = compileMlogxToMlog(data, {
-				filename
+				filename,
+				...options
 			}).join("\r\n");
 		} catch(err){
 			console.error(`Failed to compile file ${filename}!`);
@@ -608,12 +625,16 @@ function main(){
 				console.error(err);
 			return;
 		}
-		//Write .mlog files to /build
+		if(options.compilerMode == "single"){
+			outputData += "\r\nend\r\n#stdlib\r\n\r\n";
+			outputData += Object.values(stdlibData).join("\r\nend\r\n\r\n");
+		}
+		//Write .mlog files to output
 		fs.writeFileSync(
 			path.join(outputDirectory, filename.slice(0,-1)),
 			outputData
 		);
-		if(settings.compilerMode == "project"){
+		if(options.compilerMode == "project"){
 			//if #program_type is never, then skip saving the compiled data
 			if(data.includes("#program_type never")) continue;
 			//If the filename is not main, add it to the list of compiled data, otherwise, set mainData to it
@@ -625,7 +646,7 @@ function main(){
 		}
 	}
 
-	if(settings.compilerMode == "project"){
+	if(options.compilerMode == "project"){
 		for(let filename of filelist_mlog){
 			//For each filename in the other file list
 			//If the filename is not main, add it to the list of compiled data, otherwise, set mainData to it
@@ -638,12 +659,13 @@ function main(){
 		console.log("Compiled all files successfully.");
 		console.log("Assembling output:");
 		fs.writeFileSync(
-			`out.mlog`,
-			mainData + "\r\nend\r\n\r\n" + Object.values(compiledData).join("\r\n\r\n")
+			path.join(directory, "out.mlog"),
+			mainData + "\r\nend\r\n#functions\r\n\r\n" + Object.values(compiledData).join("\r\nend\r\n\r\n") + "\r\nend\r\n#stdlib\r\n\r\n" + Object.values(stdlibData).join("\r\nend\r\n\r\n")
 		);
+		console.log("Done!");
+	} else {
 		console.log("Done!");
 	}
 }
 
-init();
 main();

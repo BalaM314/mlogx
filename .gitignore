@@ -1,3 +1,5 @@
 compiler/node_modules
-build
-out.mlog
+projects/example_projects/build
+projects/example_projects/out.mlog
+projects/example_simple_project/hello.mlog
+stdlib/build

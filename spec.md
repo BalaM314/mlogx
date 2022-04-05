@@ -13,10 +13,12 @@ Running the compiler with `node compiler/compile.js` transpiles .mlogx files int
 
 Note that you don't *need* to use mlogx, you can call functions and bundle your files with vanilla MLOG(it'll just be annoying to write function calls without `call`).
 
-Note: Without jump or call statements, the only file executed is main.mlog(x). Your other files should contain functions or subroutines that you can call. Functions are only included in your final program if you use them, however, they don't make your program any slower unless they are executed.
+Note: Without jump or call statements, the only file executed is main.mlog(x). Your other files should contain functions or subroutines that you can call. As this project is a WIP, currently all functions from the stdlib are included in your output file, however, they don't make your program any slower unless they are executed. This is temporary, but I need to make a linker first, which is... non-trivial.
 
 ### For standalone files
-Create a folder and place a single .mlogx file inside. It will be compiled into a .mlog file.
+Create a folder and place one or more .mlogx files inside. They will be compiled into .mlog files and placed in the same directory.
+
+All functions from the stdlib are included in your output file, however, they don't make your program any slower unless they are executed. This is temporary, but I need to make a linker first, which is... non-trivial.
 
 
 ## Functions
@@ -120,18 +122,21 @@ More coming Soon™.
 
 They're cool so I added them.
 
-`#program_type [function, main, never]`
+`#program_type [append, main, never]`
 
 never: Causes a file to never be included in the compiled program. Must be on the very first line. Useful for files like all_commands.mlogx.
 
 main: Specifies that a file is a main program, and functions should be appended to it.
 
-function: Specifies that a file is a function, and should be appended to main programs.
+append: Specifies that a file should be appended to the main program in a project.
 
 `#require [var1, var2...]`
 
 A list of variables you want to include.
 
+`#function functionName(arg1, arg2) -> outputVar`
+
+Specifies that a program is a function. Eventually will be used for intelligence.
 ## Requireable vars
 Not prefixed with an underscore, so take note if you're using them!
 
@@ -141,6 +146,6 @@ Generates a random cookie based on the processor's x and y coordinates. Useful f
 
 `core`
 
-Uses a unit to ulocate the nearest core. Errors if no units are available.
+[NYI] Uses a unit to ulocate the nearest core. Errors if no units are available.
 
 
