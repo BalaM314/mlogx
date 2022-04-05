@@ -46,7 +46,20 @@ class Arg {
             return `[${this.name}:${this.type}]`;
     }
 }
-let commands = {
+function processCommands(preprocessedCommands) {
+    let out = {};
+    for (let [name, commands] of Object.entries(preprocessedCommands)) {
+        out[name] = [];
+        for (let command of commands) {
+            out[name].push({
+                ...command,
+                args: command.args.map(arg => typeof arg == "string" ? new Arg(arg) : arg)
+            });
+        }
+    }
+    return out;
+}
+let commands = processCommands({
     call: [{
             args: [new Arg(GenericArgType.function, "function")],
             replace: [
@@ -94,43 +107,43 @@ let commands = {
         }],
     draw: [
         {
-            args: [new Arg("clear"), new Arg(GenericArgType.number, "r"), new Arg(GenericArgType.number, "g"), new Arg(GenericArgType.number, "b")],
+            args: ["clear", new Arg(GenericArgType.number, "r"), new Arg(GenericArgType.number, "g"), new Arg(GenericArgType.number, "b")],
             description: "Clears the display."
         },
         {
-            args: [new Arg("color"), new Arg(GenericArgType.number, "r"), new Arg(GenericArgType.number, "g"), new Arg(GenericArgType.number, "b"), new Arg(GenericArgType.number, "a")],
+            args: ["color", new Arg(GenericArgType.number, "r"), new Arg(GenericArgType.number, "g"), new Arg(GenericArgType.number, "b"), new Arg(GenericArgType.number, "a")],
             description: "Sets the draw color."
         },
         {
-            args: [new Arg("stroke"), new Arg(GenericArgType.number, "width")],
+            args: ["stroke", new Arg(GenericArgType.number, "width")],
             description: "Sets the stroke width."
         },
         {
-            args: [new Arg("line"), new Arg(GenericArgType.number, "x1"), new Arg(GenericArgType.number, "y1"), new Arg(GenericArgType.number, "x2"), new Arg(GenericArgType.number, "y2")],
+            args: ["line", new Arg(GenericArgType.number, "x1"), new Arg(GenericArgType.number, "y1"), new Arg(GenericArgType.number, "x2"), new Arg(GenericArgType.number, "y2")],
             description: "Draws a line between two points."
         },
         {
-            args: [new Arg("rect"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "width"), new Arg(GenericArgType.number, "height")],
+            args: ["rect", new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "width"), new Arg(GenericArgType.number, "height")],
             description: "Draws a rectangle."
         },
         {
-            args: [new Arg("linerect"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "width"), new Arg(GenericArgType.number, "height")],
+            args: ["linerect", new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "width"), new Arg(GenericArgType.number, "height")],
             description: "Draws the outline of a rectangle."
         },
         {
-            args: [new Arg("poly"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "sides"), new Arg(GenericArgType.number, "radius"), new Arg(GenericArgType.number, "rotation")],
+            args: ["poly", new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "sides"), new Arg(GenericArgType.number, "radius"), new Arg(GenericArgType.number, "rotation")],
             description: "Draws a (regular) polygon."
         },
         {
-            args: [new Arg("linepoly"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "sides"), new Arg(GenericArgType.number, "radius"), new Arg(GenericArgType.number, "rotation")],
+            args: ["linepoly", new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "sides"), new Arg(GenericArgType.number, "radius"), new Arg(GenericArgType.number, "rotation")],
             description: "Draws the outline of a polygon."
         },
         {
-            args: [new Arg("triangle"), new Arg(GenericArgType.number, "x1"), new Arg(GenericArgType.number, "y1"), new Arg(GenericArgType.number, "x2"), new Arg(GenericArgType.number, "y2"), new Arg(GenericArgType.number, "x3"), new Arg(GenericArgType.number, "y3")],
+            args: ["triangle", new Arg(GenericArgType.number, "x1"), new Arg(GenericArgType.number, "y1"), new Arg(GenericArgType.number, "x2"), new Arg(GenericArgType.number, "y2"), new Arg(GenericArgType.number, "x3"), new Arg(GenericArgType.number, "y3")],
             description: "Draws a triangle."
         },
         {
-            args: [new Arg("image"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.type, "image"), new Arg(GenericArgType.number, "size"), new Arg(GenericArgType.number, "rotation")],
+            args: ["image", new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.type, "image"), new Arg(GenericArgType.number, "size"), new Arg(GenericArgType.number, "rotation")],
             description: "Displays an image."
         },
     ],
@@ -152,54 +165,63 @@ let commands = {
         }],
     control: [
         {
-            args: [new Arg("enabled"), new Arg(GenericArgType.building, "building"), new Arg(GenericArgType.number, "enabled")],
+            args: ["enabled", new Arg(GenericArgType.building, "building"), new Arg(GenericArgType.number, "enabled")],
             description: "Sets whether a building is enabled."
         },
         {
-            args: [new Arg("shoot"), new Arg(GenericArgType.building, "turret"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "shoot")],
+            args: ["shoot", new Arg(GenericArgType.building, "turret"), new Arg(GenericArgType.number, "x"), new Arg(GenericArgType.number, "y"), new Arg(GenericArgType.number, "shoot")],
             description: "Sets the shoot position of a turret."
         },
         {
-            args: [new Arg("shootp"), new Arg(GenericArgType.building, "turret"), new Arg(GenericArgType.unit, "unit"), new Arg(GenericArgType.number, "shoot")],
+            args: ["shootp", new Arg(GenericArgType.building, "turret"), new Arg(GenericArgType.unit, "unit"), new Arg(GenericArgType.number, "shoot")],
             description: "Sets the shoot position of a turret to a unit with velocity prediction."
         },
         {
-            args: [new Arg("config"), new Arg(GenericArgType.building, "building"), new Arg(GenericArgType.valid, "config")],
+            args: ["config", new Arg(GenericArgType.building, "building"), new Arg(GenericArgType.valid, "config")],
             description: "Sets the config of a building."
         },
         {
-            args: [new Arg("color"), new Arg(GenericArgType.building, "illuminator"), new Arg(GenericArgType.number, "r"), new Arg(GenericArgType.number, "g"), new Arg(GenericArgType.number, "b")],
+            args: ["color", new Arg(GenericArgType.building, "illuminator"), new Arg(GenericArgType.number, "r"), new Arg(GenericArgType.number, "g"), new Arg(GenericArgType.number, "b")],
             description: "Sets the color of an illuminator."
         },
     ],
-    radar: [{
-            args: [new Arg(GenericArgType.targetClass), new Arg(GenericArgType.targetClass), new Arg(GenericArgType.targetClass), new Arg(GenericArgType.unitSortCriteria), new Arg(GenericArgType.building), new Arg(GenericArgType.number), new Arg(GenericArgType.variable)],
+    radar: [
+        {
+            args: [new Arg(GenericArgType.targetClass, "targetClass"), new Arg(GenericArgType.targetClass, "targetClass"), new Arg(GenericArgType.targetClass, "targetClass"), new Arg(GenericArgType.unitSortCriteria, "sortCriteria"), new Arg(GenericArgType.building, "turret"), new Arg(GenericArgType.number, "sortOrder"), new Arg(GenericArgType.variable, "output")],
             description: "Finds nearby units of specified type."
-        }],
+        },
+        {
+            args: [new Arg(GenericArgType.targetClass, "targetClass"), new Arg(GenericArgType.unitSortCriteria, "sortCriteria"), new Arg(GenericArgType.building, "turret"), new Arg(GenericArgType.number, "sortOrder"), new Arg(GenericArgType.variable, "output")],
+            description: "Finds nearby units of specified type.",
+            replace: [
+                "radar %1 %1 %1 %2 %3 %4 %5"
+            ]
+        },
+    ],
     sensor: [
         {
-            args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.building), new Arg(GenericArgType.type)],
+            args: [new Arg(GenericArgType.variable, "output"), new Arg(GenericArgType.building, "building"), new Arg(GenericArgType.type, "value")],
             description: "Gets information about a building, does not need to be linked or on the same team."
         },
         {
-            args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.unit), new Arg(GenericArgType.type)],
+            args: [new Arg(GenericArgType.variable, "output"), new Arg(GenericArgType.unit, "unit"), new Arg(GenericArgType.type, "value")],
             description: "Gets information about a unit, does not need to be on the same team."
         },
     ],
     set: [{
-            args: [new Arg(GenericArgType.variable), new Arg(GenericArgType.valid)],
+            args: [new Arg(GenericArgType.variable, "variable"), new Arg(GenericArgType.valid, "value")],
             description: "Sets a variable."
         }],
     op: [{
-            args: [new Arg(GenericArgType.operandType), new Arg(GenericArgType.variable), new Arg(GenericArgType.number), new Arg(GenericArgType.number)],
+            args: [new Arg(GenericArgType.operandType, "operand"), new Arg(GenericArgType.variable, "output"), new Arg(GenericArgType.number, "arg1"), new Arg(GenericArgType.number, "arg2")],
             description: "Performs an operation."
         }],
     wait: [{
-            args: [new Arg(GenericArgType.number)],
+            args: [new Arg(GenericArgType.number, "seconds")],
             description: "Waits the specified number of seconds."
         }],
     lookup: [{
-            args: [new Arg(GenericArgType.lookupType), new Arg(GenericArgType.variable), new Arg(GenericArgType.number)],
+            args: [new Arg(GenericArgType.lookupType, "type"), new Arg(GenericArgType.variable, "output"), new Arg(GenericArgType.number, "index")],
             description: "Looks up an item, building, fluid, or unit type."
         }],
     end: [{
@@ -207,17 +229,87 @@ let commands = {
             description: "Terminates execution."
         }],
     jump: [{
-            args: [new Arg(GenericArgType.jumpAddress), new Arg(GenericArgType.operandTest), new Arg(GenericArgType.valid, "var1", true), new Arg(GenericArgType.valid, "var2", true)],
+            args: [new Arg(GenericArgType.jumpAddress, "jumpAddress"), new Arg(GenericArgType.operandTest, "operandTest"), new Arg(GenericArgType.valid, "var1", true), new Arg(GenericArgType.valid, "var2", true)],
             description: "Jumps to an address or label if a condition is met."
         }],
     ubind: [{
-            args: [new Arg(GenericArgType.type)],
+            args: [new Arg(GenericArgType.type, "unitType")],
             description: "Binds a unit of specified type. May return dead units."
         }],
-    ucontrol: [{
+    ucontrol: [
+        {
+            args: [new Arg("")],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [],
+            description: "Controls the bound unit."
+        },
+        {
             args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
             description: "Controls the bound unit."
-        }],
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+        {
+            args: [new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true), new Arg(GenericArgType.number, "WIP", true), new Arg(GenericArgType.any, "WIP", true)],
+            description: "Controls the bound unit."
+        },
+    ],
     uradar: [{
             args: [new Arg(GenericArgType.targetClass), new Arg(GenericArgType.targetClass), new Arg(GenericArgType.targetClass), new Arg(GenericArgType.unitSortCriteria), new Arg(GenericArgType.number), new Arg(GenericArgType.number), new Arg(GenericArgType.variable)],
             description: "Finds other units of specified class near the bound unit."
@@ -226,7 +318,7 @@ let commands = {
             args: [new Arg(GenericArgType.any), new Arg(GenericArgType.any), new Arg(GenericArgType.number), new Arg(GenericArgType.type), new Arg(GenericArgType.variable), new Arg(GenericArgType.variable), new Arg(GenericArgType.variable), new Arg(GenericArgType.variable)],
             description: "Finds buildings of specified type near the bound unit."
         }],
-};
+});
 let var_code = {
     "cookie": [
         `op mul _cookie @thisx @maph`,
