@@ -29,4 +29,8 @@ jump -1 notEqual x false
 ubind @poly
 ucontrol move 0 0 0 0 0
 uradar enemy any any distance 0 1 result
-ulocate building core true @copper outx outy found building
+ulocate building core true @copper outX outY found building
+ulocate building core false outX outY found building
+ulocate ore @copper outX outY found
+ulocate damaged outX outY found building
+ulocate spawn outX outY found
