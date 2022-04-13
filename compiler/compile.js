@@ -367,7 +367,7 @@ function typeofArg(arg) {
         return GenericArgType.operandTest;
     if (["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg))
         return GenericArgType.targetClass;
-    if (["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"])
+    if (["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg))
         return GenericArgType.buildingGroup;
     if (["true", "false"].includes(arg))
         return GenericArgType.boolean;

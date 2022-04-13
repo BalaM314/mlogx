@@ -387,7 +387,7 @@ function typeofArg(arg:string):GenericArgType {
 	}
 	if(["equal", "notequal", "strictequal", "greaterthan", "lessthan", "greaterthaneq", "lessthaneq", "always"].includes(arg)) return GenericArgType.operandTest;
 	if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
-	if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"]) return GenericArgType.buildingGroup;
+	if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;
 	if(["true", "false"].includes(arg)) return GenericArgType.boolean;
 	if(arg == "true" || arg == "false") return GenericArgType.number;
 	if(arg.match(/^-?[\d]+$/)) return GenericArgType.number;
