@@ -154,7 +154,7 @@ let commands = processCommands({
     ],
     print: [{
             args: [arg("string", "message")],
-            description: "Prints a (message) to the message buffer."
+            description: "Prints (message) to the message buffer."
         }],
     drawflush: [{
             args: [arg("building", "display")],
@@ -170,15 +170,15 @@ let commands = processCommands({
         }],
     control: [
         {
-            args: ["enabled", arg("building", "building"), arg("number", "enabled")],
+            args: ["enabled", arg("building", "building"), arg("boolean", "enabled")],
             description: "Sets whether (building) is enabled."
         },
         {
-            args: ["shoot", arg("building", "turret"), arg("number", "x"), arg("number", "y"), arg("number", "shoot")],
+            args: ["shoot", arg("building", "turret"), arg("number", "x"), arg("number", "y"), arg("boolean", "shoot")],
             description: "Sets the shoot position of (turret) to (x,y) and shoots if (shoot)."
         },
         {
-            args: ["shootp", arg("building", "turret"), arg("unit", "unit"), arg("number", "shoot")],
+            args: ["shootp", arg("building", "turret"), arg("unit", "unit"), arg("boolean", "shoot")],
             description: "Sets the shoot position of (turret) to (unit) with velocity prediction and shoots if (shoot)."
         },
         {
@@ -197,7 +197,7 @@ let commands = processCommands({
         },
         {
             args: [arg("targetClass", "targetClass"), arg("unitSortCriteria", "sortCriteria"), arg("building", "turret"), arg("number", "sortOrder"), arg("variable", "output")],
-            description: "Finds nearby units of specified type within the range of (turret).",
+            description: "Finds units of specified type within the range of (turret).",
             replace: [
                 "radar %1 %1 %1 %2 %3 %4 %5"
             ]
@@ -259,7 +259,7 @@ let commands = processCommands({
             description: "Tells the bound unit to approach (x,y) but stay (radius) away. Does not wait for the unit to reach."
         },
         {
-            args: ["boost", arg("number", "enable")],
+            args: ["boost", arg("boolean", "enable")],
             description: "Tells the bound unit to boost or not boost."
         },
         {
@@ -267,11 +267,11 @@ let commands = processCommands({
             description: "Tells the bound unit to follow its normal AI."
         },
         {
-            args: ["target", arg("number", "x"), arg("number", "y"), arg("number", "shoot")],
+            args: ["target", arg("number", "x"), arg("number", "y"), arg("boolean", "shoot")],
             description: "Tells the bound unit to target/shoot (x,y).\nWill not shoot if the position is outside the unit's range."
         },
         {
-            args: ["targetp", arg("unit", "unit"), arg("number", "shoot")],
+            args: ["targetp", arg("unit", "unit"), arg("boolean", "shoot")],
             description: "Tells the bound unit to target/shoot a unit.\nWill not shoot if the position is outside the unit's range."
         },
         {
@@ -287,7 +287,7 @@ let commands = processCommands({
             description: "Tells the bound unit to drop its payload."
         },
         {
-            args: ["payTake", arg("number", "takeUnits")],
+            args: ["payTake", arg("boolean", "takeUnits")],
             description: "Tells the bound unit to pick up a payload and if to take units."
         },
         {
@@ -322,6 +322,7 @@ let commands = processCommands({
         },
         {
             args: [arg("targetClass", "targetClass"), arg("unitSortCriteria", "sortCriteria"), arg("number", "sortOrder"), arg("variable", "output")],
+            replace: ["uradar %1 %1 %1 %2 %3 %4"],
             description: "Finds other units of specified class near the bound unit."
         },
     ],
@@ -342,7 +343,7 @@ let commands = processCommands({
             replace: ["ulocate damaged core _ _ %2 %3 %4 %5"]
         },
         {
-            args: ["building", arg("buildingGroup", "buildingGroup"), arg("number", "enemy"), arg("variable", "outX"), arg("variable", "outY"), arg("variable", "found"), arg("variable", "building")],
+            args: ["building", arg("buildingGroup", "buildingGroup"), arg("boolean", "enemy"), arg("variable", "outX"), arg("variable", "outY"), arg("variable", "found"), arg("variable", "building")],
             description: "Finds buildings of specified group near the bound unit.",
             replace: ["ulocate building %2 %3 _ %4 %5 %6 %7"]
         },
@@ -645,7 +646,9 @@ directory: The directory to compile in.
             console.log(`${programArgs["info"]}
 Usage:
 
-${commands[programArgs["info"]].map(command => programArgs["info"] + " " + command.args.map(arg => arg.toString()).join(" ") + "\n" + command.description).join("\n\n")}
+${commands[programArgs["info"]].map(command => programArgs["info"] + " " + command.args
+                .map(arg => arg.toString())
+                .join(" ") + "\n" + command.description).join("\n\n")}
 `);
         process.exit(0);
     }
