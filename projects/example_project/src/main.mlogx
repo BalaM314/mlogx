@@ -1,5 +1,5 @@
 #This is an example program!
-#program main
+#program_type main
 #The above line specifies that this is a main program, and functions should be appended to it.
 #require _cookie
 #The above line includes some code that initializes the variable "cookie", which is used for flagging units.

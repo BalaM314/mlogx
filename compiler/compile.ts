@@ -342,7 +342,7 @@ let commands: Commands = processCommands({
 			replace: ["ulocate building %2 %3 _ %4 %5 %6 %7"]
 		},{
 			args: [arg("any", "oreOrSpawnOrAmogusOrDamagedOrBuilding"), arg("buildingGroup", "buildingGroup"), arg("number", "enemy"), arg("type", "ore"), arg("variable", "outX"), arg("variable", "outY"), arg("variable", "found"), arg("variable", "building")],
-			description: "The wack default ubind signature, included for compatibility."
+			description: "The wack default ulocate signature, included for compatibility."
 		}
 	],
 });
@@ -403,7 +403,7 @@ function isArgOfType(arg:string, type:ArgType):boolean {
 	if(arg == undefined) return false;
 	arg = arg.toLowerCase();
 	if(!isGenericArg(type)){
-		return arg === type;
+		return arg === type.toLowerCase();
 	}
 	let knownType:GenericArgType = typeofArg(arg);
 	if(knownType == type) return true;
@@ -422,13 +422,19 @@ function isArgOfType(arg:string, type:ArgType):boolean {
 				"lessthan", "greaterthaneq", "lessthaneq", "always"
 			].includes(arg);
 		case GenericArgType.operand:
+			if(["atan2", "angle",
+			"dst", "len"].includes(arg)){
+				console.warn(`${arg} is deprecated.`);
+				return true;
+			}
 			return [
-				"+", "-", "*", "/", "//", "%", "^", "==", "not",
-				"and", "<", "<=", ">", ">=", "===", "<<", ">>",
-				"or", "b-and", "xor", "flip", "max", "min", "angle",
-				"len", "noise", "abs", "log", "log10", "floor",
-				"ceil", "sqrt", "rand", "sin", "cos", "tan",
-				"asin", "acos", "atan"
+				"add", "sub", "mul", "div", "idiv", "mod", "pow",
+				"equal", "notEqual", "land", "lessThan", "lessThanEq",
+				"greaterThan", "greaterThanEq", "strictEqual",
+				"shl", "shr", "or", "and", "xor", "not", "max",
+				"min", "angle", "len", "noise", "abs", "log",
+				"log10", "floor", "ceil", "sqrt", "rand", "sin",
+				"cos", "tan", "asin", "acos", "atan"
 			].includes(arg);
 		case GenericArgType.lookupType:
 			return ["building", "unit", "fluid", "item"].includes(arg);
