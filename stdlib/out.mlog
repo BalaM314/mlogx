@@ -2,36 +2,55 @@
 end
 #functions
 
+#function _count_buildings(_building_type) -> _num_buildings
+#Counts the number of linked buildings of a certain type.
 _count_buildings:
 set _num_buildings 0
-set __i -1
-__next_loop:
+set __count_block_type__i -1
+__count_block_type__next_loop:
 op add __i __i 1
-getlink __building __i
-sensor __building_type __building @type
-jump __check_exit_loop notEqual _building_type __building_type
+
+getlink __count_block_type__building __count_block_type__i
+sensor __count_block_type__building_type __count_block_type__building @type
+jump __count_block_type__check_exit_loop notEqual _building_type __count_block_type__building_type
 op add _num_buildings _num_buildings 1
-__check_exit_loop:
-jump __next_loop lessThan __i @links
+__count_block_type__check_exit_loop:
+jump __count_block_type__next_loop lessThan __count_block_type__i @links
 set @counter _stack1
+
 end
 
+#function count_units(_unit_type) -> _num_units
+#Counts the number of linked buildings of a certain type.
 _count_units:
 set _num_units -1
-__begin_loop:
+__count_unit__begin_loop:
+#weird value of num_units is done to cut down on length
 op add _num_units _num_units 1
+
+#Bind a unit
 ubind _unit_type
-sensor __dead @unit @dead
-jump __exit_loop equal __dead true
-jump __check_exit_loop notEqual _num_units 0
-set __firstUnit @unit
-jump __begin_loop always
-__check_exit_loop:
-jump __begin_loop notEqual @unit __firstUnit
-__exit_loop:
+#Check if it's dead and if it is, exit the loop, because dead units will be bound after all live units have already been bound once
+sensor __count_unit__dead @unit @dead
+jump __count_unit__exit_loop equal __count_unit__dead true
+#If the count is not zero jump to check if we should stop looping
+jump __count_unit__check_exit_loop notEqual _num_units 0
+#This is the first unit bound so set firstUnit to @unit
+set __count_unit__firstUnit @unit
+#Jump to the start of the loop
+jump __count_unit__begin_loop always
+__count_unit__check_exit_loop:
+#If @unit is equal to first unit, then we've already gone through all units, so we should exit the loop
+#Otherwise, jump back to the beginning
+jump __count_unit__begin_loop notEqual @unit __count_unit__firstUnit
+__count_unit__exit_loop:
 set @counter _stack1
+
+
 end
 
+#function err(_err)
+#Throws an error.
 _err:
 print "[red] An error has occured: "
 print _err
@@ -41,58 +60,80 @@ printflush _stderr
 end
 end
 
+#function _flag_unit(_unit_type) -> @unit
+#Counts the number of linked buildings of a certain type.
 _flag_unit:
-set __startTime @time
-__flag_unit_again:
-op sub __dTime @time __startTime
-op greaterThan _bind_controlled_units __dTime 5000
+#Bind a unit
 ubind _unit_type
-sensor __dead @unit @dead
-jump __flag_unit_again notEqual __dead false
-sensor __flag @unit @flag
-sensor __controller @unit @controller
-op equal __unitUnflagged __flag 0
-op equal __unitHasOurFlag __flag _cookie
-op notEqual __unitNotControlled __controller @this#Error
-op or __unitFlagOk __unitUnflagged __unitHasOurFlag
-op or __unitControllerOk __unitNotControlled _bind_controlled_units
-jump __flag_unit_again notEqual __unitFlagOk true
-jump __flag_unit_again notEqual __unitControllerOk true
-ucontrol flag _cookie
+#Check if it's dead, and if it is try again
+sensor __flag_unit__dead @unit @dead
+jump _flag_unit notEqual __flag_unit__dead false
+#Check its flag and whether it's being controlled
+sensor __flag_unit__flag @unit @flag
+sensor __flag_unit__controlled @unit @controlled
+op equal __flag_unit__unitUnflagged __flag_unit__flag 0
+op equal __flag_unit__unitHasOurFlag __flag_unit__flag cookie
+op equal __flag_unit__unitNotControlled __flag_unit__controlled false
+op or __flag_unit__unitFlagOk __flag_unit__unitUnflagged __flag_unit__unitHasOurFlag
+#If the unit is controlled, or the unit's flag is not ok, then try again
+jump _flag_unit notEqual __flag_unit__unitFlagOk true
+#jump _flag_unit notEqual __unitNotControlled true
+#Flag the unit and return
+ucontrol flag cookie
 set @counter _stack1
+
 end
 #stdlib
 
+#function _count_buildings(_building_type) -> _num_buildings
+#Counts the number of linked buildings of a certain type.
 _count_buildings:
 set _num_buildings 0
-set __i -1
-__next_loop:
+set __count_block_type__i -1
+__count_block_type__next_loop:
 op add __i __i 1
-getlink __building __i
-sensor __building_type __building @type
-jump __check_exit_loop notEqual _building_type __building_type
+
+getlink __count_block_type__building __count_block_type__i
+sensor __count_block_type__building_type __count_block_type__building @type
+jump __count_block_type__check_exit_loop notEqual _building_type __count_block_type__building_type
 op add _num_buildings _num_buildings 1
-__check_exit_loop:
-jump __next_loop lessThan __i @links
+__count_block_type__check_exit_loop:
+jump __count_block_type__next_loop lessThan __count_block_type__i @links
 set @counter _stack1
+
 end
 
+#function count_units(_unit_type) -> _num_units
+#Counts the number of linked buildings of a certain type.
 _count_units:
 set _num_units -1
-__begin_loop:
+__count_unit__begin_loop:
+#weird value of num_units is done to cut down on length
 op add _num_units _num_units 1
+
+#Bind a unit
 ubind _unit_type
-sensor __dead @unit @dead
-jump __exit_loop equal __dead true
-jump __check_exit_loop notEqual _num_units 0
-set __firstUnit @unit
-jump __begin_loop always
-__check_exit_loop:
-jump __begin_loop notEqual @unit __firstUnit
-__exit_loop:
+#Check if it's dead and if it is, exit the loop, because dead units will be bound after all live units have already been bound once
+sensor __count_unit__dead @unit @dead
+jump __count_unit__exit_loop equal __count_unit__dead true
+#If the count is not zero jump to check if we should stop looping
+jump __count_unit__check_exit_loop notEqual _num_units 0
+#This is the first unit bound so set firstUnit to @unit
+set __count_unit__firstUnit @unit
+#Jump to the start of the loop
+jump __count_unit__begin_loop always
+__count_unit__check_exit_loop:
+#If @unit is equal to first unit, then we've already gone through all units, so we should exit the loop
+#Otherwise, jump back to the beginning
+jump __count_unit__begin_loop notEqual @unit __count_unit__firstUnit
+__count_unit__exit_loop:
 set @counter _stack1
+
+
 end
 
+#function err(_err)
+#Throws an error.
 _err:
 print "[red] An error has occured: "
 print _err
@@ -102,22 +143,28 @@ printflush _stderr
 end
 end
 
+#function _flag_unit(_unit_type) -> @unit
+#Counts the number of linked buildings of a certain type.
 _flag_unit:
-set __startTime @time
-__flag_unit_again:
-op sub __dTime @time __startTime
-op greaterThan _bind_controlled_units __dTime 5000
+#Bind a unit
 ubind _unit_type
-sensor __dead @unit @dead
-jump __flag_unit_again notEqual __dead false
-sensor __flag @unit @flag
-sensor __controller @unit @controller
-op equal __unitUnflagged __flag 0
-op equal __unitHasOurFlag __flag _cookie
-op notEqual __unitNotControlled __controller @this#Error
-op or __unitFlagOk __unitUnflagged __unitHasOurFlag
-op or __unitControllerOk __unitNotControlled _bind_controlled_units
-jump __flag_unit_again notEqual __unitFlagOk true
-jump __flag_unit_again notEqual __unitControllerOk true
+#Check if it's dead, and if it is try again
+sensor __flag_unit__dead @unit @dead
+jump _flag_unit notEqual __flag_unit__dead false
+#Check its flag and whether it's being controlled
+sensor __flag_unit__flag @unit @flag
+sensor __flag_unit__controlled @unit @controlled
+op equal __flag_unit__unitUnflagged __flag_unit__flag 0
+op equal __flag_unit__unitHasOurFlag __flag_unit__flag _cookie
+op equal __flag_unit__unitNotControlled __flag_unit__controlled false
+op or __flag_unit__unitFlagOk __flag_unit__unitUnflagged __flag_unit__unitHasOurFlag
+#If the unit is controlled, or the unit's flag is not ok, then try again
+jump _flag_unit notEqual __flag_unit__unitFlagOk true
+#jump _flag_unit notEqual __unitNotControlled true
+#Flag the unit and return
 ucontrol flag _cookie
 set @counter _stack1
+
+end
+print "Made with mlogx"
+print "github.com/BalaM314/mlogx/"

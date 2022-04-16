@@ -494,12 +494,12 @@ function compileMlogxToMlog(program, options) {
             }
             continue;
         }
+        if (!isMain)
+            line = line.split(" ").map(arg => arg.startsWith("__") ? `__${options.filename.replace(/.mlogx?/gi, "")}${arg}` : arg).join(" ");
         if (cleanedLine.match(/[^ ]+:$/)) {
             outputData.push(line);
             continue;
         }
-        if (!isMain)
-            line = line.split(" ").map(arg => arg.startsWith("__") ? `__${options.filename}${arg}` : arg).join(" ");
         let args = cleanedLine.split(" ");
         if (cleanedLine.includes(`"`)) {
             let replacementLine = [];

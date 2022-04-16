@@ -523,15 +523,16 @@ function compileMlogxToMlog(program:string[], options:{filename:string, errorlev
 			continue;
 		}
 
+		if(!isMain)
+			line = line.split(" ").map(arg => arg.startsWith("__") ? `__${options.filename.replace(/.mlogx?/gi, "")}${arg}` : arg).join(" ");
+		//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
+
 		if(cleanedLine.match(/[^ ]+:$/)){
 			//line is a label, don't touch it
 			outputData.push(line);
 			continue;
 		}
 
-		if(!isMain)
-			line = line.split(" ").map(arg => arg.startsWith("__") ? `__${options.filename}${arg}` : arg).join(" ");
-		//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 		let args = cleanedLine.split(" ");
 		if(cleanedLine.includes(`"`)){
