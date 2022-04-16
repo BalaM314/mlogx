@@ -3,6 +3,10 @@ import path = require("path");
 const [programArgs, fileNames] = parseArgs(process.argv.slice(2));
 const stdlibDirectory = path.join(process.argv[1], "..", "..", "stdlib", "build");
 
+const compilerMark = 
+`print "Made with mlogx"
+print "github.com/BalaM314/mlogx/"`;
+
 
 enum GenericArgType {
 	variable="variable",
@@ -452,7 +456,7 @@ function isArgOfType(arg:string, type:ArgType):boolean {
 		case GenericArgType.unitSortCriteria:
 			return ["distance", "health", "shield", "armor", "maxHealth"].includes(arg);
 		case GenericArgType.valid:
-			return true;//this needs intellijence
+			return true;//todo this needs intellijence
 		case GenericArgType.jumpAddress:
 			return knownType == GenericArgType.number || knownType == GenericArgType.variable;
 	}
@@ -466,9 +470,9 @@ class CompilerError extends Error {
 	}
 }
 
-function compileMlogxToMlog(program:string[], options:{filename:string, errorlevel:string, compilerMode:string}):string[] {
+function compileMlogxToMlog(program:string[], options:{filename:string, errorlevel:string, compilerMode:string, removeComments:boolean}):string[] {
 
-	let [programType, requiredVars] = parsePreprocessorDirectives(program);
+	let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
 
 	let isMain = programType == "main" || options.compilerMode == "single";
 
@@ -481,6 +485,7 @@ function compileMlogxToMlog(program:string[], options:{filename:string, errorlev
 	}
 	
 	let outputData = [];
+	let comment = "";
 
 	for(let requiredVar of requiredVars){
 		if(var_code[requiredVar])
@@ -493,38 +498,47 @@ function compileMlogxToMlog(program:string[], options:{filename:string, errorlev
 	nextLine:
 	for(let line of program){
 
-		if(line.includes("#") || line.includes("//")){
+		let cleanedLine = line;
+
+		if(cleanedLine.includes("#") || cleanedLine.includes("//")){
 			//Remove comments
-			if(!false){
-				line = line.split("#")[0];
-				line = line.split("//")[0];
+			cleanedLine = line.split(/(\#)|(\/\/)/)[0];
+			
+			if(options.removeComments || line.match(/^#(require)|(program_type)|(author)/)){
+				comment = line.split("#")[0] ?? line.split("//")[0] ?? "";
+				line = cleanedLine
 			}
 		}
 
-		line = line.replace("\t", "");
+		cleanedLine = cleanedLine.replace("\t", "");
 		//Remove tab characters 
 
-		line = line.replace(/(^ +)|( +$)/, "");
+		cleanedLine = cleanedLine.replace(/(^ +)|( +$)/, "");
 		//Remove whitespaces at beginning and end
 
-		if(line == "") continue;
+		if(cleanedLine == ""){
+			if(!options.removeComments){
+				outputData.push(line);
+			}
+			continue;
+		}
 
-		if(isMain)
-			line = line.split(" ").map(arg => arg.startsWith("__") ? `__${options.filename}${arg}` : arg).join(" ");
-		//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
-
-		if(line.match(/[^ ]+:$/)){
+		if(cleanedLine.match(/[^ ]+:$/)){
 			//line is a label, don't touch it
 			outputData.push(line);
 			continue;
 		}
 
-		let args = line.split(" ");
-		if(line.includes(`"`)){
+		if(!isMain)
+			line = line.split(" ").map(arg => arg.startsWith("__") ? `__${options.filename}${arg}` : arg).join(" ");
+		//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
+
+		let args = cleanedLine.split(" ");
+		if(cleanedLine.includes(`"`)){
 			//aaaaaaaaaaaaaaaaa
 			let replacementLine = [];
 			let isInString = false;
-			for(var char of line){
+			for(var char of cleanedLine){
 				if(char == `"`){
 					isInString = !isInString;
 				}
@@ -546,24 +560,29 @@ function compileMlogxToMlog(program:string[], options:{filename:string, errorlev
 			continue;
 		}
 
-		let error:any;//typescript why
+		let error:CommandError|null = null;//typescript why
 		for(let command of commandList){
-			let result = checkCommand(args, command, line);
-			if(result instanceof Array){
-				outputData.push(...result);
+			let result = checkCommand(args, command, cleanedLine);
+			if(result.replace){
+				outputData.push(...result.replace, comment);
 				continue nextLine;
-			} else {
-				error = result;
+			} else if(result.error){
+				error = result.error;
+			} else if(result.ok){
+				outputData.push(line);
+				continue nextLine;
 			}
 		}
-		if(commandList.length == 1){
-			err(error.message);
-		} else {
-			err(
-	`Line
-	\`${line}\`
-	did not match any overloads for command ${args[0]}`
-			);
+		if(error){
+			if(commandList.length == 1){
+				err(error.message);
+			} else {
+				err(
+		`Line
+		\`${line}\`
+		did not match any overloads for command ${args[0]}`
+				);
+			}
 		}
 		if(!commandList[0].replace){
 			outputData.push(line + "#Error");
@@ -573,25 +592,35 @@ function compileMlogxToMlog(program:string[], options:{filename:string, errorlev
 	return outputData;
 }
 
-function checkCommand(args:string[], command:Command, line:string): string[] | CommandError {
+function checkCommand(args:string[], command:Command, line:string): {
+	ok: boolean
+	replace?: string[],
+	error?: CommandError
+} {
 	let commandArguments = args.slice(1);
 	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.optional).length){
 		return {
-			type: CommandErrorType.argumentCount,
-			message:
+			ok: false,
+			error: {
+				type: CommandErrorType.argumentCount,
+				message:
 `Incorrect number of arguments for command ${args[0]}
 	at \`${line}\`
 Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
+			}
 		};
 	}
 
 	for(let arg in commandArguments){
 		if(!isArgOfType(commandArguments[+arg], command.args[+arg].type)){
 			return {
-				type: CommandErrorType.type,
-				message:
+				ok: false,
+				error: {
+					type: CommandErrorType.type,
+					message:
 `Type mismatch: value ${commandArguments[+arg]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(commandArguments[+arg])}
 	at \`${line}\``
+				}
 			};
 		}
 		
@@ -605,15 +634,21 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 			}
 			out.push(replaceLine);
 		}
-		return out;
+		return {
+			ok: true,
+			replace: out,
+		};
 	}
 
-	return [line];
+	return {
+		ok: true
+	};
 }
 
-function parsePreprocessorDirectives(data:string[]): [string, string[]] {
+function parsePreprocessorDirectives(data:string[]): [string, string[], string] {
 	let program_type:string = "unknown";
 	let required_vars:string[] = [];
+	let author = "unknown";
 	for(let line of data){
 		if(line.startsWith("#require ")){
 			required_vars.push(...line.split("#require ")[1].split(",").map(el => el.replaceAll(" ", "")).filter(el => el != ""));
@@ -624,9 +659,12 @@ function parsePreprocessorDirectives(data:string[]): [string, string[]] {
 				program_type = type;
 			}
 		}
+		if(line.startsWith("#author ")){
+			author = line.split("#author ")[1];
+		}
 	}
 
-	return [program_type, required_vars];
+	return [program_type, required_vars, author];
 
 }
 
@@ -750,6 +788,7 @@ function compile_directory(directory:string, options: {
 		try {
 			outputData = compileMlogxToMlog(data, {
 				filename,
+				removeComments: false,
 				...options
 			}).join("\r\n");
 		} catch(err){
@@ -763,6 +802,7 @@ function compile_directory(directory:string, options: {
 		if(options.compilerMode == "single"){
 			outputData += "\r\nend\r\n#stdlib\r\n\r\n";
 			outputData += Object.values(stdlibData).join("\r\nend\r\n\r\n");
+			outputData += "\r\n" + compilerMark;
 		}
 		//Write .mlog files to output
 		fs.writeFileSync(
@@ -795,7 +835,10 @@ function compile_directory(directory:string, options: {
 		console.log("Assembling output:");
 		fs.writeFileSync(
 			path.join(directory, "out.mlog"),
-			mainData + "\r\nend\r\n#functions\r\n\r\n" + Object.values(compiledData).join("\r\nend\r\n\r\n") + "\r\nend\r\n#stdlib\r\n\r\n" + Object.values(stdlibData).join("\r\nend\r\n\r\n")
+			mainData
+			+ "\r\nend\r\n#functions\r\n\r\n" + Object.values(compiledData).join("\r\nend\r\n\r\n")
+			+ "\r\nend\r\n#stdlib\r\n\r\n" + Object.values(stdlibData).join("\r\nend\r\n\r\n")
+			 + "\r\nend\r\n" + compilerMark
 		);
 		console.log("Done!");
 	} else {

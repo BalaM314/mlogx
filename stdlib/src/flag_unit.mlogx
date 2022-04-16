@@ -15,7 +15,7 @@ jump __flag_unit_again notEqual __dead false
 sensor __flag @unit @flag
 sensor __controller @unit @controller
 op equal __unitUnflagged __flag 0
-op equal __unitHasOurFlag __flag _cookie
+op equal __unitHasOurFlag __flag cookie
 op notEqual __unitNotControlled __controller @this
 op or __unitFlagOk __unitUnflagged __unitHasOurFlag
 op or __unitControllerOk __unitNotControlled _bind_controlled_units
@@ -23,5 +23,5 @@ op or __unitControllerOk __unitNotControlled _bind_controlled_units
 jump __flag_unit_again notEqual __unitFlagOk true
 jump __flag_unit_again notEqual __unitControllerOk true
 #Flag the unit and return
-ucontrol flag _cookie
+ucontrol flag cookie
 return
