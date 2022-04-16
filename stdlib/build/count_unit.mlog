@@ -1,0 +1,26 @@
+#function count_units(_unit_type) -> _num_units
+#Counts the number of linked buildings of a certain type.
+_count_units:
+set _num_units -1
+__count_unit__begin_loop:
+#weird value of num_units is done to cut down on length
+op add _num_units _num_units 1
+
+#Bind a unit
+ubind _unit_type
+#Check if it's dead and if it is, exit the loop, because dead units will be bound after all live units have already been bound once
+sensor __count_unit__dead @unit @dead
+jump __count_unit__exit_loop equal __count_unit__dead true
+#If the count is not zero jump to check if we should stop looping
+jump __count_unit__check_exit_loop notEqual _num_units 0
+#This is the first unit bound so set firstUnit to @unit
+set __count_unit__firstUnit @unit
+#Jump to the start of the loop
+jump __count_unit__begin_loop always
+__count_unit__check_exit_loop:
+#If @unit is equal to first unit, then we've already gone through all units, so we should exit the loop
+#Otherwise, jump back to the beginning
+jump __count_unit__begin_loop notEqual @unit __count_unit__firstUnit
+__count_unit__exit_loop:
+set @counter _stack1
+
