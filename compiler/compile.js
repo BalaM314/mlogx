@@ -202,10 +202,16 @@ let commands = processCommands({
             args: [arg("variable", "variable"), arg("valid", "value")],
             description: "Sets the value of (variable) to (value)."
         }],
-    op: [{
-            args: [arg("operand", "operand"), arg("variable", "output"), arg("number", "arg1"), arg("number", "arg2")],
+    op: [
+        {
+            args: [arg("operand", "operand"), arg("variable", "output"), arg("valid", "arg1"), arg("valid", "arg2", true)],
             description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
-        }],
+        }, {
+            args: [arg("operand", "operand"), arg("variable", "arg1")],
+            description: "Performs an operation on arg1, mutating it. Example: \`op abs xDiff\`",
+            replace: ["op %1 %2 %2 0"]
+        }
+    ],
     wait: [{
             args: [arg("number", "seconds")],
             description: "Waits for (seconds) seconds."
@@ -421,8 +427,8 @@ function isArgOfType(arg, type) {
             }
             return [
                 "add", "sub", "mul", "div", "idiv", "mod", "pow",
-                "equal", "notEqual", "land", "lessThan", "lessThanEq",
-                "greaterThan", "greaterThanEq", "strictEqual",
+                "equal", "notequal", "land", "lessthan", "lessthaneq",
+                "greaterthan", "greaterthaneq", "strictequal",
                 "shl", "shr", "or", "and", "xor", "not", "max",
                 "min", "angle", "len", "noise", "abs", "log",
                 "log10", "floor", "ceil", "sqrt", "rand", "sin",
@@ -476,6 +482,7 @@ function compileMlogxToMlog(program, options) {
             }
         }
         line = line.replace("\t", "");
+        line = line.replace(/(^ +)|( +$)/, "");
         if (line == "")
             continue;
         if (isMain)

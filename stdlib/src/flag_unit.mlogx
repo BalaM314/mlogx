@@ -1,21 +1,27 @@
 #function _flag_unit(_unit_type) -> @unit
 #Counts the number of linked buildings of a certain type.
 _flag_unit:
+set __startTime @time
+__flag_unit_again:
+op sub __dTime @time __startTime
+#If first flag attempt was more than 5 seconds ago, ok to bind controlled but unflagged units(like those used by uminer)
+op greaterThan _bind_controlled_units __dTime 5000
 #Bind a unit
 ubind _unit_type
 #Check if it's dead, and if it is try again
-sensor dead @unit @dead
-jump _flag_unit notEqual dead false
+sensor __dead @unit @dead
+jump __flag_unit_again notEqual __dead false
 #Check its flag and whether it's being controlled
 sensor __flag @unit @flag
-sensor __controlled @unit @controlled
+sensor __controller @unit @controller
 op equal __unitUnflagged __flag 0
 op equal __unitHasOurFlag __flag _cookie
-op equal __unitNotControlled __controlled false
+op notEqual __unitNotControlled __controller @this
 op or __unitFlagOk __unitUnflagged __unitHasOurFlag
+op or __unitControllerOk __unitNotControlled _bind_controlled_units
 #If the unit is controlled, or the unit's flag is not ok, then try again
-jump _flag_unit notEqual __unitFlagOk true
-jump _flag_unit notEqual __unitNotControlled true
+jump __flag_unit_again notEqual __unitFlagOk true
+jump __flag_unit_again notEqual __unitControllerOk true
 #Flag the unit and return
 ucontrol flag _cookie
 return

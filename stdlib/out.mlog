@@ -1,0 +1,123 @@
+
+end
+#functions
+
+_count_buildings:
+set _num_buildings 0
+set __i -1
+__next_loop:
+op add __i __i 1
+getlink __building __i
+sensor __building_type __building @type
+jump __check_exit_loop notEqual _building_type __building_type
+op add _num_buildings _num_buildings 1
+__check_exit_loop:
+jump __next_loop lessThan __i @links
+set @counter _stack1
+end
+
+_count_units:
+set _num_units -1
+__begin_loop:
+op add _num_units _num_units 1
+ubind _unit_type
+sensor __dead @unit @dead
+jump __exit_loop equal __dead true
+jump __check_exit_loop notEqual _num_units 0
+set __firstUnit @unit
+jump __begin_loop always
+__check_exit_loop:
+jump __begin_loop notEqual @unit __firstUnit
+__exit_loop:
+set @counter _stack1
+end
+
+_err:
+print "[red] An error has occured: "
+print _err
+print "\nMake sure all necessary blocks"
+print " are linked and units exist."
+printflush _stderr
+end
+end
+
+_flag_unit:
+set __startTime @time
+__flag_unit_again:
+op sub __dTime @time __startTime
+op greaterThan _bind_controlled_units __dTime 5000
+ubind _unit_type
+sensor __dead @unit @dead
+jump __flag_unit_again notEqual __dead false
+sensor __flag @unit @flag
+sensor __controller @unit @controller
+op equal __unitUnflagged __flag 0
+op equal __unitHasOurFlag __flag _cookie
+op notEqual __unitNotControlled __controller @this#Error
+op or __unitFlagOk __unitUnflagged __unitHasOurFlag
+op or __unitControllerOk __unitNotControlled _bind_controlled_units
+jump __flag_unit_again notEqual __unitFlagOk true
+jump __flag_unit_again notEqual __unitControllerOk true
+ucontrol flag _cookie
+set @counter _stack1
+end
+#stdlib
+
+_count_buildings:
+set _num_buildings 0
+set __i -1
+__next_loop:
+op add __i __i 1
+getlink __building __i
+sensor __building_type __building @type
+jump __check_exit_loop notEqual _building_type __building_type
+op add _num_buildings _num_buildings 1
+__check_exit_loop:
+jump __next_loop lessThan __i @links
+set @counter _stack1
+end
+
+_count_units:
+set _num_units -1
+__begin_loop:
+op add _num_units _num_units 1
+ubind _unit_type
+sensor __dead @unit @dead
+jump __exit_loop equal __dead true
+jump __check_exit_loop notEqual _num_units 0
+set __firstUnit @unit
+jump __begin_loop always
+__check_exit_loop:
+jump __begin_loop notEqual @unit __firstUnit
+__exit_loop:
+set @counter _stack1
+end
+
+_err:
+print "[red] An error has occured: "
+print _err
+print "\nMake sure all necessary blocks"
+print " are linked and units exist."
+printflush _stderr
+end
+end
+
+_flag_unit:
+set __startTime @time
+__flag_unit_again:
+op sub __dTime @time __startTime
+op greaterThan _bind_controlled_units __dTime 5000
+ubind _unit_type
+sensor __dead @unit @dead
+jump __flag_unit_again notEqual __dead false
+sensor __flag @unit @flag
+sensor __controller @unit @controller
+op equal __unitUnflagged __flag 0
+op equal __unitHasOurFlag __flag _cookie
+op notEqual __unitNotControlled __controller @this#Error
+op or __unitFlagOk __unitUnflagged __unitHasOurFlag
+op or __unitControllerOk __unitNotControlled _bind_controlled_units
+jump __flag_unit_again notEqual __unitFlagOk true
+jump __flag_unit_again notEqual __unitControllerOk true
+ucontrol flag _cookie
+set @counter _stack1

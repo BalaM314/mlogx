@@ -232,10 +232,16 @@ let commands: Commands = processCommands({
 		args: [arg("variable", "variable"), arg("valid", "value")],
 		description: "Sets the value of (variable) to (value)."
 	}],
-	op: [{
-		args: [arg("operand", "operand"), arg("variable", "output"), arg("number", "arg1"), arg("number", "arg2")],
-		description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
-	}],
+	op: [
+		{
+			args: [arg("operand", "operand"), arg("variable", "output"), arg("valid", "arg1"), arg("valid", "arg2", true)],
+			description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
+		},{
+			args: [arg("operand", "operand"), arg("variable", "arg1")],
+			description: "Performs an operation on arg1, mutating it. Example: \`op abs xDiff\`",
+			replace: [ "op %1 %2 %2 0" ]
+		}
+	],
 	wait: [{
 		args: [arg("number", "seconds")],
 		description: "Waits for (seconds) seconds."
@@ -429,8 +435,8 @@ function isArgOfType(arg:string, type:ArgType):boolean {
 			}
 			return [
 				"add", "sub", "mul", "div", "idiv", "mod", "pow",
-				"equal", "notEqual", "land", "lessThan", "lessThanEq",
-				"greaterThan", "greaterThanEq", "strictEqual",
+				"equal", "notequal", "land", "lessthan", "lessthaneq",
+				"greaterthan", "greaterthaneq", "strictequal",
 				"shl", "shr", "or", "and", "xor", "not", "max",
 				"min", "angle", "len", "noise", "abs", "log",
 				"log10", "floor", "ceil", "sqrt", "rand", "sin",
@@ -497,6 +503,9 @@ function compileMlogxToMlog(program:string[], options:{filename:string, errorlev
 
 		line = line.replace("\t", "");
 		//Remove tab characters 
+
+		line = line.replace(/(^ +)|( +$)/, "");
+		//Remove whitespaces at beginning and end
 
 		if(line == "") continue;
 
