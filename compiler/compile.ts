@@ -295,7 +295,7 @@ let commands: Commands = processCommands({
 			args: ["itemDrop", arg("building", "building"), arg("number", "amount")],
 			description: "Tells the bound unit to drop at most (amount) items to (building)."
 		},{
-			args: ["itemTake", arg("building", "building"), arg("item, item"), arg("number", "amount")],
+			args: ["itemTake", arg("building", "building"), arg("type", "item"), arg("number", "amount")],
 			description: "Tells the bound unit to take at most (amount) of (item) from (building)."
 		},{
 			args: ["payDrop"],
@@ -396,8 +396,8 @@ function typeofArg(arg:string):GenericArgType {
 		return GenericArgType.type;
 	}
 	if(["equal", "notequal", "strictequal", "greaterthan", "lessthan", "greaterthaneq", "lessthaneq", "always"].includes(arg)) return GenericArgType.operandTest;
-	if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
-	if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;
+	// if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
+	// if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;
 	if(["true", "false"].includes(arg)) return GenericArgType.boolean;
 	if(arg == "true" || arg == "false") return GenericArgType.number;
 	if(arg.match(/^-?[\d]+$/)) return GenericArgType.number;
@@ -426,6 +426,10 @@ function isArgOfType(arg:string, type:ArgType):boolean {
 		case GenericArgType.unit:
 		case GenericArgType.function:
 			return knownType == GenericArgType.variable;
+		case GenericArgType.targetClass:
+			return ["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg);
+		case GenericArgType.buildingGroup:
+			return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)
 		case GenericArgType.operandTest:
 			return [
 				"equal", "notequal", "strictequal", "greaterthan",
