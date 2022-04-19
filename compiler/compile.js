@@ -702,7 +702,7 @@ function compile_directory(directory, options) {
         try {
             outputData = compileMlogxToMlog(data, {
                 filename,
-                removeComments: false,
+                removeComments: true,
                 ...options
             }).join("\r\n");
         }

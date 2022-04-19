@@ -793,7 +793,7 @@ function compile_directory(directory:string, options: {
 		try {
 			outputData = compileMlogxToMlog(data, {
 				filename,
-				removeComments: false,
+				removeComments: true,
 				...options
 			}).join("\r\n");
 		} catch(err){
