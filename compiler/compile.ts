@@ -78,11 +78,17 @@ class Arg {
 	}
 }
 
+class Command {
+	constructor(public command:string){
+
+	}
+}
+
 function arg(type:ArgType, name?:string, optional?:boolean){
 	return new Arg(type, name, optional);
 }
 
-interface Command {
+interface CommandDefinition {
 	args: Arg[];
 	replace?: string[];
 	description: string;
@@ -94,16 +100,16 @@ interface PreprocessedCommand {
 	description: string;
 }
 
-interface Commands {
-	[index: string]: Command[];
+interface CommandDefinitions {
+	[index: string]: CommandDefinition[];
 }
 
-interface PreprocessedCommands {
+interface PreprocessedCommandDefinitions {
 	[index: string]: PreprocessedCommand[]
 }
 
-function processCommands(preprocessedCommands:PreprocessedCommands):Commands {
-	let out:Commands = {};
+function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):CommandDefinitions {
+	let out:CommandDefinitions = {};
 	for(let [name, commands] of Object.entries(preprocessedCommands)){
 		out[name] = [];
 		for(let command of commands){
@@ -119,7 +125,7 @@ function processCommands(preprocessedCommands:PreprocessedCommands):Commands {
 }
 
 /** Contains the arguments for all types.*/
-let commands: Commands = processCommands({
+let commands: CommandDefinitions = processCommands({
 	call: [{
 		args: [arg("function", "function")],
 		replace: [
@@ -614,7 +620,7 @@ function compileMlogxToMlog(program:string[], settings:Settings & {filename: str
 	return outputData;
 }
 
-function checkCommand(args:string[], command:Command, line:string): {
+function checkCommand(args:string[], command:CommandDefinition, line:string): {
 	ok: boolean
 	replace?: string[],
 	error?: CommandError

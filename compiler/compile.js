@@ -60,6 +60,11 @@ class Arg {
             return `[${this.name}:${this.type}]`;
     }
 }
+class Command {
+    constructor(command) {
+        this.command = command;
+    }
+}
 function arg(type, name, optional) {
     return new Arg(type, name, optional);
 }
