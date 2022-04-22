@@ -476,6 +476,7 @@ function compileMlogxToMlog(program, settings) {
         }
     }
     let outputData = [];
+    let variables = {};
     for (let requiredVar of requiredVars) {
         if (var_code[requiredVar])
             outputData.push(...var_code[requiredVar]);
@@ -549,7 +550,7 @@ function compileMlogxToMlog(program, settings) {
             }
         }
         if (!commandList[0].replace) {
-            outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line + "#Error");
+            outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line + " #Error");
         }
     }
     return outputData;

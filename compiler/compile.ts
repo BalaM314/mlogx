@@ -7,7 +7,7 @@ const compilerMark =
 `print "Made with mlogx"
 print "github.com/BalaM314/mlogx/"`;
 
-const defaultConfig: {
+interface Settings {
 	name: string;
 	authors: string[];
 	compilerOptions: {
@@ -16,7 +16,9 @@ const defaultConfig: {
 		compileWithErrors: boolean;
 		mode: "project" | "single"
 	}
-} = {
+}
+
+const defaultConfig:Settings = {
 	name: "",
 	authors: [],
 	compilerOptions: {
@@ -488,17 +490,7 @@ class CompilerError extends Error {
 	}
 }
 
-function compileMlogxToMlog(program:string[], settings:{
-	name: string;
-	authors: string[];
-	filename: string;
-	compilerOptions: {
-		include: string[];
-		removeComments: boolean;
-		compileWithErrors: boolean;
-		mode: "project" | "single"
-	}
-}):string[] {
+function compileMlogxToMlog(program:string[], settings:Settings & {filename: string}):string[] {
 
 	let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
 
@@ -513,6 +505,13 @@ function compileMlogxToMlog(program:string[], settings:{
 	}
 	
 	let outputData:string[] = [];
+
+	let variables: {
+		[index: string]: {
+			type: string;
+			exists: boolean;
+		}
+	} = {};
 
 	for(let requiredVar of requiredVars){
 		if(var_code[requiredVar])
