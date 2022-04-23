@@ -13,7 +13,8 @@ const defaultConfig = {
         include: [],
         removeComments: true,
         compileWithErrors: true,
-        mode: "single"
+        mode: "single",
+        prependFileName: true
     }
 };
 var GenericArgType;
@@ -339,7 +340,7 @@ let commands = processCommands({
         }
     ],
 });
-let var_code = {
+let requiredVarCode = {
     "cookie": [
         `op mul cookie @thisx @maph`,
         `op add cookie @thisy cookie`
@@ -469,6 +470,33 @@ class CompilerError extends Error {
         this.name = "CompilerError";
     }
 }
+function cleanLine(line) {
+    return line
+        .replace(/\/\/.*/g, "")
+        .replace(/\/\*.*\*\//g, "")
+        .replace(/(^[ \t]+)|([ \t]+$)/g, "");
+}
+function splitLineIntoArguments(line) {
+    if (line.includes(`"`)) {
+        let replacementLine = [];
+        let isInString = false;
+        for (var char of line) {
+            if (char == `"`) {
+                isInString = !isInString;
+            }
+            if (isInString && char == " ") {
+                replacementLine.push("\u{F4321}");
+            }
+            else {
+                replacementLine.push(char);
+            }
+        }
+        return replacementLine.join("").split(" ").map(arg => arg.replaceAll("\u{F4321}", " "));
+    }
+    else {
+        return line.split(" ");
+    }
+}
 function compileMlogxToMlog(program, settings) {
     let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
     let isMain = programType == "main" || settings.compilerOptions.mode == "single";
@@ -481,70 +509,52 @@ function compileMlogxToMlog(program, settings) {
         }
     }
     let outputData = [];
-    let variables = {};
     for (let requiredVar of requiredVars) {
-        if (var_code[requiredVar])
-            outputData.push(...var_code[requiredVar]);
+        if (requiredVarCode[requiredVar])
+            outputData.push(...requiredVarCode[requiredVar]);
         else
             err("Unknown require " + requiredVar);
     }
-    nextLine: for (let line of program) {
-        let cleanedLine = line;
-        if (cleanedLine.includes("#") || cleanedLine.includes("//")) {
-            cleanedLine = line.split(/(\#)|(\/\/)/)[0];
+    toNextLine: for (let line of program) {
+        if (line.includes("\u{F4321}")) {
+            console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
         }
-        cleanedLine = cleanedLine.replaceAll("\t", "");
-        cleanedLine = cleanedLine.replace(/(^ +)|( +$)/g, "");
+        let cleanedLine = cleanLine(line);
         if (cleanedLine == "") {
             if (!settings.compilerOptions.removeComments) {
                 outputData.push(line);
             }
-            continue;
+            continue toNextLine;
         }
-        if (!isMain)
-            cleanedLine = cleanedLine.split(" ").map(arg => arg.startsWith("__") ? `__${settings.filename.replace(/.mlogx?/gi, "")}${arg}` : arg).join(" ");
         if (cleanedLine.match(/[^ ]+:$/)) {
             outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
-            continue;
+            continue toNextLine;
         }
-        let args = cleanedLine.split(" ");
-        if (cleanedLine.includes(`"`)) {
-            let replacementLine = [];
-            let isInString = false;
-            for (var char of cleanedLine) {
-                if (char == `"`) {
-                    isInString = !isInString;
-                }
-                if (isInString && char == " ") {
-                    replacementLine.push("\uFFFD");
-                }
-                else {
-                    replacementLine.push(char);
-                }
-            }
-            args = replacementLine.join("").split(" ").map(arg => arg.replaceAll("\uFFFD", " "));
-        }
+        let args = splitLineIntoArguments(cleanedLine)
+            .map(arg => arg.startsWith("__") ? `${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
         let commandList = commands[args[0].toLowerCase()];
         if (!commandList) {
             err(`Unknown command ${args[0]}\nat \`${line}\``);
-            continue;
+            continue toNextLine;
         }
-        let error = null;
-        for (let command of commandList) {
-            let result = checkCommand(args, command, cleanedLine);
-            if (result.replace) {
-                outputData.push(...result.replace);
-                continue nextLine;
-            }
-            else if (result.error) {
-                error = result.error;
-            }
-            else if (result.ok) {
-                outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
-                continue nextLine;
+        try {
+            for (let command of commandList) {
+                let result = checkCommand(args, command, cleanedLine);
+                if (result.replace) {
+                    outputData.push(...result.replace);
+                    continue toNextLine;
+                }
+                else if (result.error) {
+                    throw result.error;
+                }
+                else if (result.ok) {
+                    outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
+                    continue toNextLine;
+                }
             }
         }
-        if (error) {
+        catch (error) {
+            error = error;
             if (commandList.length == 1) {
                 err(error.message);
             }

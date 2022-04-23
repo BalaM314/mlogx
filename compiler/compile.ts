@@ -14,7 +14,8 @@ interface Settings {
 		include: string[];
 		removeComments: boolean;
 		compileWithErrors: boolean;
-		mode: "project" | "single"
+		mode: "project" | "single";
+		prependFileName: boolean;
 	}
 }
 
@@ -25,7 +26,8 @@ const defaultConfig:Settings = {
 		include: [],
 		removeComments: true,
 		compileWithErrors: true,
-		mode: "single"
+		mode: "single",
+		prependFileName: true
 	}
 };
 
@@ -384,7 +386,7 @@ let commands: CommandDefinitions = processCommands({
 	],
 });
 
-let var_code: {
+let requiredVarCode: {
 	[index: string]: string[];
 } = {
 	"cookie": [
@@ -496,6 +498,35 @@ class CompilerError extends Error {
 	}
 }
 
+function cleanLine(line:string):string {
+	return line
+		.replace(/\/\/.*/g, "")
+		.replace(/\/\*.*\*\//g, "")
+		.replace(/(^[ \t]+)|([ \t]+$)/g, "");
+}
+
+function splitLineIntoArguments(line:string):string[] {
+	if(line.includes(`"`)){
+		//aaaaaaaaaaaaaaaaa
+		let replacementLine = [];
+		let isInString = false;
+		for(var char of line){
+			if(char == `"`){
+				isInString = !isInString;
+			}
+			if(isInString && char == " "){
+				replacementLine.push("\u{F4321}");
+			} else {
+				replacementLine.push(char);
+			}
+		}
+		return replacementLine.join("").split(" ").map(arg => arg.replaceAll("\u{F4321}", " "));
+		//smort logic so `"amogus sus"` is parsed as one arg
+	} else {
+		return line.split(" ");
+	}
+}
+
 function compileMlogxToMlog(program:string[], settings:Settings & {filename: string}):string[] {
 
 	let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
@@ -512,96 +543,61 @@ function compileMlogxToMlog(program:string[], settings:Settings & {filename: str
 	
 	let outputData:string[] = [];
 
-	let variables: {
-		[index: string]: {
-			type: string;
-			exists: boolean;
-		}
-	} = {};
-
 	for(let requiredVar of requiredVars){
-		if(var_code[requiredVar])
-			outputData.push(...var_code[requiredVar]);
+		if(requiredVarCode[requiredVar])
+			outputData.push(...requiredVarCode[requiredVar]);
 		else
 			err("Unknown require " + requiredVar);
 	}
 	
 	//OMG I USED A JS LABEL
-	nextLine:
+	toNextLine:
 	for(let line of program){
 
-		let cleanedLine = line;
-
-		if(cleanedLine.includes("#") || cleanedLine.includes("//")){
-			//Remove comments
-			cleanedLine = line.split(/(\#)|(\/\/)/)[0];
+		if(line.includes("\u{F4321}")){
+			console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
 		}
 
-		cleanedLine = cleanedLine.replaceAll("\t", "");
-		//Remove tab characters 
-
-		cleanedLine = cleanedLine.replace(/(^ +)|( +$)/g, "");
-		//Remove whitespaces at beginning and end
+		let cleanedLine = cleanLine(line);
 
 		if(cleanedLine == ""){
 			if(!settings.compilerOptions.removeComments){
 				outputData.push(line);
 			}
-			continue;
+			continue toNextLine;
 		}
-
-		if(!isMain)
-			cleanedLine = cleanedLine.split(" ").map(arg => arg.startsWith("__") ? `__${settings.filename.replace(/.mlogx?/gi, "")}${arg}` : arg).join(" ");
-		//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 		if(cleanedLine.match(/[^ ]+:$/)){
 			//line is a label, don't touch it
 			outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
-			continue;
+			continue toNextLine;
 		}
 
-
-		let args = cleanedLine.split(" ");
-		if(cleanedLine.includes(`"`)){
-			//aaaaaaaaaaaaaaaaa
-			let replacementLine = [];
-			let isInString = false;
-			for(var char of cleanedLine){
-				if(char == `"`){
-					isInString = !isInString;
-				}
-				if(isInString && char == " "){
-					replacementLine.push("\uFFFD");
-				} else {
-					replacementLine.push(char);
-				}
-			}
-			args = replacementLine.join("").split(" ").map(arg => arg.replaceAll("\uFFFD", " "));
-			//smort logic so `"amogus sus"` is parsed as one arg
-			//hmm I've automatically used backticks to make it clear that the quotes are included
-			//wonder if anyone understands that
-		}
+		let args = splitLineIntoArguments(cleanedLine)
+			.map(arg => arg.startsWith("__") ? `${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
+		//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 		let commandList = commands[args[0].toLowerCase()];
 		if(!commandList){
 			err(`Unknown command ${args[0]}\nat \`${line}\``);
-			continue;
+			continue toNextLine;
 		}
 
-		let error:CommandError|null = null;//typescript why
-		for(let command of commandList){
-			let result = checkCommand(args, command, cleanedLine);
-			if(result.replace){
-				outputData.push(...result.replace);
-				continue nextLine;
-			} else if(result.error){
-				error = result.error;
-			} else if(result.ok){
-				outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
-				continue nextLine;
+		try {
+			for(let command of commandList){
+				let result = checkCommand(args, command, cleanedLine);
+				if(result.replace){
+					outputData.push(...result.replace);
+					continue toNextLine;
+				} else if(result.error){
+					throw result.error;
+				} else if(result.ok){
+					outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
+					continue toNextLine;
+				}
 			}
-		}
-		if(error){
+		} catch(error:any){
+			error = <CommandError>error;
 			if(commandList.length == 1){
 				err(error.message);
 			} else {
@@ -612,6 +608,7 @@ function compileMlogxToMlog(program:string[], settings:Settings & {filename: str
 				);
 			}
 		}
+		
 		if(!commandList[0].replace){
 			outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line + " #Error");
 		}
