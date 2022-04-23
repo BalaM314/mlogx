@@ -88,20 +88,21 @@ class Arg {
 
 
 function arg(str:`${string}:${"*"|""}${string}${"?"|""}`){
+	if(!str.includes(":")){
+		return new Arg(str, str, false, false, false);
+	}
 	let [name, type] = str.split(":");
 	let isVariable = false;
 	let isOptional = false;
-	if(type){
-		if(type.startsWith("*")){
-			isVariable = true;
-			type = type.substring(1);
-		}
-		if(type.endsWith("?")){
-			isVariable = true;
-			type = type.substring(type.length - 1);
-		}
+	if(type.startsWith("*")){
+		isVariable = true;
+		type = type.substring(1);
 	}
-	return new Arg(type, name, isOptional, !! type, isVariable);
+	if(type.endsWith("?")){
+		isVariable = true;
+		type = type.substring(type.length - 1);
+	}
+	return new Arg(type, name, isOptional, true, isVariable);
 
 }
 
@@ -112,7 +113,7 @@ interface CommandDefinition {
 }
 
 interface PreprocessedCommand {
-	args: (string|Arg)[];
+	args: string;
 	replace?: string[];
 	description: string;
 }
@@ -132,9 +133,7 @@ function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):Co
 		for(let command of commands){
 			out[name].push({
 				...command,
-				args: command.args.map(arg => 
-					typeof arg == "string" ? new Arg(arg, arg, false, false) : arg
-				)
+				args: command.args.split(" ").map(commandArg => arg(commandArg as any))
 			});
 		}
 	}
@@ -144,7 +143,7 @@ function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):Co
 /** Contains the arguments for all types.*/
 let commands: CommandDefinitions = processCommands({
 	call: [{
-		args: [arg("function:function")],
+		args: "function:function",
 		replace: [
 			"set _stack1 @counter",
 			"op add _stack1 _stack1 2",
@@ -153,17 +152,17 @@ let commands: CommandDefinitions = processCommands({
 		description: "Calls (function)."
 	}],
 	increment: [{
-		args: [arg("variable:variable"), arg("amount:number")],
+		args: "variable:variable amount:number",
 		replace: ["op add %1 %1 %2"],
 		description: "Adds a (amount) to (variable)."
 	}],
 	return: [{
-		args: [],
+		args: "",
 		replace: ["set @counter _stack1"],
 		description: "Returns to the main program from a function."
 	}],
 	throw: [{
-		args: [arg("error:string")],
+		args: "error:string",
 		replace: [
 			"set _err %1",
 			"jump _err always"
@@ -171,7 +170,7 @@ let commands: CommandDefinitions = processCommands({
 		description: "Throws (error)."
 	}],
 	uflag: [{
-		args: [arg("type:type")],
+		args: "type:type",
 		replace: [
 			"set _unit_type %1",
 			"set _stack1 @counter",
@@ -181,86 +180,86 @@ let commands: CommandDefinitions = processCommands({
 		description: "Binds and flags a unit of type (type)."
 	}],
 	read: [{
-		args: [arg("output:*number"), arg("cell:building"), arg("index:number")],
+		args: "output:*number cell:building index:number",
 		description: "Reads a value at index (index) from memory cell (cell) and outputs to (output)."
 	}],
 	write: [{
-		args: [arg("value:*number"), arg("cell:building"), arg("index:number")],
+		args: "value:*number cell:building index:number",
 		description: "Writes (value) at index (index) from memory cell (cell)."
 	}],
 	draw: [
 		{
-			args: ["clear", arg("r:number"), arg("g:number"), arg("b:number")],
+			args: "clear r:number g:number b:number",
 			description: "Clears the display, replacing it with color (r,g,b)."
 		},{
-			args: ["color", arg("r:number"), arg("g:number"), arg("b:number"), arg("a:number")],
+			args: "color r:number g:number b:number a:number",
 			description: "Sets the draw color to (r,g,b)."
 		},{
-			args: ["stroke", arg("width:number")],
+			args: "stroke width:number",
 			description: "Sets the stroke width to (width)."
 		},{
-			args: ["line", arg("x1:number"), arg("y1:number"), arg("x2:number"), arg("y2:number")],
+			args: "line x1:number y1:number x2:number y2:number",
 			description: "Draws a line between (x1, y1) and (x2, y2)."
 		},{
-			args: ["rect", arg("x:number"), arg("y:number"), arg("width:number"), arg("height:number")],
+			args: "rect x:number y:number width:number height:number",
 			description: "Draws a rectangle with lower right corner at (x,y) with width (width) and height (height)."
 		},{
-			args: ["linerect", arg("x:number"), arg("y:number"), arg("width:number"), arg("height:number")],
+			args: "linerect x:number y:number width:number height:number",
 			description: "Draws the outline of a rectangle with lower right corner at (x,y) with width (width) and height (height)."
 		},{
-			args: ["poly", arg("x:number"), arg("y:number"), arg("sides:number"), arg("radius:number"), arg("rotation:number")],
+			args: "poly x:number y:number sides:number radius:number rotation:number",
 			description: "Draws a (regular) polygon centered at (x,y) with (sides) sides and a radius of (radius)."
 		},{
-			args: ["linepoly", arg("x:number"), arg("y:number"), arg("sides:number"), arg("radius:number"), arg("rotation:number")],
+			args: "linepoly x:number y:number sides:number radius:number rotation:number",
 			description: "Draws the outline of a polygon centered at (x,y) with (sides) sides and a radius of (radius)."
 		},{
-			args: ["triangle", arg("x1:number"), arg("y1:number"), arg("x2:number"), arg("y2:number"), arg("x3:number"), arg("y3:number")],
+			args: "triangle x1:number y1:number x2:number y2:number x3:number y3:number",
 			description: "Draws a triangle between the points (x1, y1), (x2, y2), and (x3, y3)."
 		},{
-			args: ["image", arg("x:number"), arg("y:number"), arg("image:type"), arg("size:number"), arg("rotation:number")],
+			args: "image x:number y:number image:type size:number rotation:number",
 			description: "Displays an image of (image) centered at (x,y) with size (size) and rotated (rotation) degrees."
 		},
 	],
 	print: [{
-		args: [arg("message:string")],
+		args: "message:string",
 		description: "Prints (message) to the message buffer."
 	}],
 	drawflush: [{
-		args: [arg("display:building")],
+		args: "display:building",
 		description: "Flushes queued draw instructions to (display)."
 	}],
 	printflush: [{
-		args: [arg("messageblock:building")],
+		args: "messageblock:building",
 		description: "Flushes queued print instructions to (messageblock)"
 	}],
 	getlink: [{
-		args: [arg("output:*building"), arg("n:number")],
+		args: "output:*building n:number",
 		description: "Gets the (n)th linked building. Useful when looping over all buildings."
 	}],
 	control: [
 		{
-			args: ["enabled", arg("building:building"), arg("enabled:boolean")],
+			args: "enabled building:building enabled:boolean",
 			description: "Sets whether (building) is enabled."
 		},{
-			args: ["shoot", arg("turret:building"), arg("x:number"), arg("y:number"), arg("shoot:boolean")],
+			args: "shoot turret:building x:number y:number shoot:boolean",
 			description: "Sets the shoot position of (turret) to (x,y) and shoots if (shoot)."
 		},{
-			args: ["shootp", arg("turret:building"), arg("unit:unit"), arg("shoot:boolean")],
+			args: "shootp turret:building unit:unit shoot:boolean",
 			description: "Sets the shoot position of (turret) to (unit) with velocity prediction and shoots if (shoot)."
 		},{
-			args: ["config", arg("building:building"), arg("config:valid")],
+			args: "config building:building config:valid",
 			description: "Sets the config of (building) to (config)."
 		},{
-			args: ["color", arg("illuminator:building"), arg("r:number"), arg("g:number"), arg("b:number")],
+			args: "color illuminator:building r:number g:number b:number",
 			description: "Sets the color of (illuminator) to (r,g,b)."
 		},
 	],
 	radar: [
 		{
-			args: [arg("targetClass1:targetClass"), arg("targetClass2:targetClass"), arg("targetClass3:targetClass"), arg("sortCriteria:unitSortCriteria"), arg("turret:building"), arg("sortOrder:number"), arg("output:*any")],
+			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*any",
 			description: "Finds units of specified type within the range of (turret)."
 		},{
-			args: [arg("targetClass:targetClass"), arg("sortCriteria:unitSortCriteria"), arg("turret:building"), arg("sortOrder:number"), arg("output:*unit")],
+			args: "targetClass:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*unit",
 			description: "Finds units of specified type within the range of (turret).",
 			replace: [
 				"radar %1 %1 %1 %2 %3 %4 %5"
@@ -269,133 +268,133 @@ let commands: CommandDefinitions = processCommands({
 	],
 	sensor: [
 		{
-			args: [arg("output:*any"), arg("building:building"), arg("value:type")],
+			args: "output:*any building:building value:type",
 			description: "Gets information about (building) and outputs to (output), does not need to be linked or on the same team."
 		},{
-			args: [arg("output:*any"), arg("unit:unit"), arg("value:type")],
+			args: "output:*any unit:unit value:type",
 			description: "Gets information about (unit) and outputs to (output), does not need to be on the same team."
 		},
 	],
 	set: [{
-		args: [arg("variable:*any"), arg("value:valid")],
+		args: "variable:*any value:valid",
 		description: "Sets the value of (variable) to (value)."
 	}],
 	op: [
 		{
-			args: [arg("operand:operand"), arg("output:*any"), arg("arg1:valid"), arg("arg2:valid?")],
+			args: "operand:operand output:*any arg1:valid arg2:valid?",
 			description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
 		},{
-			args: [arg("operand:operand"), arg("arg1:*any")],
+			args: "operand:operand arg1:*any",
 			description: "Performs an operation on arg1, mutating it. Example: \`op abs xDiff\`",
 			replace: [ "op %1 %2 %2 0" ]
 		}
 	],
 	wait: [{
-		args: [arg("seconds:number")],
+		args: "seconds:number",
 		description: "Waits for (seconds) seconds."
 	}],
 	lookup: [{
-		args: [arg("type:lookupType"), arg("output:*any"), arg("n:number")],
+		args: "type:lookupType output:*any n:number",
 		description: "Looks up the (n)th item, building, fluid, or unit type."
 	}],
 	end: [{
-		args: [],
+		args: "",
 		description: "Terminates execution."
 	}],
 	jump: [{
-		args: [arg("jumpAddress:jumpAddress"), arg("operandTest:operandTest"), arg("var1:valid?"), arg("var2:valid?")],
+		args: "jumpAddress:jumpAddress operandTest:operandTest var1:valid? var2:valid?",
 		description: "Jumps to an address or label if a condition is met."
 	}],
 	ubind: [{
-		args: [arg("unitType:type")],
+		args: "unitType:type",
 		description: "Binds a unit of (unitType). May return dead units if no live ones exist."
 	}],
 	ucontrol: [
 		{
-			args: ["idle"],
+			args: "idle",
 			description: "Tells the bound unit to continue current actions, except moving."
 		},{
-			args: ["stop"],
+			args: "stop",
 			description: "Tells the bound unit to stop all actions."
 		},{
-			args: ["move", arg("x:number"), arg("y:number")],
+			args: "move x:number y:number",
 			description: "Tells the bound unit to move to (x,y). Does not wait for the unit to reach."
 		},{
-			args: ["approach", arg("x:number"), arg("y:number"), arg("radius:number")],
+			args: "approach x:number y:number radius:number",
 			description: "Tells the bound unit to approach (x,y) but stay (radius) away. Does not wait for the unit to reach."
 		},{
-			args: ["boost", arg("enable:boolean")],
+			args: "boost enable:boolean",
 			description: "Tells the bound unit to boost or not boost."
 		},{
-			args: ["pathfind"],
+			args: "pathfind",
 			description: "Tells the bound unit to follow its normal AI."
 		},{
-			args: ["target", arg("x:number"), arg("y:number"), arg("shoot:boolean")],
+			args: "target x:number y:number shoot:boolean",
 			description: "Tells the bound unit to target/shoot (x,y).\nWill not shoot if the position is outside the unit's range."
 		},{
-			args: ["targetp", arg("unit:unit"), arg("shoot:boolean")],
+			args: "targetp unit:unit shoot:boolean",
 			description: "Tells the bound unit to target/shoot a unit.\nWill not shoot if the position is outside the unit's range."
 		},{
-			args: ["itemDrop", arg("building:building"), arg("amount:number")],
+			args: "itemDrop building:building amount:number",
 			description: "Tells the bound unit to drop at most (amount) items to (building)."
 		},{
-			args: ["itemTake", arg("building:building"), arg("item:type"), arg("amount:number")],
+			args: "itemTake building:building item:type amount:number",
 			description: "Tells the bound unit to take at most (amount) of (item) from (building)."
 		},{
-			args: ["payDrop"],
+			args: "payDrop",
 			description: "Tells the bound unit to drop its payload."
 		},{
-			args: ["payTake", arg("takeUnits:boolean")],
+			args: "payTake takeUnits:boolean",
 			description: "Tells the bound unit to pick up a payload and if to take units."
 		},{
-			args: ["payEnter"],
+			args: "payEnter",
 			description: "Tells the bound unit to enter a building(usually a reconstructor)."
 		},{
-			args: ["mine", arg("x:number"), arg("y:number")],
+			args: "mine x:number y:number",
 			description: "Tells the unit to mine at (x,y)"
 		},{
-			args: ["flag", arg("flag:number")],
+			args: "flag flag:number",
 			description: "Sets the flag of the bound unit."
 		},{
-			args: ["build", arg("x:number"), arg("y:number"), arg("buildingType:type"), arg("rotation:number"), arg("config:valid")],
+			args: "build x:number y:number buildingType:type rotation:number config:valid",
 			description: "Tells the unit to build (block) with (rotation) and (config) at (x,y)."
 		},{
-			args: ["getBlock", arg("x:number"), arg("y:number"), arg("buildingType:*type"), arg("building:*building")],
+			args: "getBlock x:number y:number buildingType:*type building:*building",
 			description: "Gets the building type and building at (x,y) and outputs to (buildingType) and (building)."
 		},{
-			args: ["within", arg("x:number"), arg("y:number"), arg("radius:number"), arg("output:*boolean")],
+			args: "within x:number y:number radius:number output:*boolean",
 			description: "Checks if the unit is within (radius) tiles of (x,y) and outputs to (output)."
 		},
 	],
 	uradar: [
 		{
-			args: [arg("targetClass1:targetClass"), arg("targetClass2:targetClass"), arg("targetClass3:targetClass"), arg("sortCriteria:unitSortCriteria"), arg("sortOrder:number"), arg("output:*unit")],
+			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
 			description: "Finds other units of specified class near the bound unit."
 		},{
-			args: [arg("targetClass:targetClass"), arg("sortCriteria:unitSortCriteria"), arg("sortOrder:number"), arg("output:*unit")],
+			args: "targetClass:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
 			replace: ["uradar %1 %1 %1 %2 %3 %4"],
 			description: "Finds other units of specified class near the bound unit."
 		},
 	],
 	ulocate: [
 		{
-			args: ["ore", arg("ore:type"), arg("outX:*number"), arg("outY:*number"), arg("found:*boolean")],
+			args: "ore ore:type outX:*number outY:*number found:*boolean",
 			description: "Finds ores of specified type near the bound unit.",
 			replace: ["ulocate ore core _ %2 %3 %4 %5 _"]
 		},{
-			args: ["spawn", arg("outX:*number"), arg("outY:*number"), arg("found:*boolean")],
+			args: "spawn outX:*number outY:*number found:*boolean",
 			description: "Finds enemy spawns near the bound unit.",
 			replace: ["ulocate spawn core _ _ %2 %3 %4 _"]
 		},{
-			args: ["damaged", arg("outX:*number"), arg("outY:*number"), arg("found:*boolean"), arg("building:*building")],
+			args: "damaged outX:*number outY:*number found:*boolean building:*building",
 			description: "Finds damaged buildings near the bound unit.",
 			replace: ["ulocate damaged core _ _ %2 %3 %4 %5"]
 		},{
-			args: ["building", arg("buildingGroup:buildingGroup"), arg("enemy:boolean"), arg("outX:*number"), arg("outY:*number"), arg("found:*boolean"), arg("building:*building")],
+			args: "building buildingGroup:buildingGroup enemy:boolean outX:*number outY:*number found:*boolean building:*building",
 			description: "Finds buildings of specified group near the bound unit.",
 			replace: ["ulocate building %2 %3 _ %4 %5 %6 %7"]
 		},{
-			args: [arg("oreOrSpawnOrAmogusOrDamagedOrBuilding:any"), arg("buildingGroup:buildingGroup"), arg("enemy:number"), arg("ore:type"), arg("outX:*number"), arg("outY:*number"), arg("found:*boolean"), arg("building:*building")],
+			args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:any buildingGroup:buildingGroup enemy:number ore:type outX:*number outY:*number found:*boolean building:*building",
 			description: "The wack default ulocate signature, included for compatibility."
 		}
 	],
