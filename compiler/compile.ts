@@ -72,17 +72,17 @@ class Arg {
 	constructor(
 		public type:ArgType,
 		public name:string = "WIP",
-		public optional:boolean = false,
-		public generic:boolean = true,
-		public variable:boolean = false
+		public isOptional:boolean = false,
+		public isGeneric:boolean = true,
+		public isVariable:boolean = false
 	){}
 	toString(){
-		if(!this.generic)
+		if(!this.isGeneric)
 			return `${this.type}`;
-		if(this.optional)
-			return `(${this.name}:${this.variable ? "*" : ""}${this.type})`;
+		if(this.isOptional)
+			return `(${this.name}:${this.isVariable ? "*" : ""}${this.type})`;
 		else
-			return `[${this.name}:${this.variable ? "*" : ""}${this.type}]`;
+			return `[${this.name}:${this.isVariable ? "*" : ""}${this.type}]`;
 	}
 }
 
@@ -368,12 +368,20 @@ let commands: CommandDefinitions = processCommands({
 	],
 	uradar: [
 		{
-			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
-			description: "Finds other units of specified class near the bound unit."
+			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*any",
+			description: "Finds units of specified type within the range of the bound unit.",
+			replace: [
+				"radar %1 %2 %3 %4 0 %5 %6"
+			]
+		},{
+			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sillyness:any sortOrder:number output:*any",
+			description: "Today I learned that the default signature of uradar has a random 0 that doesn't mean anything."
 		},{
 			args: "targetClass:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
-			replace: ["uradar %1 %1 %1 %2 %3 %4"],
-			description: "Finds other units of specified class near the bound unit."
+			description: "Finds units of specified type within the range of the bound unit.",
+			replace: [
+				"radar %1 %1 %1 %2 0 %3 %4"
+			]
 		},
 	],
 	ulocate: [
@@ -394,7 +402,7 @@ let commands: CommandDefinitions = processCommands({
 			description: "Finds buildings of specified group near the bound unit.",
 			replace: ["ulocate building %2 %3 _ %4 %5 %6 %7"]
 		},{
-			args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:any buildingGroup:buildingGroup enemy:number ore:type outX:*number outY:*number found:*boolean building:*building",
+			args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:any buildingGroup:buildingGroup enemy:boolean ore:type outX:*number outY:*number found:*boolean building:*building",
 			description: "The wack default ulocate signature, included for compatibility."
 		}
 	],
@@ -414,6 +422,7 @@ function exit(message: string):never {
 	process.exit(1);
 }
 
+/** Estimates the type of an arg. May not always be right. */
 function typeofArg(arg:string):GenericArgType {
 	if(arg == "") return GenericArgType.null;
 	if(arg == undefined) return GenericArgType.null;
@@ -658,7 +667,7 @@ function checkTypes(program:string[], settings:Settings){
 }
 
 function getVariables(command:CommandDefinition){
-	return command.args.filter(arg => arg.variable);
+	return command.args.filter(arg => arg.isVariable);
 }
 
 function checkCommand(args:string[], command:CommandDefinition, line:string): {
@@ -667,7 +676,8 @@ function checkCommand(args:string[], command:CommandDefinition, line:string): {
 	error?: CommandError
 } {
 	let commandArguments = args.slice(1);
-	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.optional).length){
+	console.log(command.args, commandArguments);
+	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
 		return {
 			ok: false,
 			error: {
@@ -715,7 +725,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 function isCommand(line:string, command:CommandDefinition): boolean {
 	let args = splitLineIntoArguments(line);
 	let commandArguments = args.slice(1);
-	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.optional).length){
+	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
 		return false;
 	}
 
