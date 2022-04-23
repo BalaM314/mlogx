@@ -69,6 +69,7 @@ function isGenericArg(val:string): val is GenericArgType {
 
 /**Represents an argument(type) for a command.*/
 class Arg {
+	variableType?: GenericArgType;
 	constructor(public type:ArgType, public name:string = "WIP", public optional:boolean = false){}
 	toString(){
 		if(!isGenericArg(this.type))
@@ -510,7 +511,7 @@ function splitLineIntoArguments(line:string):string[] {
 		//aaaaaaaaaaaaaaaaa
 		let replacementLine = [];
 		let isInString = false;
-		for(var char of line){
+		for(let char of line){
 			if(char == `"`){
 				isInString = !isInString;
 			}
@@ -608,13 +609,45 @@ function compileMlogxToMlog(program:string[], settings:Settings & {filename: str
 				);
 			}
 		}
-		
+
 		if(!commandList[0].replace){
 			outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line + " #Error");
 		}
 
 	}
 	return outputData;
+}
+
+/**Type checks an mlog program. */
+function checkTypes(program:string[], settings:Settings){
+
+	function err(message:string):never {
+		throw new CompilerError(message);
+	}
+
+	let variables: {
+		[index: string]: {
+			type: ArgType;
+		}
+	} = {
+
+	};
+
+	for(let line of program){
+		let cleanedLine = cleanLine(line);
+		let args = splitLineIntoArguments(line);
+		let command = getCommandType(cleanedLine);
+		if(command == null){
+			err(`Invalid command \`${line}\``);
+		}
+		let variablesUsed = getVariables(command);
+
+
+	}
+}
+
+function getVariables(command:CommandDefinition){
+	return command.args.filter(arg => arg.type == GenericArgType.variable).map(arg => arg.variableType);
 }
 
 function checkCommand(args:string[], command:CommandDefinition, line:string): {
@@ -666,6 +699,36 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 	return {
 		ok: true
 	};
+}
+
+function isCommand(line:string, command:CommandDefinition): boolean {
+	let args = splitLineIntoArguments(line);
+	let commandArguments = args.slice(1);
+	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.optional).length){
+		return false;
+	}
+
+	for(let arg in commandArguments){
+		if(!isArgOfType(commandArguments[+arg], command.args[+arg].type)){
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function getCommandType(cleanedLine:string): CommandDefinition | null {
+	let args = splitLineIntoArguments(cleanedLine);
+
+	let commandList = commands[args[0]];
+
+	for(let possibleCommand of commandList){
+		if(isCommand(cleanedLine, possibleCommand)){
+			return possibleCommand;
+		};
+	}
+	
+	return null;
 }
 
 function parsePreprocessorDirectives(data:string[]): [string, string[], string] {

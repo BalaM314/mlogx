@@ -480,7 +480,7 @@ function splitLineIntoArguments(line) {
     if (line.includes(`"`)) {
         let replacementLine = [];
         let isInString = false;
-        for (var char of line) {
+        for (let char of line) {
             if (char == `"`) {
                 isInString = !isInString;
             }
@@ -570,6 +570,24 @@ function compileMlogxToMlog(program, settings) {
     }
     return outputData;
 }
+function checkTypes(program, settings) {
+    function err(message) {
+        throw new CompilerError(message);
+    }
+    let variables = {};
+    for (let line of program) {
+        let cleanedLine = cleanLine(line);
+        let args = splitLineIntoArguments(line);
+        let command = getCommandType(cleanedLine);
+        if (command == null) {
+            err(`Invalid command \`${line}\``);
+        }
+        let variablesUsed = getVariables(command);
+    }
+}
+function getVariables(command) {
+    return command.args.filter(arg => arg.type == GenericArgType.variable).map(arg => arg.variableType);
+}
 function checkCommand(args, command, line) {
     let commandArguments = args.slice(1);
     if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.optional).length) {
@@ -609,6 +627,30 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
     return {
         ok: true
     };
+}
+function isCommand(line, command) {
+    let args = splitLineIntoArguments(line);
+    let commandArguments = args.slice(1);
+    if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.optional).length) {
+        return false;
+    }
+    for (let arg in commandArguments) {
+        if (!isArgOfType(commandArguments[+arg], command.args[+arg].type)) {
+            return false;
+        }
+    }
+    return true;
+}
+function getCommandType(cleanedLine) {
+    let args = splitLineIntoArguments(cleanedLine);
+    let commandList = commands[args[0]];
+    for (let possibleCommand of commandList) {
+        if (isCommand(cleanedLine, possibleCommand)) {
+            return possibleCommand;
+        }
+        ;
+    }
+    return null;
 }
 function parsePreprocessorDirectives(data) {
     let program_type = "unknown";
