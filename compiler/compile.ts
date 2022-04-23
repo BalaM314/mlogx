@@ -99,8 +99,8 @@ function arg(str:`${string}:${"*"|""}${string}${"?"|""}`){
 		type = type.substring(1);
 	}
 	if(type.endsWith("?")){
-		isVariable = true;
-		type = type.substring(type.length - 1);
+		isOptional = true;
+		type = type.substring(0, type.length - 1);
 	}
 	return new Arg(type, name, isOptional, true, isVariable);
 
@@ -133,7 +133,7 @@ function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):Co
 		for(let command of commands){
 			out[name].push({
 				...command,
-				args: command.args.split(" ").map(commandArg => arg(commandArg as any))
+				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as any)) : []
 			});
 		}
 	}
@@ -514,7 +514,7 @@ class CompilerError extends Error {
 
 function cleanLine(line:string):string {
 	return line
-		.replace(/\/\/.*/g, "")
+		.replace(/(\/\/)|(#).*/g, "")
 		.replace(/\/\*.*\*\//g, "")
 		.replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
@@ -597,30 +597,28 @@ function compileMlogxToMlog(program:string[], settings:Settings & {filename: str
 			continue toNextLine;
 		}
 
-		try {
-			for(let command of commandList){
-				let result = checkCommand(args, command, cleanedLine);
-				if(result.replace){
-					outputData.push(...result.replace);
-					continue toNextLine;
-				} else if(result.error){
-					throw result.error;
-				} else if(result.ok){
-					outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
-					continue toNextLine;
-				}
+		let error:CommandError = {} as any;
+		
+		for(let command of commandList){
+			let result = checkCommand(args, command, cleanedLine);
+			if(result.replace){
+				outputData.push(...result.replace);
+				continue toNextLine;
+			} else if(result.error){
+				error = result.error;
+			} else if(result.ok){
+				outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
+				continue toNextLine;
 			}
-		} catch(error:any){
-			error = <CommandError>error;
-			if(commandList.length == 1){
-				err(error.message);
-			} else {
-				err(
-		`Line
-		\`${line}\`
-		did not match any overloads for command ${args[0]}`
-				);
-			}
+		}
+		if(commandList.length == 1){
+			err(error.message);
+		} else {
+			err(
+	`Line
+	\`${line}\`
+	did not match any overloads for command ${args[0]}`
+			);
 		}
 
 		if(!commandList[0].replace){
