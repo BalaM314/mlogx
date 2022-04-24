@@ -453,18 +453,19 @@ function typeofArg(arg:string):GenericArgType {
 	if(arg.match(/^[^"]+$/i)) return GenericArgType.variable;
 	return GenericArgType.null;
 }
-function isArgOfType(arg:string, type:ArgType):boolean {
-	if(type === GenericArgType.any) return true;
-	if(arg == "") return false;
-	if(arg == "0") return true;
-	if(arg == undefined) return false;
-	arg = arg.toLowerCase();
-	if(!isGenericArg(type)){
-		return arg === type.toLowerCase();
+function isArgOfType(argToCheck:string, arg:Arg):boolean {
+	if(arg.type === GenericArgType.any) return true;
+	if(argToCheck == "") return false;
+	if(argToCheck == "0") return true;
+	if(argToCheck == undefined) return false;
+	argToCheck = argToCheck.toLowerCase();
+	if(!isGenericArg(arg.type)){
+		return argToCheck === arg.type.toLowerCase();
 	}
-	let knownType:GenericArgType = typeofArg(arg);
-	if(knownType == type) return true;
-	switch(type){
+	let knownType:GenericArgType = typeofArg(argToCheck);
+	if(arg.isVariable) return knownType == GenericArgType.variable;
+	if(knownType == arg.type) return true;
+	switch(arg.type){
 		case GenericArgType.number:
 			return knownType == GenericArgType.boolean || knownType == GenericArgType.variable;
 		case GenericArgType.type:
@@ -474,18 +475,18 @@ function isArgOfType(arg:string, type:ArgType):boolean {
 		case GenericArgType.function:
 			return knownType == GenericArgType.variable;
 		case GenericArgType.targetClass:
-			return ["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg);
+			return ["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(argToCheck);
 		case GenericArgType.buildingGroup:
-			return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)
+			return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(argToCheck)
 		case GenericArgType.operandTest:
 			return [
 				"equal", "notequal", "strictequal", "greaterthan",
 				"lessthan", "greaterthaneq", "lessthaneq", "always"
-			].includes(arg);
+			].includes(argToCheck);
 		case GenericArgType.operand:
 			if(["atan2", "angle",
-			"dst", "len"].includes(arg)){
-				console.warn(`${arg} is deprecated.`);
+			"dst", "len"].includes(argToCheck)){
+				console.warn(`${argToCheck} is deprecated.`);
 				return true;
 			}
 			return [
@@ -496,16 +497,16 @@ function isArgOfType(arg:string, type:ArgType):boolean {
 				"min", "angle", "len", "noise", "abs", "log",
 				"log10", "floor", "ceil", "sqrt", "rand", "sin",
 				"cos", "tan", "asin", "acos", "atan"
-			].includes(arg);
+			].includes(argToCheck);
 		case GenericArgType.lookupType:
-			return ["building", "unit", "fluid", "item"].includes(arg);
+			return ["building", "unit", "fluid", "item"].includes(argToCheck);
 		case GenericArgType.targetClass:
 			return [
 				"any", "enemy", "ally", "player", "attacker",
 				"flying", "boss", "ground"
-			].includes(arg);
+			].includes(argToCheck);
 		case GenericArgType.unitSortCriteria:
-			return ["distance", "health", "shield", "armor", "maxHealth"].includes(arg);
+			return ["distance", "health", "shield", "armor", "maxHealth"].includes(argToCheck);
 		case GenericArgType.valid:
 			return true;//todo this needs intellijence
 		case GenericArgType.jumpAddress:
@@ -641,34 +642,97 @@ function compileMlogxToMlog(program:string[], settings:Settings & {filename: str
 /**Type checks an mlog program. */
 function checkTypes(program:string[], settings:Settings){
 
-	function err(message:string):never {
-		throw new CompilerError(message);
-	}
-
-	let variables: {
+	let variablesUsed: {
 		[index: string]: {
-			type: ArgType;
-		}
-	} = {
+			variableTypes: ArgType[];
+			lineDefinedAt: string;
+		}[]
+	} = {};
 
-	};
+	let variablesDefined: {
+		[index: string]: {
+			variableType: ArgType;
+			lineUsedAt: string;
+		}[]
+	} = {};
 
 	for(let line of program){
 		let cleanedLine = cleanLine(line);
-		let args = splitLineIntoArguments(line);
-		let command = getCommandType(cleanedLine);
-		if(command == null){
-			err(`Invalid command \`${line}\``);
+		let args = splitLineIntoArguments(line).slice(1);
+		let commandDefinitions = getCommandDefinitions(cleanedLine);
+		if(commandDefinitions.length == 0){
+			throw new CompilerError(`Invalid command \`${line}\``);
 		}
-		let variablesUsed = getVariables(command);
+
+		for(let commandDefinition of commandDefinitions){
+			getVariablesSet(args, commandDefinition).forEach(([variableName, variableType]) => {
+				variablesDefined[variableName].push({
+					variableType,
+					lineUsedAt: line
+				});
+			});
+			getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
+				variablesUsed[variableName].push({
+					variableTypes,
+					lineDefinedAt: line
+				})
+			});
+		}
 
 
 	}
+
+	//Check for conflicting definitions
+	Object.entries(variablesDefined).forEach(([name, variable]) => {
+		//Create a list of each definition's type and remove duplicates.
+		//If this list has more than one element there are definitions of conflicting types.
+		let types = [...new Set(variable.map(el => el.variableType))];
+
+		if(types.length > 1){
+			console.warn(
+`Variable ${name} was defined with ${types.length} different types. ([${types.join(", ")}])
+First conflicting definition: ${variable.filter(v => v.variableType == types[1])}`);
+			/*
+			console.log(
+				Object.entries(variablesDefined)
+				.filter(([_name]) => _name == name)
+				.map(([_name, _variable]) => _variable)
+			);
+			*/
+		}
+	});
+
 }
 
-function getVariables(command:CommandDefinition){
-	return command.args.filter(arg => arg.isVariable);
+function getVariablesSet(args:string[], commandDefinition:CommandDefinition): [string, ArgType][]{
+	return commandDefinition.args
+		.filter(arg => arg.isVariable)
+		.map((arg, index) => [args[index], arg.type]);
 }
+
+function getAllPossibleVariablesUsed(command:string): [string, ArgType[]][]{
+	let args = splitLineIntoArguments(command);
+	let variablesUsed_s = [];
+	for(let commandDefinition of getCommandDefinitions(command)){
+		variablesUsed_s.push(getVariablesSet(args, commandDefinition));
+	};
+	let variablesToReturn: {
+		[index:string]: ArgType[]
+	} = {};
+	for(let variablesUsed of variablesUsed_s){
+		 for(let [variableName, variableType] of variablesUsed){
+			 if(!variablesToReturn[variableName]) variablesToReturn[variableName] = [variableType];
+			 if(!variablesToReturn[variableName][1].includes(variableType)) variablesToReturn[variableName].push(variableType);
+		 }
+	}
+	return Object.entries(variablesToReturn);
+}
+function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [string, ArgType][]{
+	return args
+		.filter(arg => typeofArg(arg) == GenericArgType.variable)
+		.map((arg, index) => [arg, commandDefinition.args[index].type]);
+}
+
 
 function checkCommand(args:string[], command:CommandDefinition, line:string): {
 	ok: boolean
@@ -676,7 +740,6 @@ function checkCommand(args:string[], command:CommandDefinition, line:string): {
 	error?: CommandError
 } {
 	let commandArguments = args.slice(1);
-	console.log(command.args, commandArguments);
 	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
 		return {
 			ok: false,
@@ -691,7 +754,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 	}
 
 	for(let arg in commandArguments){
-		if(!isArgOfType(commandArguments[+arg], command.args[+arg].type)){
+		if(!isArgOfType(commandArguments[+arg], command.args[+arg])){
 			return {
 				ok: false,
 				error: {
@@ -730,7 +793,7 @@ function isCommand(line:string, command:CommandDefinition): boolean {
 	}
 
 	for(let arg in commandArguments){
-		if(!isArgOfType(commandArguments[+arg], command.args[+arg].type)){
+		if(!isArgOfType(commandArguments[+arg], command.args[+arg])){
 			return false;
 		}
 	}
@@ -738,18 +801,23 @@ function isCommand(line:string, command:CommandDefinition): boolean {
 	return true;
 }
 
-function getCommandType(cleanedLine:string): CommandDefinition | null {
+function getCommandDefinition(cleanedLine:string): CommandDefinition | undefined {
+	return getCommandDefinitions(cleanedLine)[0];
+}
+
+function getCommandDefinitions(cleanedLine:string): CommandDefinition[] {
 	let args = splitLineIntoArguments(cleanedLine);
 
 	let commandList = commands[args[0]];
+	let possibleCommands = [];
 
 	for(let possibleCommand of commandList){
 		if(isCommand(cleanedLine, possibleCommand)){
-			return possibleCommand;
+			possibleCommands.push(possibleCommand)
 		};
 	}
 	
-	return null;
+	return possibleCommands;
 }
 
 function parsePreprocessorDirectives(data:string[]): [string, string[], string] {

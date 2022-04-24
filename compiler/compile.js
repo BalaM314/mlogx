@@ -47,20 +47,20 @@ function isGenericArg(val) {
     return GenericArgType[val] != undefined;
 }
 class Arg {
-    constructor(type, name = "WIP", optional = false, generic = true, variable = false) {
+    constructor(type, name = "WIP", isOptional = false, isGeneric = true, isVariable = false) {
         this.type = type;
         this.name = name;
-        this.optional = optional;
-        this.generic = generic;
-        this.variable = variable;
+        this.isOptional = isOptional;
+        this.isGeneric = isGeneric;
+        this.isVariable = isVariable;
     }
     toString() {
-        if (!this.generic)
+        if (!this.isGeneric)
             return `${this.type}`;
-        if (this.optional)
-            return `(${this.name}:${this.variable ? "*" : ""}${this.type})`;
+        if (this.isOptional)
+            return `(${this.name}:${this.isVariable ? "*" : ""}${this.type})`;
         else
-            return `[${this.name}:${this.variable ? "*" : ""}${this.type}]`;
+            return `[${this.name}:${this.isVariable ? "*" : ""}${this.type}]`;
     }
 }
 function arg(str) {
@@ -320,12 +320,20 @@ let commands = processCommands({
     ],
     uradar: [
         {
-            args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
-            description: "Finds other units of specified class near the bound unit."
+            args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*any",
+            description: "Finds units of specified type within the range of the bound unit.",
+            replace: [
+                "radar %1 %2 %3 %4 0 %5 %6"
+            ]
+        }, {
+            args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sillyness:any sortOrder:number output:*any",
+            description: "Today I learned that the default signature of uradar has a random 0 that doesn't mean anything."
         }, {
             args: "targetClass:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
-            replace: ["uradar %1 %1 %1 %2 %3 %4"],
-            description: "Finds other units of specified class near the bound unit."
+            description: "Finds units of specified type within the range of the bound unit.",
+            replace: [
+                "radar %1 %1 %1 %2 0 %3 %4"
+            ]
         },
     ],
     ulocate: [
@@ -346,7 +354,7 @@ let commands = processCommands({
             description: "Finds buildings of specified group near the bound unit.",
             replace: ["ulocate building %2 %3 _ %4 %5 %6 %7"]
         }, {
-            args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:any buildingGroup:buildingGroup enemy:number ore:type outX:*number outY:*number found:*boolean building:*building",
+            args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:any buildingGroup:buildingGroup enemy:boolean ore:type outX:*number outY:*number found:*boolean building:*building",
             description: "The wack default ulocate signature, included for compatibility."
         }
     ],
@@ -410,23 +418,25 @@ function typeofArg(arg) {
         return GenericArgType.variable;
     return GenericArgType.null;
 }
-function isArgOfType(arg, type) {
-    if (type === GenericArgType.any)
+function isArgOfType(argToCheck, arg) {
+    if (arg.type === GenericArgType.any)
         return true;
-    if (arg == "")
+    if (argToCheck == "")
         return false;
-    if (arg == "0")
+    if (argToCheck == "0")
         return true;
-    if (arg == undefined)
+    if (argToCheck == undefined)
         return false;
-    arg = arg.toLowerCase();
-    if (!isGenericArg(type)) {
-        return arg === type.toLowerCase();
+    argToCheck = argToCheck.toLowerCase();
+    if (!isGenericArg(arg.type)) {
+        return argToCheck === arg.type.toLowerCase();
     }
-    let knownType = typeofArg(arg);
-    if (knownType == type)
+    let knownType = typeofArg(argToCheck);
+    if (arg.isVariable)
+        return knownType == GenericArgType.variable;
+    if (knownType == arg.type)
         return true;
-    switch (type) {
+    switch (arg.type) {
         case GenericArgType.number:
             return knownType == GenericArgType.boolean || knownType == GenericArgType.variable;
         case GenericArgType.type:
@@ -436,18 +446,18 @@ function isArgOfType(arg, type) {
         case GenericArgType.function:
             return knownType == GenericArgType.variable;
         case GenericArgType.targetClass:
-            return ["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg);
+            return ["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(argToCheck);
         case GenericArgType.buildingGroup:
-            return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg);
+            return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(argToCheck);
         case GenericArgType.operandTest:
             return [
                 "equal", "notequal", "strictequal", "greaterthan",
                 "lessthan", "greaterthaneq", "lessthaneq", "always"
-            ].includes(arg);
+            ].includes(argToCheck);
         case GenericArgType.operand:
             if (["atan2", "angle",
-                "dst", "len"].includes(arg)) {
-                console.warn(`${arg} is deprecated.`);
+                "dst", "len"].includes(argToCheck)) {
+                console.warn(`${argToCheck} is deprecated.`);
                 return true;
             }
             return [
@@ -458,16 +468,16 @@ function isArgOfType(arg, type) {
                 "min", "angle", "len", "noise", "abs", "log",
                 "log10", "floor", "ceil", "sqrt", "rand", "sin",
                 "cos", "tan", "asin", "acos", "atan"
-            ].includes(arg);
+            ].includes(argToCheck);
         case GenericArgType.lookupType:
-            return ["building", "unit", "fluid", "item"].includes(arg);
+            return ["building", "unit", "fluid", "item"].includes(argToCheck);
         case GenericArgType.targetClass:
             return [
                 "any", "enemy", "ally", "player", "attacker",
                 "flying", "boss", "ground"
-            ].includes(arg);
+            ].includes(argToCheck);
         case GenericArgType.unitSortCriteria:
-            return ["distance", "health", "shield", "armor", "maxHealth"].includes(arg);
+            return ["distance", "health", "shield", "armor", "maxHealth"].includes(argToCheck);
         case GenericArgType.valid:
             return true;
         case GenericArgType.jumpAddress:
@@ -578,26 +588,69 @@ function compileMlogxToMlog(program, settings) {
     return outputData;
 }
 function checkTypes(program, settings) {
-    function err(message) {
-        throw new CompilerError(message);
-    }
-    let variables = {};
+    let variablesUsed = {};
+    let variablesDefined = {};
     for (let line of program) {
         let cleanedLine = cleanLine(line);
-        let args = splitLineIntoArguments(line);
-        let command = getCommandType(cleanedLine);
-        if (command == null) {
-            err(`Invalid command \`${line}\``);
+        let args = splitLineIntoArguments(line).slice(1);
+        let commandDefinitions = getCommandDefinitions(cleanedLine);
+        if (commandDefinitions.length == 0) {
+            throw new CompilerError(`Invalid command \`${line}\``);
         }
-        let variablesUsed = getVariables(command);
+        for (let commandDefinition of commandDefinitions) {
+            getVariablesSet(args, commandDefinition).forEach(([variableName, variableType]) => {
+                variablesDefined[variableName].push({
+                    variableType,
+                    lineUsedAt: line
+                });
+            });
+            getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
+                variablesUsed[variableName].push({
+                    variableTypes,
+                    lineDefinedAt: line
+                });
+            });
+        }
     }
+    Object.entries(variablesDefined).forEach(([name, variable]) => {
+        let types = [...new Set(variable.map(el => el.variableType))];
+        if (types.length > 1) {
+            console.warn(`Variable ${name} was defined with ${types.length} different types. ([${types.join(", ")}])
+First conflicting definition: ${variable.filter(v => v.variableType == types[1])}`);
+        }
+    });
 }
-function getVariables(command) {
-    return command.args.filter(arg => arg.variable);
+function getVariablesSet(args, commandDefinition) {
+    return commandDefinition.args
+        .filter(arg => arg.isVariable)
+        .map((arg, index) => [args[index], arg.type]);
+}
+function getAllPossibleVariablesUsed(command) {
+    let args = splitLineIntoArguments(command);
+    let variablesUsed_s = [];
+    for (let commandDefinition of getCommandDefinitions(command)) {
+        variablesUsed_s.push(getVariablesSet(args, commandDefinition));
+    }
+    ;
+    let variablesToReturn = {};
+    for (let variablesUsed of variablesUsed_s) {
+        for (let [variableName, variableType] of variablesUsed) {
+            if (!variablesToReturn[variableName])
+                variablesToReturn[variableName] = [variableType];
+            if (!variablesToReturn[variableName][1].includes(variableType))
+                variablesToReturn[variableName].push(variableType);
+        }
+    }
+    return Object.entries(variablesToReturn);
+}
+function getVariablesUsed(args, commandDefinition) {
+    return args
+        .filter(arg => typeofArg(arg) == GenericArgType.variable)
+        .map((arg, index) => [arg, commandDefinition.args[index].type]);
 }
 function checkCommand(args, command, line) {
     let commandArguments = args.slice(1);
-    if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.optional).length) {
+    if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length) {
         return {
             ok: false,
             error: {
@@ -609,7 +662,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
         };
     }
     for (let arg in commandArguments) {
-        if (!isArgOfType(commandArguments[+arg], command.args[+arg].type)) {
+        if (!isArgOfType(commandArguments[+arg], command.args[+arg])) {
             return {
                 ok: false,
                 error: {
@@ -638,26 +691,30 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 function isCommand(line, command) {
     let args = splitLineIntoArguments(line);
     let commandArguments = args.slice(1);
-    if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.optional).length) {
+    if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length) {
         return false;
     }
     for (let arg in commandArguments) {
-        if (!isArgOfType(commandArguments[+arg], command.args[+arg].type)) {
+        if (!isArgOfType(commandArguments[+arg], command.args[+arg])) {
             return false;
         }
     }
     return true;
 }
-function getCommandType(cleanedLine) {
+function getCommandDefinition(cleanedLine) {
+    return getCommandDefinitions(cleanedLine)[0];
+}
+function getCommandDefinitions(cleanedLine) {
     let args = splitLineIntoArguments(cleanedLine);
     let commandList = commands[args[0]];
+    let possibleCommands = [];
     for (let possibleCommand of commandList) {
         if (isCommand(cleanedLine, possibleCommand)) {
-            return possibleCommand;
+            possibleCommands.push(possibleCommand);
         }
         ;
     }
-    return null;
+    return possibleCommands;
 }
 function parsePreprocessorDirectives(data) {
     let program_type = "unknown";
