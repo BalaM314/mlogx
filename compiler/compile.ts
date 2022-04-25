@@ -1,7 +1,5 @@
 import fs = require("fs");
 import path = require("path");
-const [programArgs, fileNames] = parseArgs(process.argv.slice(2));
-const stdlibDirectory = path.join(process.argv[1], "..", "..", "stdlib", "build");
 
 const compilerMark = 
 `print "Made with mlogx"
@@ -31,7 +29,7 @@ const defaultConfig:Settings = {
 	}
 };
 
-enum GenericArgType {
+export enum GenericArgType {
 	variable="variable",
 	number="number",
 	string="string",
@@ -63,12 +61,12 @@ interface CommandError {
 
 type ArgType = GenericArgType | string;
 
-function isGenericArg(val:string): val is GenericArgType {
+export function isGenericArg(val:string): val is GenericArgType {
 	return GenericArgType[val as GenericArgType] != undefined;
 }
 
 /**Represents an argument(type) for a command.*/
-class Arg {
+export class Arg {
 	constructor(
 		public type:ArgType,
 		public name:string = "WIP",
@@ -87,7 +85,7 @@ class Arg {
 }
 
 
-function arg(str:`${string}:${"*"|""}${string}${"?"|""}`){
+export function arg(str:`${string}:${"*"|""}${string}${"?"|""}`){
 	if(!str.includes(":")){
 		return new Arg(str, str, false, false, false);
 	}
@@ -141,7 +139,7 @@ function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):Co
 }
 
 /** Contains the arguments for all types.*/
-const commands: CommandDefinitions = processCommands({
+export const commands: CommandDefinitions = processCommands({
 	call: [{
 		args: "function:function",
 		replace: [
@@ -423,7 +421,7 @@ function exit(message: string):never {
 }
 
 /** Estimates the type of an arg. May not always be right. */
-function typeofArg(arg:string):GenericArgType {
+export function typeofArg(arg:string):GenericArgType {
 	if(arg == "") return GenericArgType.null;
 	if(arg == undefined) return GenericArgType.null;
 	arg = arg.toLowerCase();
@@ -453,7 +451,9 @@ function typeofArg(arg:string):GenericArgType {
 	if(arg.match(/^[^"]+$/i)) return GenericArgType.variable;
 	return GenericArgType.null;
 }
-function isArgOfType(argToCheck:string, arg:Arg):boolean {
+
+/**Returns if an arg is of a specified type. */
+export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 	if(arg.type === GenericArgType.any) return true;
 	if(argToCheck == "") return false;
 	if(argToCheck == "0") return true;
@@ -522,14 +522,14 @@ class CompilerError extends Error {
 	}
 }
 
-function cleanLine(line:string):string {
+export function cleanLine(line:string):string {
 	return line
 		.replace(/(\/\/)|(#).*/g, "")
 		.replace(/\/\*.*\*\//g, "")
 		.replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
 
-function splitLineIntoArguments(line:string):string[] {
+export function splitLineIntoArguments(line:string):string[] {
 	if(line.includes(`"`)){
 		//aaaaaaaaaaaaaaaaa
 		let replacementLine = [];
@@ -551,7 +551,7 @@ function splitLineIntoArguments(line:string):string[] {
 	}
 }
 
-function compileMlogxToMlog(program:string[], settings:Settings & {filename: string}):string[] {
+export function compileMlogxToMlog(program:string[], settings:Settings & {filename: string}):string[] {
 
 	let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
 
@@ -643,7 +643,7 @@ function compileMlogxToMlog(program:string[], settings:Settings & {filename: str
 }
 
 /**Type checks an mlog program. */
-function checkTypes(program:string[], settings:Settings){
+export function checkTypes(program:string[], settings:Settings){
 
 	let variablesUsed: {
 		[name: string]: {
@@ -686,8 +686,6 @@ function checkTypes(program:string[], settings:Settings){
 
 
 	}
-	console.log(commands["ulocate"]);
-	console.log(variablesDefined);
 
 	//Check for conflicting definitions
 	Object.entries(variablesDefined).forEach(([name, variable]) => {
@@ -698,20 +696,21 @@ function checkTypes(program:string[], settings:Settings){
 		if(types.length > 1){
 			console.warn(
 `Variable ${name} was defined with ${types.length} different types. ([${types.join(", ")}])
-First conflicting definition: ${variable.filter(v => v.variableType == types[1])}`);
+	First definition: ${variable[0].lineUsedAt}
+	First conflicting definition: ${variable.filter(v => v.variableType == types[1])[0].lineUsedAt}`);
 			
 		}
 	});
 
 }
 
-function getVariablesDefined(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
+export function getVariablesDefined(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
 	return args
 		.filter((arg, index) => commandDefinition.args[index].isVariable)
 		.map((arg, index) => [arg, commandDefinition.args[index].type]);
 }
 
-function getAllPossibleVariablesUsed(command:string): [name:string, types:ArgType[]][]{
+export function getAllPossibleVariablesUsed(command:string): [name:string, types:ArgType[]][]{
 	let args = splitLineIntoArguments(command).slice(1);
 	let variablesUsed_s = [];
 	for(let commandDefinition of getCommandDefinitions(command)){
@@ -728,13 +727,13 @@ function getAllPossibleVariablesUsed(command:string): [name:string, types:ArgTyp
 	}
 	return Object.entries(variablesToReturn);
 }
-function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
+export function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
 	return args
-		.filter((arg, index) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandDefinition.args[index]))
-		.map((arg, index) => [arg, commandDefinition.args[index].type]);
+		.map((arg, index) => [arg, commandDefinition.args[index].type] as [name:string, type:ArgType])
+		.filter(([arg], index) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandDefinition.args[index]));
 }
 
-function acceptsVariable(arg: Arg):boolean {
+export function acceptsVariable(arg: Arg):boolean {
 	if(isGenericArg(arg.type))
 		return [
 			GenericArgType.boolean, GenericArgType.building,
@@ -746,7 +745,7 @@ function acceptsVariable(arg: Arg):boolean {
 		return false;
 }
 
-function checkCommand(args:string[], command:CommandDefinition, line:string): {
+export function checkCommand(args:string[], command:CommandDefinition, line:string): {
 	ok: boolean
 	replace?: string[],
 	error?: CommandError
@@ -797,7 +796,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 	};
 }
 
-function isCommand(line:string, command:CommandDefinition): boolean {
+export function isCommand(line:string, command:CommandDefinition): boolean {
 	let args = splitLineIntoArguments(line);
 	let commandArguments = args.slice(1);
 	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
@@ -813,11 +812,11 @@ function isCommand(line:string, command:CommandDefinition): boolean {
 	return true;
 }
 
-function getCommandDefinition(cleanedLine:string): CommandDefinition | undefined {
+export function getCommandDefinition(cleanedLine:string): CommandDefinition | undefined {
 	return getCommandDefinitions(cleanedLine)[0];
 }
 
-function getCommandDefinitions(cleanedLine:string): CommandDefinition[] {
+export function getCommandDefinitions(cleanedLine:string): CommandDefinition[] {
 	let args = splitLineIntoArguments(cleanedLine);
 
 	let commandList = commands[args[0]];
@@ -832,7 +831,7 @@ function getCommandDefinitions(cleanedLine:string): CommandDefinition[] {
 	return possibleCommands;
 }
 
-function parsePreprocessorDirectives(data:string[]): [string, string[], string] {
+export function parsePreprocessorDirectives(data:string[]): [string, string[], string] {
 	let program_type:string = "unknown";
 	let required_vars:string[] = [];
 	let author = "unknown";
@@ -855,7 +854,7 @@ function parsePreprocessorDirectives(data:string[]): [string, string[], string] 
 
 }
 
-function parseArgs(args: string[]): [
+export function parseArgs(args: string[]): [
 	{[index: string]: string;},
 	string[]
 ]{
@@ -878,7 +877,8 @@ function parseArgs(args: string[]): [
 	return [parsedArgs, mainArgs];
 }
 
-function main(){
+function main(processArgs: string[]){
+	const [programArgs, fileNames] = parseArgs(processArgs.slice(2));
 	//Option to specify directory to compile in
 
 	if(programArgs["help"]){
@@ -942,8 +942,8 @@ function compileDirectory(directory:string){
 	}
 	
 	if(
-		!(fs.existsSync(path.join(fileNames[0], "src")) &&
-		fs.lstatSync(path.join(fileNames[0], "src")).isDirectory())
+		!(fs.existsSync(path.join(directory, "src")) &&
+		fs.lstatSync(path.join(directory, "src")).isDirectory())
 		&& settings.compilerOptions.mode == "project"
 	){
 		console.error(`Compiler mode set to "project" but no src directory found.`);
@@ -952,6 +952,7 @@ function compileDirectory(directory:string){
 
 	const sourceDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "src") : directory;
 	const outputDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "build") : sourceDirectory;
+	const stdlibDirectory = path.join(process.argv[1], "..", "..", "stdlib", "build");
 
 
 	if(settings.compilerOptions.mode == "project" && !fs.existsSync(outputDirectory)){
@@ -1053,4 +1054,6 @@ function compileDirectory(directory:string){
 	}
 }
 
-main();
+if(require.main){
+	main(process.argv);
+}

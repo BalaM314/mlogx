@@ -1,9 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.parseArgs = exports.parsePreprocessorDirectives = exports.getCommandDefinitions = exports.getCommandDefinition = exports.isCommand = exports.checkCommand = exports.acceptsVariable = exports.getVariablesUsed = exports.getAllPossibleVariablesUsed = exports.getVariablesDefined = exports.checkTypes = exports.compileMlogxToMlog = exports.splitLineIntoArguments = exports.cleanLine = exports.isArgOfType = exports.typeofArg = exports.commands = exports.arg = exports.Arg = exports.isGenericArg = exports.GenericArgType = void 0;
 const fs = require("fs");
 const path = require("path");
-const [programArgs, fileNames] = parseArgs(process.argv.slice(2));
-const stdlibDirectory = path.join(process.argv[1], "..", "..", "stdlib", "build");
 const compilerMark = `print "Made with mlogx"
 print "github.com/BalaM314/mlogx/"`;
 const defaultConfig = {
@@ -37,7 +36,7 @@ var GenericArgType;
     GenericArgType["lookupType"] = "lookupType";
     GenericArgType["jumpAddress"] = "jumpAddress";
     GenericArgType["buildingGroup"] = "buildingGroup";
-})(GenericArgType || (GenericArgType = {}));
+})(GenericArgType = exports.GenericArgType || (exports.GenericArgType = {}));
 var CommandErrorType;
 (function (CommandErrorType) {
     CommandErrorType[CommandErrorType["argumentCount"] = 0] = "argumentCount";
@@ -46,6 +45,7 @@ var CommandErrorType;
 function isGenericArg(val) {
     return GenericArgType[val] != undefined;
 }
+exports.isGenericArg = isGenericArg;
 class Arg {
     constructor(type, name = "WIP", isOptional = false, isGeneric = true, isVariable = false) {
         this.type = type;
@@ -63,6 +63,7 @@ class Arg {
             return `[${this.name}:${this.isVariable ? "*" : ""}${this.type}]`;
     }
 }
+exports.Arg = Arg;
 function arg(str) {
     if (!str.includes(":")) {
         return new Arg(str, str, false, false, false);
@@ -80,6 +81,7 @@ function arg(str) {
     }
     return new Arg(type, name, isOptional, true, isVariable);
 }
+exports.arg = arg;
 function processCommands(preprocessedCommands) {
     let out = {};
     for (let [name, commands] of Object.entries(preprocessedCommands)) {
@@ -93,7 +95,7 @@ function processCommands(preprocessedCommands) {
     }
     return out;
 }
-const commands = processCommands({
+exports.commands = processCommands({
     call: [{
             args: "function:function",
             replace: [
@@ -418,6 +420,7 @@ function typeofArg(arg) {
         return GenericArgType.variable;
     return GenericArgType.null;
 }
+exports.typeofArg = typeofArg;
 function isArgOfType(argToCheck, arg) {
     if (arg.type === GenericArgType.any)
         return true;
@@ -485,6 +488,7 @@ function isArgOfType(argToCheck, arg) {
     }
     return false;
 }
+exports.isArgOfType = isArgOfType;
 class CompilerError extends Error {
     constructor(message) {
         super(...arguments);
@@ -497,6 +501,7 @@ function cleanLine(line) {
         .replace(/\/\*.*\*\//g, "")
         .replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
+exports.cleanLine = cleanLine;
 function splitLineIntoArguments(line) {
     if (line.includes(`"`)) {
         let replacementLine = [];
@@ -518,6 +523,7 @@ function splitLineIntoArguments(line) {
         return line.split(" ");
     }
 }
+exports.splitLineIntoArguments = splitLineIntoArguments;
 function compileMlogxToMlog(program, settings) {
     let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
     let isMain = programType == "main" || settings.compilerOptions.mode == "single";
@@ -553,7 +559,7 @@ function compileMlogxToMlog(program, settings) {
         }
         let args = splitLineIntoArguments(cleanedLine)
             .map(arg => arg.startsWith("__") ? `${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
-        let commandList = commands[args[0].toLowerCase()];
+        let commandList = exports.commands[args[0].toLowerCase()];
         if (!commandList) {
             err(`Unknown command ${args[0]}\nat \`${line}\``);
             continue toNextLine;
@@ -588,6 +594,7 @@ function compileMlogxToMlog(program, settings) {
     checkTypes(outputData, settings);
     return outputData;
 }
+exports.compileMlogxToMlog = compileMlogxToMlog;
 function checkTypes(program, settings) {
     let variablesUsed = {};
     let variablesDefined = {};
@@ -617,21 +624,22 @@ function checkTypes(program, settings) {
             });
         }
     }
-    console.log(commands["ulocate"]);
-    console.log(variablesDefined);
     Object.entries(variablesDefined).forEach(([name, variable]) => {
         let types = [...new Set(variable.map(el => el.variableType))];
         if (types.length > 1) {
             console.warn(`Variable ${name} was defined with ${types.length} different types. ([${types.join(", ")}])
-First conflicting definition: ${variable.filter(v => v.variableType == types[1])}`);
+	First definition: ${variable[0].lineUsedAt}
+	First conflicting definition: ${variable.filter(v => v.variableType == types[1])[0].lineUsedAt}`);
         }
     });
 }
+exports.checkTypes = checkTypes;
 function getVariablesDefined(args, commandDefinition) {
     return args
         .filter((arg, index) => commandDefinition.args[index].isVariable)
         .map((arg, index) => [arg, commandDefinition.args[index].type]);
 }
+exports.getVariablesDefined = getVariablesDefined;
 function getAllPossibleVariablesUsed(command) {
     let args = splitLineIntoArguments(command).slice(1);
     let variablesUsed_s = [];
@@ -650,11 +658,13 @@ function getAllPossibleVariablesUsed(command) {
     }
     return Object.entries(variablesToReturn);
 }
+exports.getAllPossibleVariablesUsed = getAllPossibleVariablesUsed;
 function getVariablesUsed(args, commandDefinition) {
     return args
-        .filter((arg, index) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandDefinition.args[index]))
-        .map((arg, index) => [arg, commandDefinition.args[index].type]);
+        .map((arg, index) => [arg, commandDefinition.args[index].type])
+        .filter(([arg], index) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandDefinition.args[index]));
 }
+exports.getVariablesUsed = getVariablesUsed;
 function acceptsVariable(arg) {
     if (isGenericArg(arg.type))
         return [
@@ -666,6 +676,7 @@ function acceptsVariable(arg) {
     else
         return false;
 }
+exports.acceptsVariable = acceptsVariable;
 function checkCommand(args, command, line) {
     let commandArguments = args.slice(1);
     if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length) {
@@ -706,6 +717,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
         ok: true
     };
 }
+exports.checkCommand = checkCommand;
 function isCommand(line, command) {
     let args = splitLineIntoArguments(line);
     let commandArguments = args.slice(1);
@@ -719,12 +731,14 @@ function isCommand(line, command) {
     }
     return true;
 }
+exports.isCommand = isCommand;
 function getCommandDefinition(cleanedLine) {
     return getCommandDefinitions(cleanedLine)[0];
 }
+exports.getCommandDefinition = getCommandDefinition;
 function getCommandDefinitions(cleanedLine) {
     let args = splitLineIntoArguments(cleanedLine);
-    let commandList = commands[args[0]];
+    let commandList = exports.commands[args[0]];
     let possibleCommands = [];
     for (let possibleCommand of commandList) {
         if (isCommand(cleanedLine, possibleCommand)) {
@@ -734,6 +748,7 @@ function getCommandDefinitions(cleanedLine) {
     }
     return possibleCommands;
 }
+exports.getCommandDefinitions = getCommandDefinitions;
 function parsePreprocessorDirectives(data) {
     let program_type = "unknown";
     let required_vars = [];
@@ -754,6 +769,7 @@ function parsePreprocessorDirectives(data) {
     }
     return [program_type, required_vars, author];
 }
+exports.parsePreprocessorDirectives = parsePreprocessorDirectives;
 function parseArgs(args) {
     let parsedArgs = {};
     let argName = "";
@@ -773,7 +789,9 @@ function parseArgs(args) {
     }
     return [parsedArgs, mainArgs];
 }
-function main() {
+exports.parseArgs = parseArgs;
+function main(processArgs) {
+    const [programArgs, fileNames] = parseArgs(processArgs.slice(2));
     if (programArgs["help"]) {
         console.log(`Usage: compile [--help] [--directory <directory>] [--info <command>] directory
 \t--help\tDisplays this help message and exits.
@@ -785,13 +803,13 @@ directory: The directory to compile in.
     if (programArgs["info"]) {
         if (programArgs["info"] == "null")
             return console.log("Please specify a command to get information on.");
-        if (!commands[programArgs["info"]])
+        if (!exports.commands[programArgs["info"]])
             console.log(`Unknown command ${programArgs["info"]}`);
         else
             console.log(`${programArgs["info"]}
 Usage:
 
-${commands[programArgs["info"]].map(command => programArgs["info"] + " " + command.args
+${exports.commands[programArgs["info"]].map(command => programArgs["info"] + " " + command.args
                 .map(arg => arg.toString())
                 .join(" ") + "\n" + command.description).join("\n\n")}
 `);
@@ -825,14 +843,15 @@ function compileDirectory(directory) {
     catch (err) {
         console.log("No config.json found, using default settings.");
     }
-    if (!(fs.existsSync(path.join(fileNames[0], "src")) &&
-        fs.lstatSync(path.join(fileNames[0], "src")).isDirectory())
+    if (!(fs.existsSync(path.join(directory, "src")) &&
+        fs.lstatSync(path.join(directory, "src")).isDirectory())
         && settings.compilerOptions.mode == "project") {
         console.error(`Compiler mode set to "project" but no src directory found.`);
         settings.compilerOptions.mode = "single";
     }
     const sourceDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "src") : directory;
     const outputDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "build") : sourceDirectory;
+    const stdlibDirectory = path.join(process.argv[1], "..", "..", "stdlib", "build");
     if (settings.compilerOptions.mode == "project" && !fs.existsSync(outputDirectory)) {
         fs.mkdirSync(outputDirectory);
     }
@@ -906,4 +925,6 @@ function compileDirectory(directory) {
         console.log("Done!");
     }
 }
-main();
+if (require.main) {
+    main(process.argv);
+}
