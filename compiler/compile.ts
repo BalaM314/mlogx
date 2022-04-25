@@ -141,7 +141,7 @@ function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):Co
 }
 
 /** Contains the arguments for all types.*/
-let commands: CommandDefinitions = processCommands({
+const commands: CommandDefinitions = processCommands({
 	call: [{
 		args: "function:function",
 		replace: [
@@ -636,6 +636,9 @@ function compileMlogxToMlog(program:string[], settings:Settings & {filename: str
 		}
 
 	}
+
+	checkTypes(outputData, settings);
+
 	return outputData;
 }
 
@@ -643,14 +646,14 @@ function compileMlogxToMlog(program:string[], settings:Settings & {filename: str
 function checkTypes(program:string[], settings:Settings){
 
 	let variablesUsed: {
-		[index: string]: {
+		[name: string]: {
 			variableTypes: ArgType[];
 			lineDefinedAt: string;
 		}[]
 	} = {};
 
 	let variablesDefined: {
-		[index: string]: {
+		[name: string]: {
 			variableType: ArgType;
 			lineUsedAt: string;
 		}[]
@@ -665,13 +668,15 @@ function checkTypes(program:string[], settings:Settings){
 		}
 
 		for(let commandDefinition of commandDefinitions){
-			getVariablesSet(args, commandDefinition).forEach(([variableName, variableType]) => {
+			getVariablesDefined(args, commandDefinition).forEach(([variableName, variableType]) => {
+				if(!variablesDefined[variableName]) variablesDefined[variableName] = [];
 				variablesDefined[variableName].push({
 					variableType,
 					lineUsedAt: line
 				});
 			});
 			getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
+				if(!variablesUsed[variableName]) variablesUsed[variableName] = [];
 				variablesUsed[variableName].push({
 					variableTypes,
 					lineDefinedAt: line
@@ -681,6 +686,8 @@ function checkTypes(program:string[], settings:Settings){
 
 
 	}
+	console.log(commands["ulocate"]);
+	console.log(variablesDefined);
 
 	//Check for conflicting definitions
 	Object.entries(variablesDefined).forEach(([name, variable]) => {
@@ -692,29 +699,23 @@ function checkTypes(program:string[], settings:Settings){
 			console.warn(
 `Variable ${name} was defined with ${types.length} different types. ([${types.join(", ")}])
 First conflicting definition: ${variable.filter(v => v.variableType == types[1])}`);
-			/*
-			console.log(
-				Object.entries(variablesDefined)
-				.filter(([_name]) => _name == name)
-				.map(([_name, _variable]) => _variable)
-			);
-			*/
+			
 		}
 	});
 
 }
 
-function getVariablesSet(args:string[], commandDefinition:CommandDefinition): [string, ArgType][]{
-	return commandDefinition.args
-		.filter(arg => arg.isVariable)
-		.map((arg, index) => [args[index], arg.type]);
+function getVariablesDefined(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
+	return args
+		.filter((arg, index) => commandDefinition.args[index].isVariable)
+		.map((arg, index) => [arg, commandDefinition.args[index].type]);
 }
 
-function getAllPossibleVariablesUsed(command:string): [string, ArgType[]][]{
-	let args = splitLineIntoArguments(command);
+function getAllPossibleVariablesUsed(command:string): [name:string, types:ArgType[]][]{
+	let args = splitLineIntoArguments(command).slice(1);
 	let variablesUsed_s = [];
 	for(let commandDefinition of getCommandDefinitions(command)){
-		variablesUsed_s.push(getVariablesSet(args, commandDefinition));
+		variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
 	};
 	let variablesToReturn: {
 		[index:string]: ArgType[]
@@ -722,17 +723,28 @@ function getAllPossibleVariablesUsed(command:string): [string, ArgType[]][]{
 	for(let variablesUsed of variablesUsed_s){
 		 for(let [variableName, variableType] of variablesUsed){
 			 if(!variablesToReturn[variableName]) variablesToReturn[variableName] = [variableType];
-			 if(!variablesToReturn[variableName][1].includes(variableType)) variablesToReturn[variableName].push(variableType);
+			 if(!variablesToReturn[variableName].includes(variableType)) variablesToReturn[variableName].push(variableType);
 		 }
 	}
 	return Object.entries(variablesToReturn);
 }
-function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [string, ArgType][]{
+function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
 	return args
-		.filter(arg => typeofArg(arg) == GenericArgType.variable)
+		.filter((arg, index) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandDefinition.args[index]))
 		.map((arg, index) => [arg, commandDefinition.args[index].type]);
 }
 
+function acceptsVariable(arg: Arg):boolean {
+	if(isGenericArg(arg.type))
+		return [
+			GenericArgType.boolean, GenericArgType.building,
+			GenericArgType.number, GenericArgType.string,
+			GenericArgType.type, GenericArgType.unit,
+			GenericArgType.valid
+		].includes(arg.type);
+	else
+		return false;
+}
 
 function checkCommand(args:string[], command:CommandDefinition, line:string): {
 	ok: boolean

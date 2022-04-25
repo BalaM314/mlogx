@@ -93,7 +93,7 @@ function processCommands(preprocessedCommands) {
     }
     return out;
 }
-let commands = processCommands({
+const commands = processCommands({
     call: [{
             args: "function:function",
             replace: [
@@ -585,6 +585,7 @@ function compileMlogxToMlog(program, settings) {
             outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line + " #Error");
         }
     }
+    checkTypes(outputData, settings);
     return outputData;
 }
 function checkTypes(program, settings) {
@@ -598,13 +599,17 @@ function checkTypes(program, settings) {
             throw new CompilerError(`Invalid command \`${line}\``);
         }
         for (let commandDefinition of commandDefinitions) {
-            getVariablesSet(args, commandDefinition).forEach(([variableName, variableType]) => {
+            getVariablesDefined(args, commandDefinition).forEach(([variableName, variableType]) => {
+                if (!variablesDefined[variableName])
+                    variablesDefined[variableName] = [];
                 variablesDefined[variableName].push({
                     variableType,
                     lineUsedAt: line
                 });
             });
             getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
+                if (!variablesUsed[variableName])
+                    variablesUsed[variableName] = [];
                 variablesUsed[variableName].push({
                     variableTypes,
                     lineDefinedAt: line
@@ -612,6 +617,8 @@ function checkTypes(program, settings) {
             });
         }
     }
+    console.log(commands["ulocate"]);
+    console.log(variablesDefined);
     Object.entries(variablesDefined).forEach(([name, variable]) => {
         let types = [...new Set(variable.map(el => el.variableType))];
         if (types.length > 1) {
@@ -620,16 +627,16 @@ First conflicting definition: ${variable.filter(v => v.variableType == types[1])
         }
     });
 }
-function getVariablesSet(args, commandDefinition) {
-    return commandDefinition.args
-        .filter(arg => arg.isVariable)
-        .map((arg, index) => [args[index], arg.type]);
+function getVariablesDefined(args, commandDefinition) {
+    return args
+        .filter((arg, index) => commandDefinition.args[index].isVariable)
+        .map((arg, index) => [arg, commandDefinition.args[index].type]);
 }
 function getAllPossibleVariablesUsed(command) {
-    let args = splitLineIntoArguments(command);
+    let args = splitLineIntoArguments(command).slice(1);
     let variablesUsed_s = [];
     for (let commandDefinition of getCommandDefinitions(command)) {
-        variablesUsed_s.push(getVariablesSet(args, commandDefinition));
+        variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
     }
     ;
     let variablesToReturn = {};
@@ -637,7 +644,7 @@ function getAllPossibleVariablesUsed(command) {
         for (let [variableName, variableType] of variablesUsed) {
             if (!variablesToReturn[variableName])
                 variablesToReturn[variableName] = [variableType];
-            if (!variablesToReturn[variableName][1].includes(variableType))
+            if (!variablesToReturn[variableName].includes(variableType))
                 variablesToReturn[variableName].push(variableType);
         }
     }
@@ -645,8 +652,19 @@ function getAllPossibleVariablesUsed(command) {
 }
 function getVariablesUsed(args, commandDefinition) {
     return args
-        .filter(arg => typeofArg(arg) == GenericArgType.variable)
+        .filter((arg, index) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandDefinition.args[index]))
         .map((arg, index) => [arg, commandDefinition.args[index].type]);
+}
+function acceptsVariable(arg) {
+    if (isGenericArg(arg.type))
+        return [
+            GenericArgType.boolean, GenericArgType.building,
+            GenericArgType.number, GenericArgType.string,
+            GenericArgType.type, GenericArgType.unit,
+            GenericArgType.valid
+        ].includes(arg.type);
+    else
+        return false;
 }
 function checkCommand(args, command, line) {
     let commandArguments = args.slice(1);
