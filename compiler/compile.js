@@ -611,7 +611,7 @@ function checkTypes(program, settings) {
                     variablesDefined[variableName] = [];
                 variablesDefined[variableName].push({
                     variableType,
-                    lineUsedAt: line
+                    lineDefinedAt: line
                 });
             });
             getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
@@ -619,19 +619,37 @@ function checkTypes(program, settings) {
                     variablesUsed[variableName] = [];
                 variablesUsed[variableName].push({
                     variableTypes,
-                    lineDefinedAt: line
+                    lineUsedAt: line
                 });
             });
         }
     }
-    Object.entries(variablesDefined).forEach(([name, variable]) => {
+    for (let [name, variable] of Object.entries(variablesDefined)) {
         let types = [...new Set(variable.map(el => el.variableType))];
         if (types.length > 1) {
             console.warn(`Variable ${name} was defined with ${types.length} different types. ([${types.join(", ")}])
-	First definition: ${variable[0].lineUsedAt}
-	First conflicting definition: ${variable.filter(v => v.variableType == types[1])[0].lineUsedAt}`);
+	First definition: ${variable[0].lineDefinedAt}
+	First conflicting definition: ${variable.filter(v => v.variableType == types[1])[0].lineDefinedAt}`);
         }
-    });
+    }
+    ;
+    for (let [name, variableUsages] of Object.entries(variablesUsed)) {
+        if (name == "_")
+            continue;
+        for (let variableUsage of variableUsages) {
+            if (!variablesDefined[name]) {
+                console.warn(`Variable "${name}" seems to be undefined.
+	at ${variableUsage.lineUsedAt}`);
+            }
+            else if (!variableUsage.variableTypes.includes(variablesDefined[name][0].variableType)
+                && variablesDefined[name][0].variableType != GenericArgType.any) {
+                console.warn(`Type mismatch: variable "${name}" is of type "${variablesDefined[name][0].variableType}",\
+but the command requires it to be of type [${variableUsage.variableTypes.map(t => `"${t}"`).join(", ")}]
+	at ${variableUsage.lineUsedAt}
+	First definition at: ${variablesDefined[name][0].lineDefinedAt}`);
+            }
+        }
+    }
 }
 exports.checkTypes = checkTypes;
 function getVariablesDefined(args, commandDefinition) {
