@@ -662,7 +662,7 @@ but the command requires it to be of type [${variableUsage.variableTypes.map(t =
 exports.checkTypes = checkTypes;
 function getVariablesDefined(args, commandDefinition) {
     if (commandDefinition.name == "set") {
-        return [[args[0], typeofArg(args[0])]];
+        return [[args[0], typeofArg(args[1])]];
     }
     return args
         .map((arg, index) => [arg, commandDefinition.args[index]])
