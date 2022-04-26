@@ -448,7 +448,6 @@ export function typeofArg(arg:string):GenericArgType {
 	// if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
 	// if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;
 	if(["true", "false"].includes(arg)) return GenericArgType.boolean;
-	if(arg == "true" || arg == "false") return GenericArgType.number;
 	if(arg.match(/^-?[\d]+$/)) return GenericArgType.number;
 	if(arg.match(/^"[^"]*"$/gi)) return GenericArgType.string;
 	if(arg.match(/^[a-z]+[\d]+$/gi)) return GenericArgType.building;
@@ -472,6 +471,10 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 	switch(arg.type){
 		case GenericArgType.number:
 			return knownType == GenericArgType.boolean || knownType == GenericArgType.variable;
+		case GenericArgType.jumpAddress:
+			return knownType == GenericArgType.number || knownType == GenericArgType.variable;
+		case GenericArgType.boolean:
+			return knownType == GenericArgType.number || knownType == GenericArgType.variable;
 		case GenericArgType.type:
 		case GenericArgType.string:
 		case GenericArgType.building:
@@ -513,8 +516,6 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 			return ["distance", "health", "shield", "armor", "maxHealth"].includes(argToCheck);
 		case GenericArgType.valid:
 			return true;//todo this needs intellijence
-		case GenericArgType.jumpAddress:
-			return knownType == GenericArgType.number || knownType == GenericArgType.variable;
 	}
 	return false;
 }

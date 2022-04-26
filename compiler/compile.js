@@ -410,8 +410,6 @@ function typeofArg(arg) {
         return GenericArgType.operandTest;
     if (["true", "false"].includes(arg))
         return GenericArgType.boolean;
-    if (arg == "true" || arg == "false")
-        return GenericArgType.number;
     if (arg.match(/^-?[\d]+$/))
         return GenericArgType.number;
     if (arg.match(/^"[^"]*"$/gi))
@@ -444,6 +442,10 @@ function isArgOfType(argToCheck, arg) {
     switch (arg.type) {
         case GenericArgType.number:
             return knownType == GenericArgType.boolean || knownType == GenericArgType.variable;
+        case GenericArgType.jumpAddress:
+            return knownType == GenericArgType.number || knownType == GenericArgType.variable;
+        case GenericArgType.boolean:
+            return knownType == GenericArgType.number || knownType == GenericArgType.variable;
         case GenericArgType.type:
         case GenericArgType.string:
         case GenericArgType.building:
@@ -485,8 +487,6 @@ function isArgOfType(argToCheck, arg) {
             return ["distance", "health", "shield", "armor", "maxHealth"].includes(argToCheck);
         case GenericArgType.valid:
             return true;
-        case GenericArgType.jumpAddress:
-            return knownType == GenericArgType.number || knownType == GenericArgType.variable;
     }
     return false;
 }
