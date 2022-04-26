@@ -13,7 +13,8 @@ const defaultConfig = {
         removeComments: true,
         compileWithErrors: true,
         mode: "single",
-        prependFileName: true
+        prependFileName: true,
+        checkTypes: false,
     }
 };
 var GenericArgType;
@@ -591,7 +592,14 @@ function compileMlogxToMlog(program, settings) {
             outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line + " #Error");
         }
     }
-    checkTypes(outputData, settings);
+    if (settings.compilerOptions.checkTypes) {
+        try {
+            checkTypes(outputData, settings);
+        }
+        catch (err) {
+            console.error(err);
+        }
+    }
     return outputData;
 }
 exports.compileMlogxToMlog = compileMlogxToMlog;
@@ -603,7 +611,7 @@ function checkTypes(program, settings) {
         let args = splitLineIntoArguments(line).slice(1);
         let commandDefinitions = getCommandDefinitions(cleanedLine);
         if (commandDefinitions.length == 0) {
-            throw new CompilerError(`Invalid command \`${line}\``);
+            throw new CompilerError(`Invalid command \`${line}\`.\nType checking aborted.`);
         }
         for (let commandDefinition of commandDefinitions) {
             getVariablesDefined(args, commandDefinition).forEach(([variableName, variableType]) => {

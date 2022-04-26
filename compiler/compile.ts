@@ -14,6 +14,7 @@ interface Settings {
 		compileWithErrors: boolean;
 		mode: "project" | "single";
 		prependFileName: boolean;
+		checkTypes: boolean;
 	}
 }
 
@@ -25,7 +26,8 @@ const defaultConfig:Settings = {
 		removeComments: true,
 		compileWithErrors: true,
 		mode: "single",
-		prependFileName: true
+		prependFileName: true,
+		checkTypes: false,
 	}
 };
 
@@ -637,7 +639,14 @@ export function compileMlogxToMlog(program:string[], settings:Settings & {filena
 
 	}
 
-	checkTypes(outputData, settings);
+	if(settings.compilerOptions.checkTypes){
+		try {
+			checkTypes(outputData, settings);
+		} catch(err){
+			console.error(err);
+		}
+
+	}
 
 	return outputData;
 }
@@ -664,7 +673,7 @@ export function checkTypes(program:string[], settings:Settings){
 		let args = splitLineIntoArguments(line).slice(1);
 		let commandDefinitions = getCommandDefinitions(cleanedLine);
 		if(commandDefinitions.length == 0){
-			throw new CompilerError(`Invalid command \`${line}\``);
+			throw new CompilerError(`Invalid command \`${line}\`.\nType checking aborted.`);
 		}
 
 		for(let commandDefinition of commandDefinitions){
