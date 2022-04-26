@@ -706,8 +706,8 @@ export function checkTypes(program:string[], settings:Settings){
 
 export function getVariablesDefined(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
 	return args
-		.filter((arg, index) => commandDefinition.args[index].isVariable)
-		.map((arg, index) => [arg, commandDefinition.args[index].type]);
+		.map((arg, index) => [arg, commandDefinition.args[index].type] as [name:string, type:ArgType])
+		.filter(([arg], index) => commandDefinition.args[index].isVariable);
 }
 
 export function getAllPossibleVariablesUsed(command:string): [name:string, types:ArgType[]][]{

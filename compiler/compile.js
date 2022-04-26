@@ -636,8 +636,8 @@ function checkTypes(program, settings) {
 exports.checkTypes = checkTypes;
 function getVariablesDefined(args, commandDefinition) {
     return args
-        .filter((arg, index) => commandDefinition.args[index].isVariable)
-        .map((arg, index) => [arg, commandDefinition.args[index].type]);
+        .map((arg, index) => [arg, commandDefinition.args[index].type])
+        .filter(([arg], index) => commandDefinition.args[index].isVariable);
 }
 exports.getVariablesDefined = getVariablesDefined;
 function getAllPossibleVariablesUsed(command) {
