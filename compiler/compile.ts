@@ -258,7 +258,7 @@ export const commands: CommandDefinitions = processCommands({
 	],
 	radar: [
 		{
-			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*any",
+			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*unit",
 			description: "Finds units of specified type within the range of (turret)."
 		},{
 			args: "targetClass:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*unit",
@@ -283,10 +283,14 @@ export const commands: CommandDefinitions = processCommands({
 	}],
 	op: [
 		{
+			args: "operand:operand output:*number arg1:number arg2:number?",
+			description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
+		},
+		{
 			args: "operand:operand output:*any arg1:valid arg2:valid?",
 			description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
 		},{
-			args: "operand:operand arg1:*any",
+			args: "operand:operand arg1:*number",
 			description: "Performs an operation on arg1, mutating it. Example: \`op abs xDiff\`",
 			replace: [ "op %1 %2 %2 0" ]
 		}
@@ -707,9 +711,9 @@ export function checkTypes(program:string[], settings:Settings){
 
 		if(types.length > 1){
 			console.warn(
-`Variable ${name} was defined with ${types.length} different types. ([${types.join(", ")}])
-	First definition: ${variable[0].lineDefinedAt}
-	First conflicting definition: ${variable.filter(v => v.variableType == types[1])[0].lineDefinedAt}`);
+`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
+	First definition: \`${variable[0].lineDefinedAt}\`
+	First conflicting definition: \`${variable.filter(v => v.variableType == types[1])[0].lineDefinedAt}\``);
 			
 		}
 	};
@@ -816,7 +820,7 @@ export function checkCommand(args:string[], command:CommandDefinition, line:stri
 			error: {
 				type: CommandErrorType.argumentCount,
 				message:
-`Incorrect number of arguments for command ${args[0]}
+`Incorrect number of arguments for command "${args[0]}"
 	at \`${line}\`
 Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 			}
@@ -830,7 +834,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 				error: {
 					type: CommandErrorType.type,
 					message:
-`Type mismatch: value ${commandArguments[+arg]} was expected to be of type ${command.args[+arg].type}, but was of type ${typeofArg(commandArguments[+arg])}
+`Type mismatch: value "${commandArguments[+arg]}" was expected to be of type "${command.args[+arg].isVariable ? "variable" : command.args[+arg].type}", but was of type "${typeofArg(commandArguments[+arg])}"
 	at \`${line}\``
 				}
 			};
