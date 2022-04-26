@@ -4,5 +4,31 @@
   },
   "dependencies": {
     "ts-node": "^10.7.0"
-  }
+  },
+  "type": "module",
+  "name": "mlogx",
+  "version": "1.0.0",
+  "description": "MLOGX transpiler targeting Mindustry Logic.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BalaM314/mlogx.git"
+  },
+  "keywords": [
+    "mindustry",
+    "compiler",
+    "transpiler",
+    "mindustry-logic",
+    "mlog",
+    "mlogx"
+  ],
+  "author": "BalaM314",
+  "license": "LGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/BalaM314/mlogx/issues"
+  },
+  "homepage": "https://github.com/BalaM314/mlogx#readme"
 }
