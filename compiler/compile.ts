@@ -710,9 +710,7 @@ export function checkTypes(program:string[], settings:Settings){
 				console.warn(
 `Variable "${name}" seems to be undefined.
 	at ${variableUsage.lineUsedAt}`);
-			} else if(
-				!variableUsage.variableTypes.includes(variablesDefined[name][0].variableType)
-				&& variablesDefined[name][0].variableType != GenericArgType.any){
+			} else if(!typeListsAreCompatible(variableUsage.variableTypes, variablesDefined[name][0].variableType)){
 				console.warn(
 `Type mismatch: variable "${name}" is of type "${variablesDefined[name][0].variableType}",\
 but the command requires it to be of type [${variableUsage.variableTypes.map(t => `"${t}"`).join(", ")}]
@@ -753,6 +751,24 @@ export function getVariablesUsed(args:string[], commandDefinition:CommandDefinit
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index].type] as [name:string, type:ArgType])
 		.filter(([arg], index) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandDefinition.args[index]));
+}
+
+function typeListsAreCompatible(inputs:ArgType[], output:ArgType):boolean{
+	for(let input of inputs){
+		if(typesAreCompatible(input, output)) return true;
+	}
+	return false;
+}
+
+function typesAreCompatible(input:ArgType, output:ArgType):boolean {
+	if(input == output) return true;
+	if(output == GenericArgType.any) return true;
+	switch(input){
+		case GenericArgType.any: return true;
+		case GenericArgType.number: return output == GenericArgType.boolean;
+		case GenericArgType.boolean: return output == GenericArgType.number;
+		default: return false;
+	}
 }
 
 export function acceptsVariable(arg: Arg):boolean {
