@@ -110,6 +110,7 @@ interface CommandDefinition {
 	args: Arg[];
 	replace?: string[];
 	description: string;
+	name: string;
 }
 
 interface PreprocessedCommand {
@@ -133,6 +134,7 @@ function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):Co
 		for(let command of commands){
 			out[name].push({
 				...command,
+				name,
 				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as any)) : []
 			});
 		}
@@ -684,14 +686,14 @@ export function checkTypes(program:string[], settings:Settings){
 					lineDefinedAt: line
 				});
 			});
-			getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
-				if(!variablesUsed[variableName]) variablesUsed[variableName] = [];
-				variablesUsed[variableName].push({
-					variableTypes,
-					lineUsedAt: line
-				})
-			});
 		}
+		getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
+			if(!variablesUsed[variableName]) variablesUsed[variableName] = [];
+			variablesUsed[variableName].push({
+				variableTypes,
+				lineUsedAt: line
+			});
+		});
 
 
 	}
@@ -711,6 +713,8 @@ export function checkTypes(program:string[], settings:Settings){
 		}
 	};
 
+	
+	//Check for variable usage of wrong type
 	for(let [name, variableUsages] of Object.entries(variablesUsed)){
 		if(name == "_") continue;
 		for(let variableUsage of variableUsages){
@@ -734,9 +738,13 @@ but the command requires it to be of type [${variableUsage.variableTypes.map(t =
 }
 
 export function getVariablesDefined(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
+	if(commandDefinition.name == "set"){
+		return [[args[0], typeofArg(args[0])]];
+	}
 	return args
-		.map((arg, index) => [arg, commandDefinition.args[index].type] as [name:string, type:ArgType])
-		.filter(([arg], index) => commandDefinition.args[index].isVariable);
+		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
+		.filter(([arg, commandArg]) => commandArg.isVariable)
+		.map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 
 export function getAllPossibleVariablesUsed(command:string): [name:string, types:ArgType[]][]{
@@ -758,8 +766,10 @@ export function getAllPossibleVariablesUsed(command:string): [name:string, types
 }
 export function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
 	return args
-		.map((arg, index) => [arg, commandDefinition.args[index].type] as [name:string, type:ArgType])
-		.filter(([arg], index) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandDefinition.args[index]));
+		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
+		.filter(([arg, commandArg]) => 
+			typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandArg)
+		).map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 
 function typeListsAreCompatible(inputs:ArgType[], output:ArgType):boolean{
@@ -781,6 +791,7 @@ function typesAreCompatible(input:ArgType, output:ArgType):boolean {
 }
 
 export function acceptsVariable(arg: Arg):boolean {
+	if(arg.isVariable) return false;
 	if(isGenericArg(arg.type))
 		return [
 			GenericArgType.boolean, GenericArgType.building,

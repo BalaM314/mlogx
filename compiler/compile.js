@@ -90,6 +90,7 @@ function processCommands(preprocessedCommands) {
         for (let command of commands) {
             out[name].push({
                 ...command,
+                name,
                 args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : []
             });
         }
@@ -622,15 +623,15 @@ function checkTypes(program, settings) {
                     lineDefinedAt: line
                 });
             });
-            getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
-                if (!variablesUsed[variableName])
-                    variablesUsed[variableName] = [];
-                variablesUsed[variableName].push({
-                    variableTypes,
-                    lineUsedAt: line
-                });
-            });
         }
+        getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
+            if (!variablesUsed[variableName])
+                variablesUsed[variableName] = [];
+            variablesUsed[variableName].push({
+                variableTypes,
+                lineUsedAt: line
+            });
+        });
     }
     for (let [name, variable] of Object.entries(variablesDefined)) {
         let types = [...new Set(variable.map(el => el.variableType))];
@@ -660,9 +661,13 @@ but the command requires it to be of type [${variableUsage.variableTypes.map(t =
 }
 exports.checkTypes = checkTypes;
 function getVariablesDefined(args, commandDefinition) {
+    if (commandDefinition.name == "set") {
+        return [[args[0], typeofArg(args[0])]];
+    }
     return args
-        .map((arg, index) => [arg, commandDefinition.args[index].type])
-        .filter(([arg], index) => commandDefinition.args[index].isVariable);
+        .map((arg, index) => [arg, commandDefinition.args[index]])
+        .filter(([arg, commandArg]) => commandArg.isVariable)
+        .map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 exports.getVariablesDefined = getVariablesDefined;
 function getAllPossibleVariablesUsed(command) {
@@ -686,8 +691,8 @@ function getAllPossibleVariablesUsed(command) {
 exports.getAllPossibleVariablesUsed = getAllPossibleVariablesUsed;
 function getVariablesUsed(args, commandDefinition) {
     return args
-        .map((arg, index) => [arg, commandDefinition.args[index].type])
-        .filter(([arg], index) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandDefinition.args[index]));
+        .map((arg, index) => [arg, commandDefinition.args[index]])
+        .filter(([arg, commandArg]) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandArg)).map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 exports.getVariablesUsed = getVariablesUsed;
 function typeListsAreCompatible(inputs, output) {
@@ -710,6 +715,8 @@ function typesAreCompatible(input, output) {
     }
 }
 function acceptsVariable(arg) {
+    if (arg.isVariable)
+        return false;
     if (isGenericArg(arg.type))
         return [
             GenericArgType.boolean, GenericArgType.building,
