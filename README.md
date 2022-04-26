@@ -15,9 +15,9 @@ Features:
 * [x] Functions
 * [x] Extra instructions like throw, increment, and call
 * [x] Stops you from writing silly code like `ubind "poly"`
-* [x] use --info for information about a command
+* [x] `mlogx --info` for information about a command
 * [ ] more functions
 * [ ] more extra instructions
-* [ ] intelligent error checking(remembers variable types)
+* [x] STATIC TYPE CHECKING(this took me several hours)
 * [ ] become an npm package
-* [ ] not always include all functions
+* [ ] not always include all functions 
