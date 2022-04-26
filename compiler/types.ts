@@ -6,7 +6,7 @@ mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANT
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 */
 
-import { Arg } from "./funcs.js";
+import { Arg } from "./classes.js";
 
 export interface Settings {
 	name: string;
