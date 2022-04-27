@@ -8,20 +8,24 @@ This guide assumes you already know how to make mlog programs, but are frustrate
 Need help? I'm BalaM314#4781, you can ping me in the #logic channel of the official Mindustry discord.
 
 ### For larger projects
-Place your .mlog or .mlogx(supports the extended instruction set in this document) files in /src.
-Running the compiler with `node compiler/compile.js` transpiles .mlogx files into .mlog files, and then combines all your separate files into one(out.mlog), which you paste into a processor in-game.
+Create a directory, then place your .mlog or .mlogx(supports the extended instruction set in this document) files in /[projectname]/src.
+<NOTFINISHED>Run `mlogx --init [projectname]`, which will create a folder named [projectname] with subfolders src and build, and a config.json file. </NOTFINISHED>
+Running the compiler with `mlogx [projectname]` in the project's parent directory transpiles .mlogx files into .mlog files, and then combines all your separate files into one(out.mlog), which you paste into a processor in-game.
 
 Note that you don't *need* to use mlogx, you can call functions and bundle your files with vanilla MLOG(it'll just be annoying to write function calls without `call`).
 
-Note: Without jump or call statements, the only file executed is main.mlog(x). Your other files should contain functions or subroutines that you can call. As this project is a WIP, currently all functions from the stdlib are included in your output file, however, they don't make your program any slower unless they are executed. This is temporary, but I need to make a linker first, which is... non-trivial.
+Note: Without jump or call statements, the only file executed is main.mlog(x). Your other files should contain functions or subroutines that you can call.
 
 ### For standalone files
 Create a folder and place one or more .mlogx files inside. They will be compiled into .mlog files and placed in the same directory.
 
-All functions from the stdlib are included in your output file, however, they don't make your program any slower unless they are executed. This is temporary, but I need to make a linker first, which is... non-trivial.
-
+### Standard Library
+If the property in your config.json file `compilerOptions.include` includes the text "stdlib", *all* files from the stdlib will be appended to your output files. Please do not do this, just copy the file you want into your project's src directory.
 
 ## Functions
+
+THIS SECTION IS VERY OUTDATED.
+
 yeah we have functions! See count_block_type.mlogx for an example.
 
 Builtin function names start with an underscore so they don't interfere with your labels and/or your own functions.
@@ -80,6 +84,8 @@ Throws an error. Equivalent instructions:
 `call _err`
 
 ## List of variables
+DOES NOT WORK, OUTDATED.
+ 
 _stdout: default [Message] to output messages. Standard output.
 
 _stderr: default [Message] to output errors. Can be the same as _stdout.
