@@ -149,10 +149,62 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 
 /**Cleans a line by removing trailing/leading whitespaces/tabs, and comments. */
 export function cleanLine(line:string):string {
-	return line
-		.replace(/(\/\/)|(#).*/g, "")
+	return removeComments(line
 		.replace(/\/\*.*\*\//g, "")
-		.replace(/(^[ \t]+)|([ \t]+$)/g, "");
+		.replace(/(^[ \t]+)|([ \t]+$)/g, ""));
+}
+
+/**The entirety of the code of "bettermlog". Nice that it ended up being useful. */
+export function removeComments(line:string):string {
+	let charsplitInput = line.split("");
+	let parsedChars = [];
+
+	let lastChar = "";
+	let state = {
+		inSComment: false,
+		inMComment: false,
+		inDString: false
+	};
+	for(var _char in charsplitInput){
+		let char = charsplitInput[_char];
+		if(typeof char !== "string") continue;
+		if(state.inSComment){
+			if(char === "\n"){
+				state.inSComment = false;
+			}
+			lastChar = char;
+			continue;
+		} else if(state.inMComment) {
+			if(lastChar === "*" && char === "/"){
+				state.inMComment = false;
+			}
+			lastChar = char;
+			continue;
+		} else if(state.inDString) {
+			if(lastChar !== `\\` && char === `"`){
+				state.inDString = false;
+			}
+		} else if(char === "#"){
+			state.inSComment = true;
+			lastChar = char;
+			continue;
+			//skip characters until next newline
+		} else if(lastChar === "/" && char === "*"){
+			state.inMComment = true;
+			parsedChars.pop();
+			lastChar = char;
+			continue;
+			//skip characters until "*/"
+		} else if(lastChar !== `\\` && char === `"`){
+			if(char === "\"" && lastChar !== `\\`){
+				state.inDString = true;
+			}
+		}
+		lastChar = char;
+		parsedChars.push(char);
+	}
+
+	return parsedChars.join("");
 }
 
 /**Splits a line into arguments, taking quotes into account. */

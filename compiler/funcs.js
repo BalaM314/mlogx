@@ -152,10 +152,62 @@ export function isArgOfType(argToCheck, arg) {
     return false;
 }
 export function cleanLine(line) {
-    return line
-        .replace(/(\/\/)|(#).*/g, "")
+    return removeComments(line
         .replace(/\/\*.*\*\//g, "")
-        .replace(/(^[ \t]+)|([ \t]+$)/g, "");
+        .replace(/(^[ \t]+)|([ \t]+$)/g, ""));
+}
+export function removeComments(line) {
+    let charsplitInput = line.split("");
+    let parsedChars = [];
+    let lastChar = "";
+    let state = {
+        inSComment: false,
+        inMComment: false,
+        inDString: false
+    };
+    for (var _char in charsplitInput) {
+        let char = charsplitInput[_char];
+        if (typeof char !== "string")
+            continue;
+        if (state.inSComment) {
+            if (char === "\n") {
+                state.inSComment = false;
+            }
+            lastChar = char;
+            continue;
+        }
+        else if (state.inMComment) {
+            if (lastChar === "*" && char === "/") {
+                state.inMComment = false;
+            }
+            lastChar = char;
+            continue;
+        }
+        else if (state.inDString) {
+            if (lastChar !== `\\` && char === `"`) {
+                state.inDString = false;
+            }
+        }
+        else if (char === "#") {
+            state.inSComment = true;
+            lastChar = char;
+            continue;
+        }
+        else if (lastChar === "/" && char === "*") {
+            state.inMComment = true;
+            parsedChars.pop();
+            lastChar = char;
+            continue;
+        }
+        else if (lastChar !== `\\` && char === `"`) {
+            if (char === "\"" && lastChar !== `\\`) {
+                state.inDString = true;
+            }
+        }
+        lastChar = char;
+        parsedChars.push(char);
+    }
+    return parsedChars.join("");
 }
 export function splitLineIntoArguments(line) {
     if (line.includes(`"`)) {
