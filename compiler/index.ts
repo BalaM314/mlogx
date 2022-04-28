@@ -10,11 +10,11 @@ import * as path from "path";
 import * as fs from "fs";
 import commands from "./commands.js";
 import { compileMlogxToMlog } from "./compile.js";
-import { parseArgs, exit } from "./funcs.js";
+import { parseArgs, exit, askQuestion } from "./funcs.js";
 import { defaultConfig, compilerMark } from "./consts.js";
 import { CompilerError } from "./classes.js";
 
-function main(processArgs: string[]){
+function main(processArgs: string[]):number {
 	const [programArgs, fileNames] = parseArgs(processArgs.slice(2));
 	//Option to specify directory to compile in
 
@@ -25,10 +25,13 @@ function main(processArgs: string[]){
 \t--info\tShows information about a command.
 directory: The directory to compile in.
 `		);
-		process.exit(0);
+		return 0;
 	}
 	if(programArgs["info"]){
-		if(programArgs["info"] == "null") return console.log("Please specify a command to get information on.");
+		if(programArgs["info"] == "null"){
+			console.log("Please specify a command to get information on.");
+			return 0;
+		}
 		if(!commands[programArgs["info"]])
 			console.log(`Unknown command ${programArgs["info"]}`);
 		else
@@ -43,24 +46,34 @@ ${commands[programArgs["info"]].map(
 	).join("\n\n")}
 `
 			);//todo clean this up ^^
-		process.exit(0);
+		return 0;
+	}
+
+	if(programArgs["init"]){
+		createProject(programArgs["init"])
+			.catch(err => console.error(err?.message ?? err));
+		return -1;
 	}
 
 	if(fileNames[0] == undefined){
-		exit("Please specify a project or directory to compile in");
+		console.error("Please specify a project or directory to compile in");
+		return 1;
 	}
 	try {
 		if(fs.existsSync(fileNames[0]) && fs.lstatSync(fileNames[0]).isDirectory()){
 			console.log("Compiling folder " + fileNames[0]);
 		} else {
-			exit("Invalid directory specified!");
+			console.error("Invalid directory specified!");
+			return 1;
 		}
 		// process.chdir(path.join(process.cwd(), fileNames[0]));
 	} catch(err){
-		exit("Invalid directory specified.");
+		console.error("Invalid directory specified.");
+		return 1;
 	}
 
 	compileDirectory(fileNames[0]);
+	return 0;
 }
 
 function compileDirectory(directory:string){
@@ -190,4 +203,35 @@ function compileDirectory(directory:string){
 		console.log("Done!");
 	}
 }
-main(process.argv);
+
+
+async function createProject(name: string){
+	if(name == "null"){
+		name = await askQuestion("Project name: ");
+	}
+	if(fs.existsSync(path.join(process.cwd(), name))){
+		throw new Error(`Directory ${name} already exists.`);
+	}
+	if(/[\.\/\\]/.test(name)){
+		throw new Error(`Name ${name} contains invalid characters.`);
+	}
+	const authors:string[] = (await askQuestion("Authors: ")).split(" ");
+	fs.mkdirSync(path.join(process.cwd(), name));
+	fs.mkdirSync(path.join(process.cwd(), name, "src"));
+	fs.writeFileSync(path.join(process.cwd(), name, "config.json"), JSON.stringify({
+		...defaultConfig,
+		name,
+		authors
+	}), "utf-8");
+	console.log(`Successfully created a new project in ${path.join(process.cwd(), name)}`);
+	return true;
+}
+
+try {
+	main(process.argv);
+} catch(err){
+	console.error("Unhandled runtime error!");
+	console.error(err);
+	console.error("Please report this to BalaM314 by pinging him on discord.");
+	process.exit(1);
+}

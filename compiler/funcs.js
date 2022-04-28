@@ -1,6 +1,7 @@
 import { Arg } from "./classes.js";
 import commands from "./commands.js";
 import { CommandErrorType, GenericArgType } from "./types.js";
+import * as readline from "readline";
 export function processCommands(preprocessedCommands) {
     function arg(str) {
         if (!str.includes(":")) {
@@ -393,7 +394,7 @@ export function parseArgs(args) {
             parsedArgs[arg.toLowerCase().slice(2)] = "null";
         }
         else if (argName) {
-            parsedArgs[argName] = arg.toLowerCase();
+            parsedArgs[argName] = arg;
             argName = "null";
         }
         else {
@@ -405,4 +406,14 @@ export function parseArgs(args) {
 export function exit(message) {
     console.error(message);
     process.exit(1);
+}
+export function askQuestion(query) {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+    return new Promise(resolve => rl.question(query, ans => {
+        rl.close();
+        resolve(ans);
+    }));
 }

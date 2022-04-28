@@ -9,6 +9,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 import { Arg } from "./classes.js";
 import commands from "./commands.js";
 import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, PreprocessedCommandDefinitions } from "./types.js";
+import * as readline from "readline";
 
 
 /**Processes commands(adds in what would otherwise be boilerplate). */
@@ -434,7 +435,7 @@ export function parseArgs(args: string[]): [
 			argName = arg.slice(2);
 			parsedArgs[arg.toLowerCase().slice(2)] = "null";
 		} else if(argName){
-			parsedArgs[argName] = arg.toLowerCase();
+			parsedArgs[argName] = arg;
 			argName = "null";
 		} else {
 			mainArgs.push(arg);
@@ -449,4 +450,15 @@ export function exit(message: string):never {
 	process.exit(1);
 }
 
+export function askQuestion(query:string): Promise<string> {
+	const rl = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout,
+	});
+
+	return new Promise(resolve => rl.question(query, ans => {
+		rl.close();
+		resolve(ans);
+	}))
+}
 
