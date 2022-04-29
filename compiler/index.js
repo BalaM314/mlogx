@@ -3,7 +3,7 @@ import * as fs from "fs";
 import commands from "./commands.js";
 import { compileMlogxToMlog } from "./compile.js";
 import { parseArgs, askQuestion } from "./funcs.js";
-import { defaultConfig, compilerMark } from "./consts.js";
+import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError } from "./classes.js";
 function main(processArgs) {
     const [programArgs, fileNames] = parseArgs(processArgs.slice(2));
@@ -58,7 +58,7 @@ ${commands[programArgs["info"]].map(command => programArgs["info"] + " " + comma
     return 0;
 }
 function compileDirectory(directory) {
-    let settings = defaultConfig;
+    let settings = defaultSettings;
     try {
         fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
         settings = {
@@ -167,9 +167,13 @@ async function createProject(name) {
     fs.mkdirSync(path.join(process.cwd(), name));
     fs.mkdirSync(path.join(process.cwd(), name, "src"));
     fs.writeFileSync(path.join(process.cwd(), name, "config.json"), JSON.stringify({
-        ...defaultConfig,
+        ...defaultSettings,
         name,
-        authors
+        authors,
+        compilerOptions: {
+            ...defaultSettings.compilerOptions,
+            mode: "project"
+        }
     }), "utf-8");
     console.log(`Successfully created a new project in ${path.join(process.cwd(), name)}`);
     return true;

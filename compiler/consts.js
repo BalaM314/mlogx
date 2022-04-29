@@ -1,6 +1,6 @@
 export const compilerMark = `print "Made with mlogx"
 print "github.com/BalaM314/mlogx/"`;
-export const defaultConfig = {
+export const defaultSettings = {
     name: "",
     authors: [],
     compilerOptions: {
@@ -9,7 +9,7 @@ export const defaultConfig = {
         compileWithErrors: true,
         mode: "single",
         prependFileName: true,
-        checkTypes: false,
+        checkTypes: true,
     }
 };
 export const requiredVarCode = {
