@@ -144,6 +144,13 @@ export const commands: CommandDefinitions = processCommands({
 			args: "output:*any unit:unit value:type",
 			description: "Gets information about (unit) and outputs to (output), does not need to be on the same team."
 		},
+		{
+			args: "output:*any",
+			description: "sensor turret.x instead of sensor turret.x turret @x"
+		},{
+			args: "output:*any",
+			description: "sensor unit.x instead of sensor unit.x @unit @x"
+		},
 	],
 	set: [{
 		args: "variable:*any value:valid",
