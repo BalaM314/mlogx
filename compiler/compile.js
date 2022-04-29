@@ -82,8 +82,10 @@ export function compileMlogxToMlog(program, settings) {
 export function checkTypes(program, settings) {
     let variablesUsed = {};
     let variablesDefined = {};
-    for (let line of program) {
+    toNextLine: for (let line of program) {
         let cleanedLine = cleanLine(line);
+        if (cleanedLine.match(/^.*?\:$/i))
+            continue toNextLine;
         let args = splitLineIntoArguments(line).slice(1);
         let commandDefinitions = getCommandDefinitions(cleanedLine);
         if (commandDefinitions.length == 0) {

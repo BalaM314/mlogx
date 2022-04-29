@@ -265,7 +265,7 @@ export function getVariablesUsed(args, commandDefinition) {
 }
 export function areAnyOfInputsCompatibleWithType(inputs, output) {
     for (let input of inputs) {
-        if (typesAreCompatible(input, output))
+        if (typesAreCompatible(input, output) || typesAreCompatible(output, input))
             return true;
     }
     return false;
@@ -275,6 +275,8 @@ export function typesAreCompatible(input, output) {
         return true;
     if (output == GenericArgType.any)
         return true;
+    if (output == GenericArgType.valid)
+        return ![GenericArgType.null].includes(input);
     switch (input) {
         case GenericArgType.any: return true;
         case GenericArgType.number: return output == GenericArgType.boolean;
@@ -363,6 +365,8 @@ export function getCommandDefinitions(cleanedLine) {
     let args = splitLineIntoArguments(cleanedLine);
     let commandList = commands[args[0]];
     let possibleCommands = [];
+    if (commandList == null)
+        return [];
     for (let possibleCommand of commandList) {
         if (isCommand(cleanedLine, possibleCommand)) {
             possibleCommands.push(possibleCommand);

@@ -79,7 +79,7 @@ export const commands = processCommands({
         },
     ],
     print: [{
-            args: "message:string",
+            args: "message:valid",
             description: "Prints (message) to the message buffer."
         }],
     drawflush: [{

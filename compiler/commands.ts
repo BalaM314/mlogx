@@ -91,7 +91,7 @@ export const commands: CommandDefinitions = processCommands({
 		},
 	],
 	print: [{
-		args: "message:string",
+		args: "message:valid",
 		description: "Prints (message) to the message buffer."
 	}],
 	drawflush: [{

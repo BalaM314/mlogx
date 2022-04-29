@@ -129,8 +129,12 @@ export function checkTypes(program:string[], settings:Settings){
 		}[]
 	} = {};
 
+	toNextLine:
 	for(let line of program){
 		let cleanedLine = cleanLine(line);
+
+		if(cleanedLine.match(/^.*?\:$/i)) continue toNextLine;
+
 		let args = splitLineIntoArguments(line).slice(1);
 		let commandDefinitions = getCommandDefinitions(cleanedLine);
 		if(commandDefinitions.length == 0){
