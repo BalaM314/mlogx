@@ -91,13 +91,14 @@ function compileDirectory(directory:string){
 		console.log("No config.json found, using default settings.");
 	}
 	
-	if(
-		!(fs.existsSync(path.join(directory, "src")) &&
-		fs.lstatSync(path.join(directory, "src")).isDirectory())
-		&& settings.compilerOptions.mode == "project"
-	){
+	let srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
+
+	if(!srcDirectoryExists && settings.compilerOptions.mode == "project"){
 		console.error(`Compiler mode set to "project" but no src directory found.`);
 		settings.compilerOptions.mode = "single";
+	}
+	if(srcDirectoryExists){
+		settings.compilerOptions.mode = "project";
 	}
 
 	const sourceDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "src") : directory;
