@@ -79,22 +79,14 @@ function compileDirectory(directory) {
     }
     const sourceDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "src") : directory;
     const outputDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "build") : sourceDirectory;
-    const stdlibDirectory = path.join(process.argv[1], "..", "..", "stdlib", "build");
     if (settings.compilerOptions.mode == "project" && !fs.existsSync(outputDirectory)) {
         fs.mkdirSync(outputDirectory);
     }
     let filelist_mlogx = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/.mlogx$/));
     let filelist_mlog = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/.mlog$/));
-    let filelist_stdlib = fs.readdirSync(stdlibDirectory).filter(filename => filename.match(/.mlog$/));
     console.log("Files to compile: ", filelist_mlogx);
     let compiledData = {};
-    let stdlibData = {};
     let mainData = "";
-    if (settings.compilerOptions.include.includes("stdlib")) {
-        for (let filename of filelist_stdlib) {
-            stdlibData[filename] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8');
-        }
-    }
     for (let filename of filelist_mlogx) {
         console.log(`Compiling file ${filename}`);
         let data = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split("\r\n");
@@ -114,9 +106,7 @@ function compileDirectory(directory) {
             return;
         }
         if (settings.compilerOptions.mode == "single") {
-            outputData += "\r\nend\r\n#stdlib\r\n\r\n";
-            outputData += Object.values(stdlibData).join("\r\nend\r\n\r\n");
-            outputData += "\r\n" + compilerMark;
+            outputData += "end\r\n" + compilerMark;
         }
         fs.writeFileSync(path.join(outputDirectory, filename.slice(0, -1)), outputData);
         if (settings.compilerOptions.mode == "project") {
@@ -143,9 +133,6 @@ function compileDirectory(directory) {
         console.log("Assembling output:");
         let outputData = mainData;
         outputData += "\r\nend\r\n#functions\r\n\r\n" + Object.values(compiledData).join("\r\nend\r\n\r\n");
-        if (settings.compilerOptions.include.includes("stdlib")) {
-            outputData += "\r\nend\r\n#stdlib\r\n\r\n" + Object.values(stdlibData).join("\r\nend\r\n\r\n");
-        }
         fs.writeFileSync(path.join(directory, "out.mlog"), outputData);
         console.log("Done!");
     }

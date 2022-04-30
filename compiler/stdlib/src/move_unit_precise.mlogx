@@ -1,0 +1,23 @@
+#function move_unit_precise(dest.x, dest.y)
+#Moves a unit to precise coordinates, and waits until it reaches.
+
+move_unit_precise:
+	sensor unit.dead @unit @dead
+	jump bind_unit equal unit.dead true
+	ucontrol move dest.x dest.y
+	sensor unit.x @unit @x
+	sensor unit.y @unit @y
+	print "Moving unit ("
+	print unit.x
+	print ", "
+	print unit.y
+	print ") to destination ("
+	print dest.x
+	print ", "
+	print dest.y
+	print ")"
+	print name
+	printflush stdout
+	ucontrol within dest.x dest.y 0.5 destinationReached
+	jump move_unit_precise equal destinationReached false
+	return

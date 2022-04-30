@@ -1,6 +1,8 @@
 A transpiler for Mindustry Logic.
 
-Standardizes function calls, variable names, etc. Has a list of builtin functions and an extended instruction set, see [spec.md](spec.md) for more information.
+Type checks your code before it runs, so you don't waste 5 minutes debugging because you wrote "ubind unittype" instead of "ubind unitType".
+
+Standardizes function calls, variable names, etc. Has functions and an extended instruction set, see [spec.md](spec.md) for more information.
 
 You can use this to manage large projects and split your code into multiple files.
 
@@ -18,6 +20,5 @@ Features:
 * [x] `mlogx --info` for information about a command
 * [ ] more functions
 * [ ] more extra instructions
-* [x] STATIC TYPE CHECKING(this took me several hours)
+* [x] STATIC TYPE CHECKING
 * [ ] become an npm package
-* [ ] not always include all functions 

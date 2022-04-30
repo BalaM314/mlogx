@@ -19,26 +19,11 @@ Note: Without jump or call statements, the only file executed is main.mlog(x). Y
 Create a folder and place one or more .mlogx files inside. They will be compiled into .mlog files and placed in the same directory.
 
 ### Standard Library
-If the `compilerOptions.include` property in your config.json file includes the text "stdlib", *all* files from the stdlib will be appended to your output files. Please do not do this, just copy the file you want into your project's src directory.
+The standard library is just a bunch of functions you may find useful. You can include them by copying them into your project's src directory or [NYI] ~~using some sort of include option in your config.json~~
 
 ## Functions
 
-THIS SECTION IS VERY OUTDATED.
-
-yeah we have functions! See count_block_type.mlogx for an example.
-
-Builtin function names start with an underscore so they don't interfere with your labels and/or your own functions.
-
-Example of format used in this doc:
-
-_function_name(_argument_name) -> _output_variable_name
-
-Description of what the function does.
-
-Before calling a function with `call`, make sure to set its input variable.
-Functions do not check if the input is set, for speed.
-
-"Under the hood", functions are simply a jump label that expects a variable to be set, can write to a variable, and use @counter and <stack1> to jump back to where you called them.
+A function is simply a jump label that expects a variable to be set, can run some code, and then use @counter and <_stack1> to jump back to where you called them.
 
 ## List of custom instructions
 
@@ -78,50 +63,11 @@ Returns from a function. Equivalent instructions:
 
 Throws an error. Equivalent instructions:
 
-`set _err [error_message]`
-
-`call _err`
-
-## List of variables
-DOES NOT WORK, OUTDATED.
- 
-_stdout: default [Message] to output messages. Standard output.
-
-_stderr: default [Message] to output errors. Can be the same as _stdout.
-
-_stack1: Contains an address that should be jumped back to once a function call is complete. You should never need to set this, the `call` instruction does it for you.
-
-## List of functions
-
-_count_building_type(_building_type) -> _num_buildings
-
-Returns the amount of linked buildings of a particular type.
-
-Instruction count: 4+6*@links
-
-
-
-_err(_err)
-
-Outputs a message in red to _stderr and terminates.
-
-Yes I know it's confusing that the function and parameter have the same name. :cringe:
-
-
-
-_count_unit(_unit_type) -> _num_units
-
-Returns the amount of (alive) units of a particular type.
-
-
-
-_flag_unit(_unit_type) -> @unit
-
-Binds and flags an unused unit.
-
-WARNING: will block if no units are available.
-
-More coming Soon™.
+```
+print [error_message]
+printflush stderr
+end
+```
 
 ## Preprocessor directives
 

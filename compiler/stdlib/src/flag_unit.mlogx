@@ -1,0 +1,17 @@
+#function flag_unit(unit_type) -> @unit
+#Flags a unit.
+flag_unit:
+#Bind a unit
+ubind unit_type
+#Check if it's dead, and if it is try again
+sensor unit.dead
+jump flag_unit notEqual unit.dead false
+#Check its flag
+sensor unit.flag
+op equal unit.unflagged unit.flag 0
+op equal unit.hasOurFlag unit.flag cookie
+jump flag_unit notEqual unit.unflagged true
+jump flag_unit notEqual unit.hasOurFlag true
+#Flag the unit and return
+ucontrol flag cookie
+return
