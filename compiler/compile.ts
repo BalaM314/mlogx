@@ -104,7 +104,7 @@ export function compileMlogxToMlog(program:string[], settings:Settings & {filena
 		try {
 			checkTypes(outputData, settings);
 		} catch(err){
-			console.error(err);
+			console.error((err as any).message);
 		}
 
 	}
@@ -138,7 +138,7 @@ export function checkTypes(program:string[], settings:Settings){
 		let args = splitLineIntoArguments(line).slice(1);
 		let commandDefinitions = getCommandDefinitions(cleanedLine);
 		if(commandDefinitions.length == 0){
-			throw new CompilerError(`Invalid command \`${line}\`.\nType checking aborted.`);
+			throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
 		}
 
 		for(let commandDefinition of commandDefinitions){
