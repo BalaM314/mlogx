@@ -150,9 +150,9 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 
 /**Cleans a line by removing trailing/leading whitespaces/tabs, and comments. */
 export function cleanLine(line:string):string {
-	return removeComments(line
+	return removeComments(line)
 		.replace(/\/\*.*\*\//g, "")
-		.replace(/(^[ \t]+)|([ \t]+$)/g, ""));
+		.replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
 
 /**The entirety of the code of "bettermlog". Nice that it ended up being useful. */

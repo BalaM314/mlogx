@@ -153,9 +153,9 @@ export function isArgOfType(argToCheck, arg) {
     return false;
 }
 export function cleanLine(line) {
-    return removeComments(line
+    return removeComments(line)
         .replace(/\/\*.*\*\//g, "")
-        .replace(/(^[ \t]+)|([ \t]+$)/g, ""));
+        .replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
 export function removeComments(line) {
     let charsplitInput = line.split("");
