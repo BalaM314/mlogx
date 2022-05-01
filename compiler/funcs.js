@@ -323,7 +323,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
             };
         }
     }
-    if (args[0] == "sensor" && args[1].match(/(\w+)\.(\w+)/i)) {
+    if (args.length == 2 && args[0] == "sensor" && args[1].match(/(\w+)\.(\w+)/i)) {
         let [_, target, property] = args[1].match(/(\w+)\.(\w+)/i);
         return {
             ok: true,
