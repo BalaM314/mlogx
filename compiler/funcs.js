@@ -397,16 +397,22 @@ export function parsePreprocessorDirectives(data) {
 }
 export function parseArgs(args) {
     let parsedArgs = {};
-    let argName = "";
     let mainArgs = [];
-    for (let arg of args) {
+    while (true) {
+        let arg = args.splice(0, 1)[0];
+        if (arg == undefined)
+            break;
         if (arg.startsWith("--")) {
-            argName = arg.slice(2);
-            parsedArgs[arg.toLowerCase().slice(2)] = "null";
+            if (args[0]?.startsWith("-"))
+                parsedArgs[arg] = "null";
+            else
+                parsedArgs[arg.substring(2)] = args.splice(0, 1)[0] ?? "null";
         }
-        else if (argName) {
-            parsedArgs[argName] = arg;
-            argName = "null";
+        else if (arg.startsWith("-")) {
+            if (args[0]?.startsWith("-"))
+                parsedArgs[arg] = "null";
+            else
+                parsedArgs[arg.substring(1)] = args.splice(0, 1)[0] ?? "null";
         }
         else {
             mainArgs.push(arg);

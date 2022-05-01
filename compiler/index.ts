@@ -18,25 +18,26 @@ function main(processArgs: string[]):number {
 	const [programArgs, fileNames] = parseArgs(processArgs.slice(2));
 	//Option to specify directory to compile in
 
-	if(programArgs["help"]){
+	if(programArgs["help"] || programArgs["?"]){
 		console.log(
-`Usage: compile [--help] [--directory <directory>] [--info <command>] directory
-\t--help\tDisplays this help message and exits.
-\t--info\tShows information about a command.
-directory: The directory to compile in.
+`Usage: compile [--help] [--directory <directory>] [--info <command>] [--init <projectname>] directory
+  --help -?\tDisplays this help message and exits.
+  --info -i\tShows information about a command.
+  --init -n\tCreates a new project.\
 `		);
 		return 0;
 	}
-	if(programArgs["info"]){
-		if(programArgs["info"] == "null"){
+	if(programArgs["info"] || programArgs["i"]){
+		let command = programArgs["info"] ?? programArgs["i"];
+		if(command == "null"){
 			console.log("Please specify a command to get information on.");
 			return 0;
 		}
-		if(!commands[programArgs["info"]])
-			console.log(`Unknown command ${programArgs["info"]}`);
+		if(!commands[command])
+			console.log(`Unknown command ${command}`);
 		else
 			console.log(
-`${programArgs["info"]}
+`${command}
 Usage:
 
 ${commands[programArgs["info"]].map(
@@ -49,8 +50,8 @@ ${commands[programArgs["info"]].map(
 		return 0;
 	}
 
-	if(programArgs["init"]){
-		createProject(programArgs["init"])
+	if(programArgs["init"] || programArgs["n"]){
+		createProject(programArgs["init"] ?? programArgs["n"])
 			.catch(err => console.error(err?.message ?? err));
 		return -1;
 	}
