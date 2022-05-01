@@ -143,7 +143,7 @@ function compileDirectory(directory:string){
 			return;
 		}
 		if(settings.compilerOptions.mode == "single"){
-			outputData += "end\r\n" + compilerMark;
+			outputData += "\r\nend\r\n" + compilerMark;
 		}
 		//Write .mlog files to output
 		fs.writeFileSync(

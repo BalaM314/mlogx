@@ -106,7 +106,7 @@ function compileDirectory(directory) {
             return;
         }
         if (settings.compilerOptions.mode == "single") {
-            outputData += "end\r\n" + compilerMark;
+            outputData += "\r\nend\r\n" + compilerMark;
         }
         fs.writeFileSync(path.join(outputDirectory, filename.slice(0, -1)), outputData);
         if (settings.compilerOptions.mode == "project") {
