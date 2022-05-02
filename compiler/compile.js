@@ -1,3 +1,4 @@
+import { GenericArgType } from "./types.js";
 import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType } from "./funcs.js";
 import commands from "./commands.js";
 import { requiredVarCode } from "./consts.js";
@@ -111,7 +112,7 @@ export function checkTypes(program, settings) {
         });
     }
     for (let [name, variable] of Object.entries(variablesDefined)) {
-        let types = [...new Set(variable.map(el => el.variableType))];
+        let types = [...new Set(variable.map(el => el.variableType))].filter(el => el != GenericArgType.valid && el != GenericArgType.any);
         if (types.length > 1) {
             console.warn(`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
 	First definition: \`${variable[0].lineDefinedAt}\`

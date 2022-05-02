@@ -7,8 +7,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { Settings, ArgType, CommandError } from "./types.js";
-import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType } from "./funcs.js";
+import { Settings, ArgType, CommandError, GenericArgType } from "./types.js";
+import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, typesAreCompatible } from "./funcs.js";
 import commands from "./commands.js";
 import { requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
@@ -165,7 +165,8 @@ export function checkTypes(program:string[], settings:Settings){
 	for(let [name, variable] of Object.entries(variablesDefined)){
 		//Create a list of each definition's type and remove duplicates.
 		//If this list has more than one element there are definitions of conflicting types.
-		let types = [...new Set(variable.map(el => el.variableType))];
+		let types = [...new Set(variable.map(el => el.variableType))].filter(el => el != GenericArgType.valid && el != GenericArgType.any);
+		//Todo fix this ^^ it isn't good enough.
 
 		if(types.length > 1){
 			console.warn(
