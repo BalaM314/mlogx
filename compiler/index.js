@@ -27,9 +27,9 @@ function main(processArgs) {
             console.log(`${command}
 Usage:
 
-${commands[programArgs["info"]].map(command => programArgs["info"] + " " + command.args
+${commands[command].map(commandDefinition => command + " " + commandDefinition.args
                 .map(arg => arg.toString())
-                .join(" ") + "\n" + command.description).join("\n\n")}
+                .join(" ") + "\n" + commandDefinition.description).join("\n\n")}
 `);
         return 0;
     }

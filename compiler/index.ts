@@ -40,10 +40,10 @@ function main(processArgs: string[]):number {
 `${command}
 Usage:
 
-${commands[programArgs["info"]].map(
-	command => programArgs["info"] + " " + command.args
+${commands[command].map(
+	commandDefinition => command + " " + commandDefinition.args
 		.map(arg => arg.toString())
-		.join(" ") + "\n" + command.description
+		.join(" ") + "\n" + commandDefinition.description
 	).join("\n\n")}
 `
 			);//todo clean this up ^^
