@@ -18,6 +18,9 @@ export interface Settings {
 		mode: "project" | "single";
 		prependFileName: boolean;
 		checkTypes: boolean;
+	};
+	compilerVariables: {
+		[index: string]: string;
 	}
 }
 

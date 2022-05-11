@@ -155,6 +155,12 @@ export function removeTrailingSpaces(line) {
         .replace(/\/\*.*\*\//g, "")
         .replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
+export function replaceCompilerVariables(line, variables) {
+    for (let [key, value] of Object.entries(variables)) {
+        line = line.replaceAll(`$${key}`, value);
+    }
+    return line;
+}
 export function removeComments(line) {
     let charsplitInput = line.split("");
     let parsedChars = [];

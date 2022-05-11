@@ -11,7 +11,8 @@ export const defaultSettings = {
         mode: "single",
         prependFileName: true,
         checkTypes: true,
-    }
+    },
+    compilerVariables: {}
 };
 export const requiredVarCode = {
     "cookie": [

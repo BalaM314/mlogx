@@ -145,6 +145,10 @@ function compileDirectory(directory:string, stdlibPath:string){
 			outputData = compileMlogxToMlog(data, {
 				filename,
 				...settings
+			}, {
+				...settings.compilerVariables,
+				filename: filename.split(".")[0],
+				
 			}).join("\r\n");
 		} catch(err){
 			console.error(`Failed to compile file ${filename}!`);

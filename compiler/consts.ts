@@ -22,6 +22,9 @@ export const defaultSettings:Settings = {
 		mode: "single",
 		prependFileName: true,
 		checkTypes: true,
+	},
+	compilerVariables: {
+		
 	}
 };
 

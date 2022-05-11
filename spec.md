@@ -104,3 +104,5 @@ Generates a random cookie based on the processor's x and y coordinates. Useful f
 [NYI] Uses a unit to ulocate the nearest core. Errors if no units are available.
 
 
+## Compiler variables
+Replaced with something.

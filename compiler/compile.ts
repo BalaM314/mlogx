@@ -8,13 +8,17 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { Settings, ArgType, CommandError, GenericArgType } from "./types.js";
-import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, typesAreCompatible, getParameters } from "./funcs.js";
+import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, typesAreCompatible, getParameters, replaceCompilerVariables } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
 
 
-export function compileMlogxToMlog(program:string[], settings:Settings & {filename: string}):string[] {
+export function compileMlogxToMlog(
+	program:string[],
+	settings:Settings & {filename: string},
+	compilerVariables:{[index: string]: string}
+):string[] {
 
 	let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
 
@@ -40,6 +44,8 @@ export function compileMlogxToMlog(program:string[], settings:Settings & {filena
 	//OMG I USED A JS LABEL
 	toNextLine:
 	for(let line of program){
+
+		line = replaceCompilerVariables(line, compilerVariables);
 
 		if(line.includes("\u{F4321}")){
 			console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);

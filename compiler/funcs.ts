@@ -156,6 +156,13 @@ export function removeTrailingSpaces(line:string):string {
 		.replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
 
+export function replaceCompilerVariables(line:string, variables: {[index: string]: string;}):string {
+	for(let [key, value] of Object.entries(variables)){
+		line = line.replaceAll(`$${key}`, value);
+	}
+	return line;
+}
+
 /**The entirety of the code of "bettermlog". Nice that it ended up being useful. */
 export function removeComments(line:string):string {
 	let charsplitInput = line.split("");

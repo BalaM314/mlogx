@@ -1,9 +1,9 @@
 import { GenericArgType } from "./types.js";
-import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters } from "./funcs.js";
+import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerVariables } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
-export function compileMlogxToMlog(program, settings) {
+export function compileMlogxToMlog(program, settings, compilerVariables) {
     let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
     let isMain = programType == "main" || settings.compilerOptions.mode == "single";
     function err(message) {
@@ -22,6 +22,7 @@ export function compileMlogxToMlog(program, settings) {
             err("Unknown require " + requiredVar);
     }
     toNextLine: for (let line of program) {
+        line = replaceCompilerVariables(line, compilerVariables);
         if (line.includes("\u{F4321}")) {
             console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
         }

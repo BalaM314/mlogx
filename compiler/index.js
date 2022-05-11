@@ -102,6 +102,9 @@ function compileDirectory(directory, stdlibPath) {
             outputData = compileMlogxToMlog(data, {
                 filename,
                 ...settings
+            }, {
+                ...settings.compilerVariables,
+                filename: filename.split(".")[0],
             }).join("\r\n");
         }
         catch (err) {
