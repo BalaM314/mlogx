@@ -105,4 +105,19 @@ Generates a random cookie based on the processor's x and y coordinates. Useful f
 
 
 ## Compiler variables
-Replaced with something.
+Replace bits of your program with variables defined by the compiler.
+
+Use the compilerVariables object in settings.json to define custom variables.
+
+Example:
+"compilerVariables": {
+	"name": "ExampleProject by [#3141FF]BalaM314"
+}
+
+Code like `print "$name"` will get replaced with `print "ExampleProject by [#3141FF]BalaM314"`.
+
+### Builtin compiler variables
+
+`filename`: The filename of the file being compiled(minus the .mlogx at the end).
+
+`$_[any mindustry icon name]`: The Unicode character that displays as the icon in-game. Example: $_lead will get replaced with <> (U+F837), the char for lead.

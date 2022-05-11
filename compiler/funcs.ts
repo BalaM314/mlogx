@@ -163,7 +163,22 @@ export function replaceCompilerVariables(line:string, variables: {[index: string
 	return line;
 }
 
-/**The entirety of the code of "bettermlog". Nice that it ended up being useful. */
+export function parseIcons(data:string[]): {[index: string]: string;} {
+	let icons: {
+		[index: string]: string;
+	} = {};
+	for(let line of data){
+		try {
+			icons["_" + line.split("=")[1].split("|")[0]] = String.fromCodePoint(parseInt(line.split("=")[0]));
+		} catch(err){
+			//ignore RangeError
+		}
+	}
+	return icons;
+}
+
+
+//The entirety of the code of "bettermlog". Nice that it ended up being useful.
 export function removeComments(line:string):string {
 	let charsplitInput = line.split("");
 	let parsedChars = [];

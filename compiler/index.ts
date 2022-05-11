@@ -10,9 +10,10 @@ import * as path from "path";
 import * as fs from "fs";
 import commands from "./commands.js";
 import { compileMlogxToMlog } from "./compile.js";
-import { parseArgs, exit, askQuestion } from "./funcs.js";
+import { parseArgs, exit, askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError } from "./classes.js";
+import { Settings } from "./types.js";
 
 function main(processArgs: string[]):number {
 	const [programArgs, fileNames] = parseArgs(processArgs.slice(2));
@@ -73,13 +74,11 @@ ${commands[command].map(
 		return 1;
 	}
 
-	compileDirectory(fileNames[0], path.join(processArgs[1], "../../stdlib"));
+	compileDirectory(fileNames[0], path.join(processArgs[1], "../../stdlib"), defaultSettings);
 	return 0;
 }
 
-function compileDirectory(directory:string, stdlibPath:string){
-
-	let settings = defaultSettings;
+function compileDirectory(directory:string, stdlibPath:string, settings:Settings){
 
 	try {
 		fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
@@ -92,6 +91,8 @@ function compileDirectory(directory:string, stdlibPath:string){
 		console.log("No config.json found, using default settings.");
 	}
 	
+	let icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
+
 	let srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
 
 	if(!srcDirectoryExists && settings.compilerOptions.mode == "project"){
@@ -146,9 +147,9 @@ function compileDirectory(directory:string, stdlibPath:string){
 				filename,
 				...settings
 			}, {
-				...settings.compilerVariables,
+				...icons,
 				filename: filename.split(".")[0],
-				
+				...settings.compilerVariables,
 			}).join("\r\n");
 		} catch(err){
 			console.error(`Failed to compile file ${filename}!`);

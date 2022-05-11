@@ -161,6 +161,17 @@ export function replaceCompilerVariables(line, variables) {
     }
     return line;
 }
+export function parseIcons(data) {
+    let icons = {};
+    for (let line of data) {
+        try {
+            icons["_" + line.split("=")[1].split("|")[0]] = String.fromCodePoint(parseInt(line.split("=")[0]));
+        }
+        catch (err) {
+        }
+    }
+    return icons;
+}
 export function removeComments(line) {
     let charsplitInput = line.split("");
     let parsedChars = [];
