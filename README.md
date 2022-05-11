@@ -6,7 +6,7 @@ Standardizes function calls, variable names, etc. Has functions and an extended 
 
 You can use this to manage large projects and split your code into multiple files.
 
-This project is a work in progress, more useful stuff coming soon™
+This project is now usable, but may be buggy.
 
 Usage: node compiler/compile.js
 
@@ -18,7 +18,14 @@ Features:
 * [x] Extra instructions like throw, increment, and call
 * [x] Stops you from writing silly code like `ubind "poly"`
 * [x] `mlogx --info` for information about a command
+* [x] Compiler variables
+* [x] No more pasting weird unicode characters for the sand icon
+* [x] /**/ comments
+* [x] Improved syntax for certain commands(ulocate, radar)
 * [ ] more functions
 * [ ] more extra instructions
 * [x] STATIC TYPE CHECKING
 * [ ] become an npm package
+
+Current issues:
+Type checking is a bit wack, some warnings may be fake

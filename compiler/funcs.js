@@ -421,7 +421,12 @@ export function parsePreprocessorDirectives(data) {
 export function parseArgs(args) {
     let parsedArgs = {};
     let mainArgs = [];
+    let i = 0;
     while (true) {
+        i++;
+        if (i > 1000) {
+            throw new Error("Too many arguments!");
+        }
         let arg = args.splice(0, 1)[0];
         if (arg == undefined)
             break;

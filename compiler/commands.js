@@ -43,7 +43,7 @@ export const commands = processCommands({
         }],
     write: [{
             args: "value:number cell:building index:number",
-            description: "Writes (value) at index (index) from memory cell (cell)."
+            description: "Writes (value) at index (index) to memory cell (cell)."
         }],
     draw: [
         {
