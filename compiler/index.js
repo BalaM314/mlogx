@@ -55,10 +55,10 @@ ${commands[command].map(commandDefinition => command + " " + commandDefinition.a
         console.error("Invalid directory specified.");
         return 1;
     }
-    compileDirectory(fileNames[0]);
+    compileDirectory(fileNames[0], path.join(processArgs[1], "../../stdlib"));
     return 0;
 }
-function compileDirectory(directory) {
+function compileDirectory(directory, stdlibPath) {
     let settings = defaultSettings;
     try {
         fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
@@ -80,14 +80,20 @@ function compileDirectory(directory) {
     }
     const sourceDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "src") : directory;
     const outputDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "build") : sourceDirectory;
+    const stdlibDirectory = path.join(stdlibPath, "build");
     if (settings.compilerOptions.mode == "project" && !fs.existsSync(outputDirectory)) {
         fs.mkdirSync(outputDirectory);
     }
-    let filelist_mlogx = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/.mlogx$/));
-    let filelist_mlog = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/.mlog$/));
+    let filelist_mlogx = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlogx$/));
+    let filelist_mlog = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlog$/));
+    let filelist_stdlib = fs.readdirSync(stdlibDirectory).filter(filename => filename.match(/\.mlog/));
     console.log("Files to compile: ", filelist_mlogx);
     let compiledData = {};
     let mainData = "";
+    let stdlibData = {};
+    for (let filename of filelist_stdlib) {
+        stdlibData[filename.split(".")[0]] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8');
+    }
     for (let filename of filelist_mlogx) {
         console.log(`Compiling file ${filename}`);
         let data = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split("\r\n");
@@ -132,14 +138,14 @@ function compileDirectory(directory) {
         }
         console.log("Compiled all files successfully.");
         console.log("Assembling output:");
-        let outputData = mainData;
-        outputData += "\r\nend\r\n#functions\r\n\r\n" + Object.values(compiledData).join("\r\nend\r\n\r\n");
+        let outputData = [
+            mainData, "end", "",
+            "#functions", ...Object.values(compiledData).map(program => program + "\r\nend"), "",
+            "#stdlib functions", ...Object.entries(stdlibData).filter(([name, program]) => settings.compilerOptions.include.includes(name)).map(([name, program]) => program + "\r\nend"), "", compilerMark
+        ].join("\r\n");
         fs.writeFileSync(path.join(directory, "out.mlog"), outputData);
-        console.log("Done!");
     }
-    else {
-        console.log("Done!");
-    }
+    console.log("Done!");
 }
 async function createProject(name) {
     if (name == "null") {

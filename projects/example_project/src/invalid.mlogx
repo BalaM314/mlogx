@@ -1,4 +1,4 @@
-#include never
+#progam_type never
 #Is invalid.
 draw linerect 0 0 50 50 31
 draw image @copper 50 50

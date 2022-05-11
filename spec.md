@@ -19,7 +19,7 @@ Note: Without jump or call statements, the only file executed is main.mlog(x). Y
 Create a folder and place one or more .mlogx files inside. They will be compiled into .mlog files and placed in the same directory.
 
 ### Standard Library
-The standard library is just a bunch of functions you may find useful. You can include them by copying them into your project's src directory or [NYI] ~~using some sort of include option in your config.json~~
+The standard library is just a bunch of functions you may find useful. You can include them by adding the name of the function you want to the compilerOptions.include array in your project's config.json.
 
 ## Functions
 
@@ -75,7 +75,7 @@ They're cool so I added them.
 
 `#program_type [append, main, never]`
 
-never: Causes a file to never be included in the compiled program. Must be on the very first line. Useful for files like all_commands.mlogx.
+never: Causes a file to never be included in the compiled program. Must be on the very first line.
 
 main: Specifies that a file is a main program, and functions should be appended to it.
 
@@ -84,6 +84,10 @@ append: Specifies that a file should be appended to the main program in a projec
 `#require [var1, var2...]`
 
 A list of variables you want to include.
+
+`#include [file1, file2, file3]`
+
+List of stdlib functions that you want to include.
 
 `#function functionName(arg1, arg2) -> outputVar`
 

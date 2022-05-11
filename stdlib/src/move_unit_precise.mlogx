@@ -1,4 +1,4 @@
-#function move_unit_precise(dest.x, dest.y)
+#function move_unit_precise(dest.x:number, dest.y:number)
 #Moves a unit to precise coordinates, and waits until it reaches.
 
 move_unit_precise:

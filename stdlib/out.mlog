@@ -1,0 +1,42 @@
+
+end
+
+#functions
+flag_unit:
+ubind unit_type
+sensor unit.dead @unit @dead
+jump flag_unit notEqual unit.dead false
+sensor unit.flag @unit @flag
+op equal unit.unflagged unit.flag 0
+op equal unit.hasOurFlag unit.flag cookie
+jump flag_unit notEqual unit.unflagged true
+jump flag_unit notEqual unit.hasOurFlag true
+ucontrol flag cookie
+set @counter _stack1
+end
+move_unit_precise:
+sensor unit.dead @unit @dead
+jump bind_unit equal unit.dead true
+ucontrol move dest.x dest.y
+sensor unit.x @unit @x
+sensor unit.y @unit @y
+print "Moving unit ("
+print unit.x
+print ", "
+print unit.y
+print ") to destination ("
+print dest.x
+print ", "
+print dest.y
+print ")"
+print name
+printflush stdout
+ucontrol within dest.x dest.y 0.5 destinationReached
+jump move_unit_precise equal destinationReached false
+set @counter _stack1
+end
+
+#stdlib functions
+
+print "Made with mlogx"
+print "github.com/BalaM314/mlogx/"
