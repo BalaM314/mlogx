@@ -58,7 +58,6 @@ export function typeofArg(arg:string):GenericArgType {
 	if(arg == undefined) return GenericArgType.null;
 	arg = arg.toLowerCase();
 	if(arg.match(/@[a-z\-]+/i)){
-		if(arg == "@counter") return GenericArgType.variable;
 		if(arg == "@unit") return GenericArgType.unit;
 		if(arg == "@thisx") return GenericArgType.number;
 		if(arg == "@thisy") return GenericArgType.number;
@@ -66,7 +65,6 @@ export function typeofArg(arg:string):GenericArgType {
 		if(arg == "@ipt") return GenericArgType.number;
 		if(arg == "@links") return GenericArgType.number;
 		if(arg == "@time") return GenericArgType.number;
-		if(arg == "@ipt") return GenericArgType.number;
 		if(arg == "@tick") return GenericArgType.number;
 		if(arg == "@mapw") return GenericArgType.number;
 		if(arg == "@maph") return GenericArgType.number;
@@ -76,7 +74,7 @@ export function typeofArg(arg:string):GenericArgType {
 	// if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
 	// if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;
 	if(["true", "false"].includes(arg)) return GenericArgType.boolean;
-	if(arg.match(/^-?[\d]+$/)) return GenericArgType.number;
+	if(arg.match(/^-?\d+(\.\d+)?$/)) return GenericArgType.number;
 	if(arg.match(/^"[^"]*"$/gi)) return GenericArgType.string;
 	if(arg.match(/^[a-z]+[\d]+$/gi)) return GenericArgType.building;
 	if(arg.match(/^[^"]+$/i)) return GenericArgType.variable;
@@ -89,7 +87,6 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 	if(argToCheck == "") return false;
 	if(argToCheck == "0") return true;
 	if(argToCheck == undefined) return false;
-	argToCheck = argToCheck.toLowerCase();
 	if(!isGenericArg(arg.type)){
 		return argToCheck === arg.type.toLowerCase();
 	}

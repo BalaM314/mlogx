@@ -43,8 +43,6 @@ export function typeofArg(arg) {
         return GenericArgType.null;
     arg = arg.toLowerCase();
     if (arg.match(/@[a-z\-]+/i)) {
-        if (arg == "@counter")
-            return GenericArgType.variable;
         if (arg == "@unit")
             return GenericArgType.unit;
         if (arg == "@thisx")
@@ -59,8 +57,6 @@ export function typeofArg(arg) {
             return GenericArgType.number;
         if (arg == "@time")
             return GenericArgType.number;
-        if (arg == "@ipt")
-            return GenericArgType.number;
         if (arg == "@tick")
             return GenericArgType.number;
         if (arg == "@mapw")
@@ -73,7 +69,7 @@ export function typeofArg(arg) {
         return GenericArgType.operandTest;
     if (["true", "false"].includes(arg))
         return GenericArgType.boolean;
-    if (arg.match(/^-?[\d]+$/))
+    if (arg.match(/^-?\d+(\.\d+)?$/))
         return GenericArgType.number;
     if (arg.match(/^"[^"]*"$/gi))
         return GenericArgType.string;
@@ -92,7 +88,6 @@ export function isArgOfType(argToCheck, arg) {
         return true;
     if (argToCheck == undefined)
         return false;
-    argToCheck = argToCheck.toLowerCase();
     if (!isGenericArg(arg.type)) {
         return argToCheck === arg.type.toLowerCase();
     }
