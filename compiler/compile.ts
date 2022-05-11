@@ -8,9 +8,9 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { Settings, ArgType, CommandError, GenericArgType } from "./types.js";
-import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, typesAreCompatible } from "./funcs.js";
+import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, typesAreCompatible, getParameters } from "./funcs.js";
 import commands from "./commands.js";
-import { requiredVarCode } from "./consts.js";
+import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
 
 
@@ -102,9 +102,12 @@ export function compileMlogxToMlog(program:string[], settings:Settings & {filena
 
 	if(settings.compilerOptions.checkTypes){
 		try {
-			checkTypes(outputData, settings);
+			checkTypes(outputData, program, settings);
 		} catch(err){
-			console.error((err as any).message);
+			if(err instanceof CompilerError)
+				console.error((err as any).message);
+			else
+				throw err;
 		}
 
 	}
@@ -113,7 +116,7 @@ export function compileMlogxToMlog(program:string[], settings:Settings & {filena
 }
 
 /**Type checks an mlog program. */
-export function checkTypes(program:string[], settings:Settings){
+export function checkTypes(compiledProgram:string[], uncompiledProgram:string[], settings:Settings){
 
 	let variablesUsed: {
 		[name: string]: {
@@ -127,10 +130,18 @@ export function checkTypes(program:string[], settings:Settings){
 			variableType: ArgType;
 			lineDefinedAt: string;
 		}[]
-	} = {};
+	} = {
+		...processorVariables,
+		...(getParameters(uncompiledProgram).reduce((accumulator:typeof variablesDefined, [name, type]) => {
+			accumulator[name] ??= [];
+			accumulator[name].push({variableType: type, lineDefinedAt: "[function parameter]"})
+			return accumulator;
+		}, {}))
+	};
+	console.log(variablesDefined);
 
 	toNextLine:
-	for(let line of program){
+	for(let line of compiledProgram){
 		let cleanedLine = cleanLine(line);
 
 		if(cleanedLine.match(/^.*?\:$/i)) continue toNextLine;
@@ -165,7 +176,7 @@ export function checkTypes(program:string[], settings:Settings){
 	for(let [name, variable] of Object.entries(variablesDefined)){
 		//Create a list of each definition's type and remove duplicates.
 		//If this list has more than one element there are definitions of conflicting types.
-		let types = [...new Set(variable.map(el => el.variableType))].filter(el => el != GenericArgType.valid && el != GenericArgType.any);
+		let types = [...new Set(variable.map(el => el.variableType))].filter(el => el != GenericArgType.valid && el != GenericArgType.any && el != GenericArgType.variable && el != GenericArgType.valid);
 		//Todo fix this ^^ it isn't good enough.
 
 		if(types.length > 1){

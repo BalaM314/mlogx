@@ -148,7 +148,10 @@ export function isArgOfType(argToCheck, arg) {
     return false;
 }
 export function cleanLine(line) {
-    return removeComments(line)
+    return removeTrailingSpaces(removeComments(line));
+}
+export function removeTrailingSpaces(line) {
+    return line
         .replace(/\/\*.*\*\//g, "")
         .replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
@@ -204,6 +207,14 @@ export function removeComments(line) {
         parsedChars.push(char);
     }
     return parsedChars.join("");
+}
+export function getParameters(program) {
+    let functionLine = program.filter(line => line.startsWith("#function "))[0];
+    return functionLine
+        ?.match(/(?<=#function .*?\().*?(?=\))/)?.[0]
+        ?.split(",")
+        .map(arg => removeTrailingSpaces(arg).split(":"))
+        .filter(arg => arg.length == 2) ?? [];
 }
 export function splitLineIntoArguments(line) {
     if (line.includes(`"`)) {

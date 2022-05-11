@@ -147,7 +147,11 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 
 /**Cleans a line by removing trailing/leading whitespaces/tabs, and comments. */
 export function cleanLine(line:string):string {
-	return removeComments(line)
+	return removeTrailingSpaces(removeComments(line));
+}
+
+export function removeTrailingSpaces(line:string):string {
+	return line
 		.replace(/\/\*.*\*\//g, "")
 		.replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
@@ -203,6 +207,16 @@ export function removeComments(line:string):string {
 	}
 
 	return parsedChars.join("");
+}
+
+export function getParameters(program:string[]):[name:string, type:string][]{
+	let functionLine = program.filter(line => line.startsWith("#function "))[0];
+	return functionLine
+		?.match(/(?<=#function .*?\().*?(?=\))/)
+		?.[0]
+		?.split(",")
+		.map(arg => removeTrailingSpaces(arg).split(":") as [string, string])
+		.filter(arg => arg.length == 2) ?? [];
 }
 
 /**Splits a line into arguments, taking quotes into account. */

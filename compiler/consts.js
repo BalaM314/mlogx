@@ -1,3 +1,4 @@
+import { GenericArgType } from "./types.js";
 export const compilerMark = `print "Made with mlogx"
 print "github.com/BalaM314/mlogx/"`;
 export const defaultSettings = {
@@ -17,4 +18,10 @@ export const requiredVarCode = {
         `op mul cookie @thisx @maph`,
         `op add cookie @thisy cookie`
     ]
+};
+export const processorVariables = {
+    "@counter": [{
+            variableType: GenericArgType.number,
+            lineDefinedAt: "[processor variable]"
+        }]
 };

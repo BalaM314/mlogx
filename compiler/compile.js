@@ -1,7 +1,7 @@
 import { GenericArgType } from "./types.js";
-import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType } from "./funcs.js";
+import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters } from "./funcs.js";
 import commands from "./commands.js";
-import { requiredVarCode } from "./consts.js";
+import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
 export function compileMlogxToMlog(program, settings) {
     let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
@@ -72,18 +72,29 @@ export function compileMlogxToMlog(program, settings) {
     }
     if (settings.compilerOptions.checkTypes) {
         try {
-            checkTypes(outputData, settings);
+            checkTypes(outputData, program, settings);
         }
         catch (err) {
-            console.error(err.message);
+            if (err instanceof CompilerError)
+                console.error(err.message);
+            else
+                throw err;
         }
     }
     return outputData;
 }
-export function checkTypes(program, settings) {
+export function checkTypes(compiledProgram, uncompiledProgram, settings) {
     let variablesUsed = {};
-    let variablesDefined = {};
-    toNextLine: for (let line of program) {
+    let variablesDefined = {
+        ...processorVariables,
+        ...(getParameters(uncompiledProgram).reduce((accumulator, [name, type]) => {
+            accumulator[name] ??= [];
+            accumulator[name].push({ variableType: type, lineDefinedAt: "[function parameter]" });
+            return accumulator;
+        }, {}))
+    };
+    console.log(variablesDefined);
+    toNextLine: for (let line of compiledProgram) {
         let cleanedLine = cleanLine(line);
         if (cleanedLine.match(/^.*?\:$/i))
             continue toNextLine;
@@ -112,7 +123,7 @@ export function checkTypes(program, settings) {
         });
     }
     for (let [name, variable] of Object.entries(variablesDefined)) {
-        let types = [...new Set(variable.map(el => el.variableType))].filter(el => el != GenericArgType.valid && el != GenericArgType.any);
+        let types = [...new Set(variable.map(el => el.variableType))].filter(el => el != GenericArgType.valid && el != GenericArgType.any && el != GenericArgType.variable && el != GenericArgType.valid);
         if (types.length > 1) {
             console.warn(`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
 	First definition: \`${variable[0].lineDefinedAt}\`
