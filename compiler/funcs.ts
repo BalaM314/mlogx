@@ -70,6 +70,7 @@ export function typeofArg(arg:string):GenericArgType {
 		if(arg == "@maph") return GenericArgType.number;
 		return GenericArgType.type;
 	}
+	if(["null"].includes(arg)) return GenericArgType.null;
 	if(["equal", "notequal", "strictequal", "greaterthan", "lessthan", "greaterthaneq", "lessthaneq", "always"].includes(arg)) return GenericArgType.operandTest;
 	// if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
 	// if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;

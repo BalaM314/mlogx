@@ -65,6 +65,8 @@ export function typeofArg(arg) {
             return GenericArgType.number;
         return GenericArgType.type;
     }
+    if (["null"].includes(arg))
+        return GenericArgType.null;
     if (["equal", "notequal", "strictequal", "greaterthan", "lessthan", "greaterthaneq", "lessthaneq", "always"].includes(arg))
         return GenericArgType.operandTest;
     if (["true", "false"].includes(arg))
