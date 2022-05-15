@@ -149,6 +149,8 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 			}, {
 				...icons,
 				filename: filename.split(".")[0],
+				name: settings.name,
+				authors: settings.authors.join(", "),
 				...settings.compilerVariables,
 			}).join("\r\n");
 		} catch(err){

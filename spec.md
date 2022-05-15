@@ -120,4 +120,8 @@ Code like `print "$name"` will get replaced with `print "ExampleProject by [#314
 
 `filename`: The filename of the file being compiled(minus the .mlogx at the end).
 
+`name`: The name of your project from config.json
+
+`authors`: List of authors from config.json
+
 `$_[any mindustry icon name]`: The Unicode character that displays as the icon in-game. Example: $_lead will get replaced with <> (U+F837), the char for lead.

@@ -105,6 +105,8 @@ function compileDirectory(directory, stdlibPath, settings) {
             }, {
                 ...icons,
                 filename: filename.split(".")[0],
+                name: settings.name,
+                authors: settings.authors.join(", "),
                 ...settings.compilerVariables,
             }).join("\r\n");
         }
