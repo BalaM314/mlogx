@@ -267,7 +267,7 @@ export function splitLineIntoArguments(line:string):string[] {
 /**Gets the variables defined by a command, given a list of arguments and a command definition. */
 export function getVariablesDefined(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
 	if(commandDefinition.name == "set"){
-		return [[args[0], typeofArg(args[1])]];
+		return [[args[0], typeofArg(args[1]) == GenericArgType.variable ? GenericArgType.any : typeofArg(args[1])]];
 	}
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])

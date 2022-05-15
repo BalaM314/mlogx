@@ -256,7 +256,7 @@ export function splitLineIntoArguments(line) {
 }
 export function getVariablesDefined(args, commandDefinition) {
     if (commandDefinition.name == "set") {
-        return [[args[0], typeofArg(args[1])]];
+        return [[args[0], typeofArg(args[1]) == GenericArgType.variable ? GenericArgType.any : typeofArg(args[1])]];
     }
     return args
         .map((arg, index) => [arg, commandDefinition.args[index]])
