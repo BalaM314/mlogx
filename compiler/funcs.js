@@ -89,7 +89,7 @@ export function isArgOfType(argToCheck, arg) {
     if (argToCheck == undefined)
         return false;
     if (!isGenericArg(arg.type)) {
-        return argToCheck === arg.type.toLowerCase();
+        return argToCheck === arg.type;
     }
     let knownType = typeofArg(argToCheck);
     if (arg.isVariable)
@@ -115,8 +115,8 @@ export function isArgOfType(argToCheck, arg) {
             return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(argToCheck);
         case GenericArgType.operandTest:
             return [
-                "equal", "notequal", "strictequal", "greaterthan",
-                "lessthan", "greaterthaneq", "lessthaneq", "always"
+                "equal", "notEqual", "strictEqual", "greaterThan",
+                "lessThan", "greaterThanEq", "lessThanEq", "always"
             ].includes(argToCheck);
         case GenericArgType.operand:
             if (["atan2", "angle",
@@ -126,8 +126,8 @@ export function isArgOfType(argToCheck, arg) {
             }
             return [
                 "add", "sub", "mul", "div", "idiv", "mod", "pow",
-                "equal", "notequal", "land", "lessthan", "lessthaneq",
-                "greaterthan", "greaterthaneq", "strictequal",
+                "equal", "notEqual", "land", "lessThan", "lessThanEq",
+                "greaterThan", "greaterThanEq", "strictEqual",
                 "shl", "shr", "or", "and", "xor", "not", "max",
                 "min", "angle", "len", "noise", "abs", "log",
                 "log10", "floor", "ceil", "sqrt", "rand", "sin",
