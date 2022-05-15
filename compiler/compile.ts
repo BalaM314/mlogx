@@ -144,7 +144,6 @@ export function checkTypes(compiledProgram:string[], uncompiledProgram:string[],
 			return accumulator;
 		}, {}))
 	};
-	console.log(variablesDefined);
 
 	toNextLine:
 	for(let line of compiledProgram){

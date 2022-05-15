@@ -94,7 +94,6 @@ export function checkTypes(compiledProgram, uncompiledProgram, settings) {
             return accumulator;
         }, {}))
     };
-    console.log(variablesDefined);
     toNextLine: for (let line of compiledProgram) {
         let cleanedLine = cleanLine(line);
         if (cleanedLine.match(/^.*?\:$/i))
