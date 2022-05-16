@@ -180,10 +180,16 @@ export const commands = processCommands({
             args: "",
             description: "Terminates execution."
         }],
-    jump: [{
+    jump: [
+        {
             args: "jumpAddress:jumpAddress operandTest:operandTest var1:valid? var2:valid?",
             description: "Jumps to an address or label if a condition is met."
-        }],
+        },
+        {
+            args: "jumpAddress:jumpAddress",
+            description: "Jumps to an address or label always."
+        },
+    ],
     ubind: [{
             args: "unitType:type",
             description: "Binds a unit of (unitType). May return dead units if no live ones exist."
