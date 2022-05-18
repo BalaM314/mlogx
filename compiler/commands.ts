@@ -202,10 +202,16 @@ export const commands: CommandDefinitions = processCommands({
 			description: "Jumps to an address or label always."
 		},
 	],
-	ubind: [{
-		args: "unitType:type",
-		description: "Binds a unit of (unitType). May return dead units if no live ones exist."
-	}],
+	ubind: [
+		{
+			args: "unitType:type",
+			description: "Binds a unit of (unitType). May return dead units if no live ones exist."
+		},
+		{
+			args: "null:null",
+			description: "Unbinds the current unit."
+		}
+	],
 	ucontrol: [
 		{
 			args: "idle",
