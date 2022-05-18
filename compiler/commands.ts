@@ -199,7 +199,8 @@ export const commands: CommandDefinitions = processCommands({
 		},
 		{
 			args: "jumpAddress:jumpAddress",
-			description: "Jumps to an address or label always."
+			description: "Jumps to an address or label always.",
+			replace: [ "jump %1 always" ]
 		},
 	],
 	ubind: [
