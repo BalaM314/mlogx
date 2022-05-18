@@ -7,3 +7,4 @@
 * [?]Get rid of GenericArgType.variable
 * []Allow config.json file to specify custom commands
 * []Config file validation
+* []Show line numbers in error messages

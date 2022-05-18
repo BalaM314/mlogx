@@ -40,11 +40,11 @@ export const requiredVarCode: {
 export const processorVariables:{
 	[name: string]: {
 		variableType: ArgType;
-		lineDefinedAt: string;
+		line: string;
 	}[]
 } = {
 	"@counter": [{
 		variableType: GenericArgType.number,
-		lineDefinedAt: "[processor variable]"
+		line: "[processor variable]"
 	}]
 };

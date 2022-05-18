@@ -23,6 +23,6 @@ export const requiredVarCode = {
 export const processorVariables = {
     "@counter": [{
             variableType: GenericArgType.number,
-            lineDefinedAt: "[processor variable]"
+            line: "[processor variable]"
         }]
 };

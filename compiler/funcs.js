@@ -288,6 +288,12 @@ export function getVariablesUsed(args, commandDefinition) {
         .map((arg, index) => [arg, commandDefinition.args[index]])
         .filter(([arg, commandArg]) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandArg)).map(([arg, commandArg]) => [arg, commandArg.type]);
 }
+export function getJumpLabelUsed(cargs) {
+    let args = splitLineIntoArguments(cargs);
+    if (args[0] == "jump")
+        return args[1];
+    return null;
+}
 export function areAnyOfInputsCompatibleWithType(inputs, output) {
     for (let input of inputs) {
         if (typesAreCompatible(input, output) || typesAreCompatible(output, input))

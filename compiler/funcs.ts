@@ -306,6 +306,12 @@ export function getVariablesUsed(args:string[], commandDefinition:CommandDefinit
 		).map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 
+export function getJumpLabelUsed(cargs:string): string | null {
+	let args = splitLineIntoArguments(cargs);
+	if(args[0] == "jump") return args[1];
+	return null;
+}
+
 /**Checks if any of the inputs are compatible with the output type.*/
 export function areAnyOfInputsCompatibleWithType(inputs:ArgType[], output:ArgType):boolean{
 	for(let input of inputs){

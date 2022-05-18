@@ -1,5 +1,5 @@
 import { GenericArgType } from "./types.js";
-import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerVariables } from "./funcs.js";
+import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerVariables, getJumpLabelUsed } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
@@ -90,35 +90,48 @@ export function checkTypes(compiledProgram, uncompiledProgram, settings) {
         ...processorVariables,
         ...(getParameters(uncompiledProgram).reduce((accumulator, [name, type]) => {
             accumulator[name] ??= [];
-            accumulator[name].push({ variableType: type, lineDefinedAt: "[function parameter]" });
+            accumulator[name].push({ variableType: type, line: "[function parameter]" });
             return accumulator;
         }, {}))
     };
+    let jumpLabelsUsed = {};
+    let jumpLabelsDefined = {};
     toNextLine: for (let line of compiledProgram) {
         let cleanedLine = cleanLine(line);
-        if (cleanedLine.match(/^.*?\:$/i))
+        let labelName = cleanedLine.match(/^.+?(?=\:$)/i)?.[0];
+        if (labelName) {
+            jumpLabelsDefined[labelName] ??= [];
+            jumpLabelsDefined[labelName].push({
+                line: line
+            });
             continue toNextLine;
+        }
         let args = splitLineIntoArguments(line).slice(1);
         let commandDefinitions = getCommandDefinitions(cleanedLine);
         if (commandDefinitions.length == 0) {
             throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
         }
+        let jumpLabelUsed = getJumpLabelUsed(cleanedLine);
+        if (jumpLabelUsed) {
+            jumpLabelsUsed[jumpLabelUsed] ??= [];
+            jumpLabelsUsed[jumpLabelUsed].push({
+                line: cleanedLine
+            });
+        }
         for (let commandDefinition of commandDefinitions) {
             getVariablesDefined(args, commandDefinition).forEach(([variableName, variableType]) => {
-                if (!variablesDefined[variableName])
-                    variablesDefined[variableName] = [];
+                variablesDefined[variableName] ??= [];
                 variablesDefined[variableName].push({
                     variableType,
-                    lineDefinedAt: line
+                    line: line
                 });
             });
         }
         getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
-            if (!variablesUsed[variableName])
-                variablesUsed[variableName] = [];
+            variablesUsed[variableName] ??= [];
             variablesUsed[variableName].push({
                 variableTypes,
-                lineUsedAt: line
+                line: line
             });
         });
     }
@@ -126,8 +139,8 @@ export function checkTypes(compiledProgram, uncompiledProgram, settings) {
         let types = [...new Set(variable.map(el => el.variableType))].filter(el => el != GenericArgType.valid && el != GenericArgType.any && el != GenericArgType.variable && el != GenericArgType.valid);
         if (types.length > 1) {
             console.warn(`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
-	First definition: \`${variable[0].lineDefinedAt}\`
-	First conflicting definition: \`${variable.filter(v => v.variableType == types[1])[0].lineDefinedAt}\``);
+	First definition: \`${variable[0].line}\`
+	First conflicting definition: \`${variable.filter(v => v.variableType == types[1])[0].line}\``);
         }
     }
     ;
@@ -137,14 +150,25 @@ export function checkTypes(compiledProgram, uncompiledProgram, settings) {
         for (let variableUsage of variableUsages) {
             if (!variablesDefined[name]) {
                 console.warn(`Variable "${name}" seems to be undefined.
-	at ${variableUsage.lineUsedAt}`);
+	at ${variableUsage.line}`);
             }
             else if (!areAnyOfInputsCompatibleWithType(variableUsage.variableTypes, variablesDefined[name][0].variableType)) {
                 console.warn(`Type mismatch: variable "${name}" is of type "${variablesDefined[name][0].variableType}",\
 but the command requires it to be of type [${variableUsage.variableTypes.map(t => `"${t}"`).join(", ")}]
-	at ${variableUsage.lineUsedAt}
-	First definition at: ${variablesDefined[name][0].lineDefinedAt}`);
+	at ${variableUsage.line}
+	First definition at: ${variablesDefined[name][0].line}`);
             }
+        }
+    }
+    for (let [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)) {
+        if (definitions.length > 1) {
+            console.warn(`Jump label ${jumpLabel} was defined ${definitions.length} times.`);
+        }
+    }
+    for (let [jumpLabel, definitions] of Object.entries(jumpLabelsUsed)) {
+        if (!jumpLabelsDefined[jumpLabel]) {
+            console.warn(`Jump label ${jumpLabel} is missing.
+	at ${definitions[0].line}`);
         }
     }
 }
