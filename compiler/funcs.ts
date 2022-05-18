@@ -327,7 +327,7 @@ export function areAnyOfInputsCompatibleWithType(inputs:ArgType[], output:ArgTyp
 export function typesAreCompatible(input:ArgType, output:ArgType):boolean {
 	if(input == output) return true;
 	if(output == GenericArgType.any) return true;
-	if(output == GenericArgType.valid) return ![GenericArgType.null].includes(input as GenericArgType);
+	if(output == GenericArgType.valid) return true;
 	switch(input){
 		case GenericArgType.any: return true;
 		case GenericArgType.number: return output == GenericArgType.boolean;
