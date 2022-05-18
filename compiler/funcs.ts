@@ -272,12 +272,14 @@ export function getVariablesDefined(args:string[], commandDefinition:CommandDefi
 	}
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
-		.filter(([arg, commandArg]) => commandArg.isVariable)
+		.filter(([arg, commandArg]) => commandArg.isVariable && arg !== "_")
 		.map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 
-/**Gets all possible variable usages.
- * Needed because, for example, the `sensor` command accepts either a building or a unit, so if you have `sensor foo.x foo @x` foo is either being used as a unit or a building.
+/**
+ * Gets all possible variable usages.
+ * Needed because, for example, the `sensor` command accepts either a building or a unit, so if you have `sensor foo.x foo @x`
+ * foo is either being used as a unit or a building.
  */
 export function getAllPossibleVariablesUsed(command:string): [name:string, types:ArgType[]][]{
 	let args = splitLineIntoArguments(command).slice(1);
@@ -302,7 +304,7 @@ export function getVariablesUsed(args:string[], commandDefinition:CommandDefinit
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
 		.filter(([arg, commandArg]) => 
-			typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandArg)
+			typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandArg) && arg != "_"
 		).map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 

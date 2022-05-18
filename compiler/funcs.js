@@ -262,7 +262,7 @@ export function getVariablesDefined(args, commandDefinition) {
     }
     return args
         .map((arg, index) => [arg, commandDefinition.args[index]])
-        .filter(([arg, commandArg]) => commandArg.isVariable)
+        .filter(([arg, commandArg]) => commandArg.isVariable && arg !== "_")
         .map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 export function getAllPossibleVariablesUsed(command) {
@@ -286,7 +286,7 @@ export function getAllPossibleVariablesUsed(command) {
 export function getVariablesUsed(args, commandDefinition) {
     return args
         .map((arg, index) => [arg, commandDefinition.args[index]])
-        .filter(([arg, commandArg]) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandArg)).map(([arg, commandArg]) => [arg, commandArg.type]);
+        .filter(([arg, commandArg]) => typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 export function getJumpLabelUsed(cargs) {
     let args = splitLineIntoArguments(cargs);
