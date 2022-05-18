@@ -1,6 +1,6 @@
 import { GenericArgType } from "./types.js";
-export const compilerMark = `print "Made with mlogx"
-print "github.com/BalaM314/mlogx/"`;
+export const compilerMark = [`print "Made with mlogx"`,
+    `print "github.com/BalaM314/mlogx/"`];
 export const defaultSettings = {
     name: "",
     authors: [],

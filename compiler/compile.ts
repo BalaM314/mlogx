@@ -106,23 +106,11 @@ export function compileMlogxToMlog(
 
 	}
 
-	if(settings.compilerOptions.checkTypes){
-		try {
-			checkTypes(outputData, program, settings);
-		} catch(err){
-			if(err instanceof CompilerError)
-				console.error((err as any).message);
-			else
-				throw err;
-		}
-
-	}
-
 	return outputData;
 }
 
 /**Type checks an mlog program. */
-export function checkTypes(compiledProgram:string[], uncompiledProgram:string[], settings:Settings){
+export function checkTypes(compiledProgram:string[], settings:Settings, uncompiledProgram?:string[]){
 
 	let variablesUsed: {
 		[name: string]: {
@@ -138,11 +126,11 @@ export function checkTypes(compiledProgram:string[], uncompiledProgram:string[],
 		}[]
 	} = {
 		...processorVariables,
-		...(getParameters(uncompiledProgram).reduce((accumulator:typeof variablesDefined, [name, type]) => {
+		...(uncompiledProgram ? getParameters(uncompiledProgram).reduce((accumulator:typeof variablesDefined, [name, type]) => {
 			accumulator[name] ??= [];
 			accumulator[name].push({variableType: type, line: "[function parameter]"})
 			return accumulator;
-		}, {}))
+		}, {}) : {})
 	};
 
 	let jumpLabelsUsed: {
@@ -159,6 +147,8 @@ export function checkTypes(compiledProgram:string[], uncompiledProgram:string[],
 	toNextLine:
 	for(let line of compiledProgram){
 		let cleanedLine = cleanLine(line);
+		if(cleanedLine == "") continue toNextLine;
+
 
 		let labelName = cleanedLine.match(/^.+?(?=\:$)/i)?.[0];
 		if(labelName){
@@ -172,7 +162,10 @@ export function checkTypes(compiledProgram:string[], uncompiledProgram:string[],
 		let args = splitLineIntoArguments(line).slice(1);
 		let commandDefinitions = getCommandDefinitions(cleanedLine);
 		if(commandDefinitions.length == 0){
-			throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
+			throw new CompilerError(
+`Type checking aborted because the program contains invalid commands.
+	at \`${line}\``
+			);
 		}
 
 		let jumpLabelUsed:string | null = getJumpLabelUsed(cleanedLine);

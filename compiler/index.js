@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as fs from "fs";
 import commands from "./commands.js";
-import { compileMlogxToMlog } from "./compile.js";
+import { checkTypes, compileMlogxToMlog } from "./compile.js";
 import { parseArgs, askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError } from "./classes.js";
@@ -89,14 +89,14 @@ function compileDirectory(directory, stdlibPath, settings) {
     let filelist_stdlib = fs.readdirSync(stdlibDirectory).filter(filename => filename.match(/\.mlog/));
     console.log("Files to compile: ", filelist_mlogx);
     let compiledData = {};
-    let mainData = "";
+    let mainData = [];
     let stdlibData = {};
     for (let filename of filelist_stdlib) {
-        stdlibData[filename.split(".")[0]] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8');
+        stdlibData[filename.split(".")[0]] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8').split(/\r?\n/g);
     }
     for (let filename of filelist_mlogx) {
         console.log(`Compiling file ${filename}`);
-        let data = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split("\r\n");
+        let data = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split(/\r?\n/g);
         let outputData;
         try {
             outputData = compileMlogxToMlog(data, {
@@ -108,7 +108,7 @@ function compileDirectory(directory, stdlibPath, settings) {
                 name: settings.name,
                 authors: settings.authors.join(", "),
                 ...settings.compilerVariables,
-            }).join("\r\n");
+            });
         }
         catch (err) {
             console.error(`Failed to compile file ${filename}!`);
@@ -119,9 +119,20 @@ function compileDirectory(directory, stdlibPath, settings) {
             return;
         }
         if (settings.compilerOptions.mode == "single") {
-            outputData += "\r\nend\r\n" + compilerMark;
+            outputData.push("end", ...compilerMark);
+            if (settings.compilerOptions.checkTypes) {
+                try {
+                    checkTypes(outputData, settings, data);
+                }
+                catch (err) {
+                    if (err instanceof CompilerError)
+                        console.error(err.message);
+                    else
+                        throw err;
+                }
+            }
         }
-        fs.writeFileSync(path.join(outputDirectory, filename.slice(0, -1)), outputData);
+        fs.writeFileSync(path.join(outputDirectory, filename.slice(0, -1)), outputData.join("\r\n"));
         if (settings.compilerOptions.mode == "project") {
             if (data.includes("#program_type never"))
                 continue;
@@ -136,20 +147,34 @@ function compileDirectory(directory, stdlibPath, settings) {
     if (settings.compilerOptions.mode == "project") {
         for (let filename of filelist_mlog) {
             if (filename != "main.mlog") {
-                compiledData[filename] = fs.readFileSync(`src/${filename}`, 'utf-8');
+                compiledData[filename] = fs.readFileSync(`src/${filename}`, 'utf-8').split(/\r?\n/g);
             }
             else {
-                mainData = fs.readFileSync(`src/${filename}`, 'utf-8');
+                mainData = fs.readFileSync(`src/${filename}`, 'utf-8').split(/\r?\n/g);
             }
         }
         console.log("Compiled all files successfully.");
         console.log("Assembling output:");
         let outputData = [
-            mainData, "end", "",
-            "#functions", ...Object.values(compiledData).map(program => program + "\r\nend"), "",
-            "#stdlib functions", ...Object.entries(stdlibData).filter(([name, program]) => settings.compilerOptions.include.includes(name)).map(([name, program]) => program + "\r\nend"), "", compilerMark
-        ].join("\r\n");
-        fs.writeFileSync(path.join(directory, "out.mlog"), outputData);
+            ...mainData, "end", "",
+            "#functions",
+            ...[].concat(...Object.values(compiledData).map(program => program.concat("end"))), "",
+            "#stdlib functions",
+            ...[].concat(...Object.entries(stdlibData).filter(([name, program]) => settings.compilerOptions.include.includes(name)).map(([name, program]) => program.concat("end"))),
+            "", ...compilerMark
+        ];
+        if (settings.compilerOptions.checkTypes) {
+            try {
+                checkTypes(outputData, settings);
+            }
+            catch (err) {
+                if (err instanceof CompilerError)
+                    console.error(err.message);
+                else
+                    throw err;
+            }
+        }
+        fs.writeFileSync(path.join(directory, "out.mlog"), outputData.join("\r\n"));
     }
     console.log("Done!");
 }

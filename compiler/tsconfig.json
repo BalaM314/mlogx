@@ -8,6 +8,7 @@
 		"types": [
 			"node"
 		],
-		"strict": true
+		"strict": true,
+		"noImplicitAny": true
 	}
 }

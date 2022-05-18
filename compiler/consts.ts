@@ -9,8 +9,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 import { ArgType, GenericArgType, Settings } from "./types.js";
 
 export const compilerMark = 
-`print "Made with mlogx"
-print "github.com/BalaM314/mlogx/"`;
+[`print "Made with mlogx"`,
+`print "github.com/BalaM314/mlogx/"`];
 
 export const defaultSettings:Settings = {
 	name: "",

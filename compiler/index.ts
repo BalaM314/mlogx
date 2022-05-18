@@ -9,7 +9,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 import * as path from "path";
 import * as fs from "fs";
 import commands from "./commands.js";
-import { compileMlogxToMlog } from "./compile.js";
+import { checkTypes, compileMlogxToMlog } from "./compile.js";
 import { parseArgs, exit, askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError } from "./classes.js";
@@ -120,27 +120,27 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 	console.log("Files to compile: ", filelist_mlogx);
 
 	let compiledData: {
-		[index: string]: string;
+		[index: string]: string[];
 	} = {};
-	let mainData = "";
+	let mainData: string[] = [];
 	let stdlibData: {
-		[index: string]: string;
+		[index: string]: string[];
 	} = {};
 
 	for(let filename of filelist_stdlib){
 		//For each filename in the stdlib
 		// Load the file into stdlibData
-		stdlibData[filename.split(".")[0]] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8');
+		stdlibData[filename.split(".")[0]] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8').split(/\r?\n/g);
 	}
 
 	for(let filename of filelist_mlogx){
 		//For each filename in the file list
 
 		console.log(`Compiling file ${filename}`);
-		let data:string[] = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split("\r\n");
+		let data:string[] = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split(/\r?\n/g);
 		//Load the data
 		
-		let outputData;
+		let outputData: string[];
 		//Compile, but handle errors
 		try {
 			outputData = compileMlogxToMlog(data, {
@@ -152,7 +152,7 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 				name: settings.name,
 				authors: settings.authors.join(", "),
 				...settings.compilerVariables,
-			}).join("\r\n");
+			});
 		} catch(err){
 			console.error(`Failed to compile file ${filename}!`);
 			if(err instanceof CompilerError)
@@ -162,12 +162,23 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 			return;
 		}
 		if(settings.compilerOptions.mode == "single"){
-			outputData += "\r\nend\r\n" + compilerMark;
+			outputData.push("end", ...compilerMark);
+			if(settings.compilerOptions.checkTypes){
+				try {
+					checkTypes(outputData, settings, data);
+				} catch(err){
+					if(err instanceof CompilerError)
+						console.error((err as any).message);
+					else
+						throw err;
+				}
+		
+			}
 		}
 		//Write .mlog files to output
 		fs.writeFileSync(
 			path.join(outputDirectory, filename.slice(0,-1)),
-			outputData
+			outputData.join("\r\n")
 		);
 		if(settings.compilerOptions.mode == "project"){
 			//if #program_type is never, then skip saving the compiled data
@@ -186,26 +197,45 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 			//For each filename in the other file list
 			//If the filename is not main, add it to the list of compiled data, otherwise, set mainData to it
 			if(filename != "main.mlog"){
-				compiledData[filename] = fs.readFileSync(`src/${filename}`, 'utf-8');
+				compiledData[filename] = fs.readFileSync(`src/${filename}`, 'utf-8').split(/\r?\n/g);
 			} else {
-				mainData = fs.readFileSync(`src/${filename}`, 'utf-8');
+				mainData = fs.readFileSync(`src/${filename}`, 'utf-8').split(/\r?\n/g);
 			}
 		}
 		console.log("Compiled all files successfully.");
 		console.log("Assembling output:");
 
-		let outputData = [
-			mainData, "end", "",
-			"#functions", ...Object.values(compiledData).map(program => program + "\r\nend"), "",
-			"#stdlib functions", ...Object.entries(stdlibData).filter(
-				([name, program]) => settings.compilerOptions.include.includes(name)
-			).map(([name, program]) => program + "\r\nend"), "", compilerMark
-		].join("\r\n");
-
+		let outputData:string[] = [
+			...mainData, "end", "",
+			"#functions",
+			//bizzare hack to use spread operator twice
+			...([] as string[]).concat(...
+				Object.values(compiledData).map(program => program.concat("end"))
+			), "",
+			"#stdlib functions",
+			...([] as string[]).concat(...
+				Object.entries(stdlibData).filter(
+					([name, program]) => settings.compilerOptions.include.includes(name)
+				).map(([name, program]) => program.concat("end"))
+			),
+			"", ...compilerMark
+		];
+		
+		if(settings.compilerOptions.checkTypes){
+			try {
+				checkTypes(outputData, settings);
+			} catch(err){
+				if(err instanceof CompilerError)
+					console.error((err as any).message);
+				else
+					throw err;
+			}
+	
+		}
 
 		fs.writeFileSync(
 			path.join(directory, "out.mlog"),
-			outputData
+			outputData.join("\r\n")
 		);
 	}
 	console.log("Done!");
