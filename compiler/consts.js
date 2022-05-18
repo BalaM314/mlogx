@@ -46,4 +46,4 @@ export const buildingInternalNames = [
     "accelerator", "message", "switch", "processor",
     "cell", "bank", "display"
 ];
-export const buildingNameRegex = new RegExp(`^${buildingInternalNames.map(el => `(${el})`).join("|")}[\d]+$`);
+export const buildingNameRegex = new RegExp(`^(${buildingInternalNames.map(el => `(${el})`).join("|")})[\d]+$`);

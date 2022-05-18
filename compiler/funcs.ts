@@ -86,6 +86,7 @@ export function typeofArg(arg:string):GenericArgType {
 /**Returns if an arg is of a specified type. */
 export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 	if(arg.type === GenericArgType.any) return true;
+	if(arg.type === GenericArgType.valid) return true;
 	if(argToCheck == "") return false;
 	if(argToCheck == "0") return true;
 	if(argToCheck == undefined) return false;

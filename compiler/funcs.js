@@ -85,6 +85,8 @@ export function typeofArg(arg) {
 export function isArgOfType(argToCheck, arg) {
     if (arg.type === GenericArgType.any)
         return true;
+    if (arg.type === GenericArgType.valid)
+        return true;
     if (argToCheck == "")
         return false;
     if (argToCheck == "0")
