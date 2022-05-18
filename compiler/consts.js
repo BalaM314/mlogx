@@ -26,3 +26,24 @@ export const processorVariables = {
             line: "[processor variable]"
         }]
 };
+export const buildingInternalNames = [
+    "press", "smelter", "crucible", "kiln", "compressor",
+    "weaver", "mixer", "melter", "separator", "disassembler",
+    "pulverizer", "centrifuge", "incinerator", "wall",
+    "door", "thruster", "mender", "projector", "dome",
+    "mine", "conveyor", "junction", "sorter", "router",
+    "distributor", "gate", "driver", "duct", "bridge",
+    "pump", "conduit", "container", "tank", "node", "tower",
+    "diode", "battery", "generator", "panel", "reactor",
+    "drill", "extractor", "cultivator", "shard", "foundation",
+    "nucleus", "vault", "unloader", "duo", "scatter",
+    "scorch", "hail", "wave", "lancer", "arc", "parallax",
+    "swarmer", "salvo", "segment", "tsunami", "fuse", "ripple",
+    "cyclone", "foreshadow", "spectre", "meltdown", "center",
+    "factory", "reconstructor", "point", "turret",
+    "deconstructor", "constructor", "loader", "source",
+    "void", "illuminator", "air", "ground", "pad",
+    "accelerator", "message", "switch", "processor",
+    "cell", "bank", "display"
+];
+export const buildingNameRegex = new RegExp(`^${buildingInternalNames.map(el => `(${el})`).join("|")}[\d]+$`);

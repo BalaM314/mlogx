@@ -10,6 +10,7 @@ import { Arg } from "./classes.js";
 import commands from "./commands.js";
 import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, PreprocessedCommandDefinitions } from "./types.js";
 import * as readline from "readline";
+import { buildingNameRegex } from "./consts.js";
 
 
 /**Processes commands(adds in what would otherwise be boilerplate). */
@@ -77,7 +78,7 @@ export function typeofArg(arg:string):GenericArgType {
 	if(["true", "false"].includes(arg)) return GenericArgType.boolean;
 	if(arg.match(/^-?\d+(\.\d+)?$/)) return GenericArgType.number;
 	if(arg.match(/^"[^"]*"$/gi)) return GenericArgType.string;
-	if(arg.match(/^[a-z]+[\d]+$/gi)) return GenericArgType.building;
+	if(arg.match(buildingNameRegex)) return GenericArgType.building;
 	if(arg.match(/^[^"]+$/i)) return GenericArgType.variable;
 	return GenericArgType.null;
 }

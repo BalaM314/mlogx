@@ -2,6 +2,7 @@ import { Arg } from "./classes.js";
 import commands from "./commands.js";
 import { CommandErrorType, GenericArgType } from "./types.js";
 import * as readline from "readline";
+import { buildingNameRegex } from "./consts.js";
 export function processCommands(preprocessedCommands) {
     function arg(str) {
         if (!str.includes(":")) {
@@ -75,7 +76,7 @@ export function typeofArg(arg) {
         return GenericArgType.number;
     if (arg.match(/^"[^"]*"$/gi))
         return GenericArgType.string;
-    if (arg.match(/^[a-z]+[\d]+$/gi))
+    if (arg.match(buildingNameRegex))
         return GenericArgType.building;
     if (arg.match(/^[^"]+$/i))
         return GenericArgType.variable;
