@@ -44,7 +44,7 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
             err(`Unknown command ${args[0]}\nat \`${line}\``);
             continue toNextLine;
         }
-        let error = {};
+        let errors = [];
         for (let command of commandList) {
             let result = checkCommand(command, cleanedLine);
             if (result.replace) {
@@ -52,7 +52,7 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
                 continue toNextLine;
             }
             else if (result.error) {
-                error = result.error;
+                errors.push(result.error);
             }
             else if (result.ok) {
                 outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
@@ -60,11 +60,11 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
             }
         }
         if (commandList.length == 1) {
-            err(error.message);
+            err(errors[0].message);
         }
         else {
             err(`Line
-	\`${line}\`
+	\`${cleanedLine}\`
 	did not match any overloads for command ${args[0]}`);
         }
         if (!commandList[0].replace) {

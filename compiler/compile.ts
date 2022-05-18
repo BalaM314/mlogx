@@ -76,7 +76,7 @@ export function compileMlogxToMlog(
 			continue toNextLine;
 		}
 
-		let error:CommandError = {} as any;
+		let errors:CommandError[] = [] as any;
 		
 		for(let command of commandList){
 			let result = checkCommand(command, cleanedLine);
@@ -84,18 +84,19 @@ export function compileMlogxToMlog(
 				outputData.push(...result.replace);
 				continue toNextLine;
 			} else if(result.error){
-				error = result.error;
+				errors.push(result.error);
 			} else if(result.ok){
 				outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
 				continue toNextLine;
 			}
 		}
 		if(commandList.length == 1){
-			err(error.message);
+			err(errors[0].message);
 		} else {
+			//console.debug("[DEBUG]", errors.map(error => error.message));
 			err(
 	`Line
-	\`${line}\`
+	\`${cleanedLine}\`
 	did not match any overloads for command ${args[0]}`
 			);
 		}
