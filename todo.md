@@ -8,3 +8,4 @@
 * []Allow config.json file to specify custom commands
 * []Config file validation
 * []Show line numbers in error messages
+* []put 0 instead of allowing mindustry to create an `x` variable

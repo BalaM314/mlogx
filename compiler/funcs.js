@@ -25,11 +25,25 @@ export function processCommands(preprocessedCommands) {
     for (let [name, commands] of Object.entries(preprocessedCommands)) {
         out[name] = [];
         for (let command of commands) {
-            out[name].push({
-                ...command,
+            let processedCommand = {
+                description: command.description,
                 name,
                 args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : []
-            });
+            };
+            if (command.replace instanceof Array) {
+                processedCommand.replace = function (args) {
+                    return command.replace.map(replaceLine => {
+                        for (let i = 1; i < args.length; i++) {
+                            replaceLine = replaceLine.replace(new RegExp(`%${i}`, "g"), args[i]);
+                        }
+                        return replaceLine;
+                    });
+                };
+            }
+            else if (typeof command.replace == "function") {
+                processedCommand.replace = command.replace;
+            }
+            out[name].push(processedCommand);
         }
     }
     return out;
@@ -367,12 +381,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
     if (command.replace) {
         return {
             ok: true,
-            replace: command.replace.map(replaceLine => {
-                for (let i = 1; i < args.length; i++) {
-                    replaceLine = replaceLine.replace(new RegExp(`%${i}`, "g"), args[i]);
-                }
-                return replaceLine;
-            }),
+            replace: command.replace(args),
         };
     }
     return {

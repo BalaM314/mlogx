@@ -57,14 +57,14 @@ export interface CommandError {
 
 export interface CommandDefinition {
 	args: Arg[];
-	replace?: string[];
+	replace?: (args:string[]) => string[];
 	description: string;
 	name: string;
 }
 
 export interface PreprocessedCommand {
 	args: string;
-	replace?: string[];
+	replace?: string[] | ((args:string[]) => string[]);
 	description: string;
 }
 

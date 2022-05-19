@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { Arg } from "./classes.js";
 import commands from "./commands.js";
-import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, PreprocessedCommandDefinitions } from "./types.js";
+import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, PreprocessedCommand, PreprocessedCommandDefinitions } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 
@@ -38,11 +38,24 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 	for(let [name, commands] of Object.entries(preprocessedCommands)){
 		out[name] = [];
 		for(let command of commands){
-			out[name].push({
-				...command,
+			let processedCommand:CommandDefinition = {
+				description: command.description,
 				name,
 				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as any)) : []
-			});
+			}
+			if(command.replace instanceof Array){
+				processedCommand.replace = function(args:string[]){
+					return (command.replace as string[]).map(replaceLine => {
+						for(let i = 1; i < args.length; i ++){
+							replaceLine = replaceLine.replace(new RegExp(`%${i}`, "g"), args[i]);
+						}
+						return replaceLine;
+					})
+				};
+			} else if(typeof command.replace == "function"){
+				processedCommand.replace = (command.replace as (args:string[]) => string[]);
+			}
+			out[name].push(processedCommand);
 		}
 	}
 	return out;
@@ -399,12 +412,7 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
 	if(command.replace){
 		return {
 			ok: true,
-			replace: command.replace.map(replaceLine => {
-				for(let i = 1; i < args.length; i ++){
-					replaceLine = replaceLine.replace(new RegExp(`%${i}`, "g"), args[i]);
-				}
-				return replaceLine;
-			}),
+			replace: command.replace(args),
 		};
 	}
 
