@@ -82,6 +82,7 @@ export function typeofArg(arg:string):GenericArgType {
 		if(arg == "@tick") return GenericArgType.number;
 		if(arg == "@mapw") return GenericArgType.number;
 		if(arg == "@maph") return GenericArgType.number;
+		if(arg == "@counter") return GenericArgType.variable;
 		return GenericArgType.type;
 	}
 	if(["null"].includes(arg)) return GenericArgType.null;

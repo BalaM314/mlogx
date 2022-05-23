@@ -78,6 +78,8 @@ export function typeofArg(arg) {
             return GenericArgType.number;
         if (arg == "@maph")
             return GenericArgType.number;
+        if (arg == "@counter")
+            return GenericArgType.variable;
         return GenericArgType.type;
     }
     if (["null"].includes(arg))

@@ -6,7 +6,8 @@
 		"target": "ES2021",
 		"removeComments": true,
 		"types": [
-			"node"
+			"node",
+			"jest"
 		],
 		"strict": true,
 		"noImplicitAny": true
