@@ -68,9 +68,8 @@ export function isGenericArg(val:string): val is GenericArgType {
 
 /**Estimates the type of an argument. May not be right.*/
 export function typeofArg(arg:string):GenericArgType {
-	if(arg == "") return GenericArgType.null;
-	if(arg == undefined) return GenericArgType.null;
-	arg = arg.toLowerCase();
+	if(arg == "") return GenericArgType.invalid;
+	if(arg == undefined) return GenericArgType.invalid;
 	if(arg.match(/@[a-z\-]+/i)){
 		if(arg == "@unit") return GenericArgType.unit;
 		if(arg == "@thisx") return GenericArgType.number;
@@ -86,7 +85,7 @@ export function typeofArg(arg:string):GenericArgType {
 		return GenericArgType.type;
 	}
 	if(["null"].includes(arg)) return GenericArgType.null;
-	if(["equal", "notequal", "strictequal", "greaterthan", "lessthan", "greaterthaneq", "lessthaneq", "always"].includes(arg)) return GenericArgType.operandTest;
+	if(["equal", "notEqual", "strictEqual", "greaterThan", "lessThan", "greaterThanEq", "lessThanEq", "always"].includes(arg)) return GenericArgType.operandTest;
 	// if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
 	// if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;
 	if(["true", "false"].includes(arg)) return GenericArgType.boolean;
@@ -94,7 +93,7 @@ export function typeofArg(arg:string):GenericArgType {
 	if(arg.match(/^"[^"]*"$/gi)) return GenericArgType.string;
 	if(arg.match(buildingNameRegex)) return GenericArgType.building;
 	if(arg.match(/^[^"]+$/i)) return GenericArgType.variable;
-	return GenericArgType.null;
+	return GenericArgType.invalid;
 }
 
 /**Returns if an arg is of a specified type. */

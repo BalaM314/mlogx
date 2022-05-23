@@ -39,7 +39,7 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
         }
         let args = splitLineIntoArguments(cleanedLine)
             .map(arg => arg.startsWith("__") ? `${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
-        let commandList = commands[args[0].toLowerCase()];
+        let commandList = commands[args[0]];
         if (!commandList) {
             err(`Unknown command ${args[0]}\nat \`${line}\``);
             continue toNextLine;
@@ -63,6 +63,7 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
             err(errors[0].message);
         }
         else {
+            console.warn("[DEBUG]", errors.map(error => error.message));
             err(`Line
 	\`${cleanedLine}\`
 	did not match any overloads for command ${args[0]}`);

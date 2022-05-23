@@ -53,10 +53,9 @@ export function isGenericArg(val) {
 }
 export function typeofArg(arg) {
     if (arg == "")
-        return GenericArgType.null;
+        return GenericArgType.invalid;
     if (arg == undefined)
-        return GenericArgType.null;
-    arg = arg.toLowerCase();
+        return GenericArgType.invalid;
     if (arg.match(/@[a-z\-]+/i)) {
         if (arg == "@unit")
             return GenericArgType.unit;
@@ -84,7 +83,7 @@ export function typeofArg(arg) {
     }
     if (["null"].includes(arg))
         return GenericArgType.null;
-    if (["equal", "notequal", "strictequal", "greaterthan", "lessthan", "greaterthaneq", "lessthaneq", "always"].includes(arg))
+    if (["equal", "notEqual", "strictEqual", "greaterThan", "lessThan", "greaterThanEq", "lessThanEq", "always"].includes(arg))
         return GenericArgType.operandTest;
     if (["true", "false"].includes(arg))
         return GenericArgType.boolean;
@@ -96,7 +95,7 @@ export function typeofArg(arg) {
         return GenericArgType.building;
     if (arg.match(/^[^"]+$/i))
         return GenericArgType.variable;
-    return GenericArgType.null;
+    return GenericArgType.invalid;
 }
 export function isArgOfType(argToCheck, arg) {
     if (arg.type === GenericArgType.any)

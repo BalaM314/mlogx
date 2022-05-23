@@ -70,7 +70,7 @@ export function compileMlogxToMlog(
 			.map(arg => arg.startsWith("__") ? `${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
 		//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
-		let commandList = commands[args[0].toLowerCase()];
+		let commandList = commands[args[0]];
 		if(!commandList){
 			err(`Unknown command ${args[0]}\nat \`${line}\``);
 			continue toNextLine;
@@ -93,7 +93,7 @@ export function compileMlogxToMlog(
 		if(commandList.length == 1){
 			err(errors[0].message);
 		} else {
-			//console.debug("[DEBUG]", errors.map(error => error.message));
+			console.warn("[DEBUG]", errors.map(error => error.message));
 			err(
 	`Line
 	\`${cleanedLine}\`

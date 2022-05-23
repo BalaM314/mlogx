@@ -16,8 +16,7 @@ export const commands: CommandDefinitions = processCommands({
 	call: [{
 		args: "function:function",
 		replace: [
-			"set _stack1 @counter",
-			"op add _stack1 _stack1 2",
+			"op add @counter _stack1 1",
 			"jump %1 always"
 		],
 		description: "Calls (function)."
@@ -35,21 +34,22 @@ export const commands: CommandDefinitions = processCommands({
 	throw: [{
 		args: "error:string",
 		replace: [
-			"set _err %1",
-			"jump _err always"
+			"set err %1",
+			"jump err always"
 		],
-		description: "Throws (error)."
+		description: "Throws (error). May or may not work."
 	}],
 	uflag: [{
 		args: "type:type",
 		replace: [
-			"set _unit_type %1",
-			"set _stack1 @counter",
-			"op add _stack1 _stack1 2",
-			"jump _flag_unit always",
+			"set unit_type %1",
+			"op add @counter _stack1 1",
+			"jump flag_unit always",
 		],
-		description: "Binds and flags a unit of type (type)."
+		description: "Binds and flags a unit of type (type). Requires you to include \"flag_unit\"."
 	}],
+
+
 	read: [{
 		args: "output:*number cell:building index:number",
 		description: "Reads a value at index (index) from memory cell (cell) and outputs to (output)."
@@ -75,13 +75,13 @@ export const commands: CommandDefinitions = processCommands({
 			args: "rect x:number y:number width:number height:number",
 			description: "Draws a rectangle with lower right corner at (x,y) with width (width) and height (height)."
 		},{
-			args: "linerect x:number y:number width:number height:number",
+			args: "lineRect x:number y:number width:number height:number",
 			description: "Draws the outline of a rectangle with lower right corner at (x,y) with width (width) and height (height)."
 		},{
 			args: "poly x:number y:number sides:number radius:number rotation:number",
 			description: "Draws a (regular) polygon centered at (x,y) with (sides) sides and a radius of (radius)."
 		},{
-			args: "linepoly x:number y:number sides:number radius:number rotation:number",
+			args: "linePoly x:number y:number sides:number radius:number rotation:number",
 			description: "Draws the outline of a polygon centered at (x,y) with (sides) sides and a radius of (radius)."
 		},{
 			args: "triangle x1:number y1:number x2:number y2:number x3:number y3:number",
@@ -150,10 +150,10 @@ export const commands: CommandDefinitions = processCommands({
 			replace: (args:string[]) => {
 				if(args[1].match(/(\w+)\.(\w+)/i)){
 					let [_, target, property] = args[1].match(/(\w+)\.(\w+)/i) as any;
-					if(target == null || property == null) throw new CompilerError("")
+					if(target == null || property == null) throw new CompilerError("Impossible.")
 					return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];
 				} else {
-					throw new CompilerError("Invalid command");
+					throw new CompilerError(`Invalid command\n\tat ${args.join(" ")}\nCorrect usage: \`sensor @unit.health\``);
 				}
 			},
 			description: "sensor turret.x instead of sensor turret.x turret @x"

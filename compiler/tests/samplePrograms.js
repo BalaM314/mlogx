@@ -16,8 +16,12 @@ drawflush display1
 printflush message1
 getlink result 0
 control enabled block1 0
-radar enemy any any distance turret1 1 result
+control shoot spectre1 55 55 false
+control shootp lancer1 @unit true
+radar any enemy ally distance turret1 1 result
+radar player attacker flying maxHealth meltdown3 0 output
 sensor result block1 @copper
+sensor result @unit @copper
 set result 0
 op add result a b
 wait 0.5
@@ -25,7 +29,24 @@ lookup item result 0
 end
 jump -1 notEqual x false
 ubind @poly
+ucontrol idle
+ucontrol stop
 ucontrol move 0 0
+ucontrol approach 50 50 5
+ucontrol boost true
+ucontrol pathfind
+ucontrol target 50 50 true
+ucontrol targetp @unit false
+ucontrol itemDrop core 5
+ucontrol itemTake core @scrap 9
+ucontrol payDrop
+ucontrol payTake false
+ucontrol payEnter
+ucontrol mine 45 45
+ucontrol flag 0
+ucontrol build 49 49 @inverted-sorter 1 @titanium
+ucontrol getBlock @thisx @thisy type building
+ucontrol within 51 51 10 isNear
 uradar enemy any any distance 0 1 result
 ulocate building core true @copper outX outY found building
 ulocate building generator false _ outX outY found building
