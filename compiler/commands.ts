@@ -6,6 +6,7 @@ mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANT
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 */
 
+import { CompilerError } from "./classes.js";
 import { processCommands } from "./funcs.js";
 import { CommandDefinitions } from "./types.js";
 
@@ -146,6 +147,15 @@ export const commands: CommandDefinitions = processCommands({
 		},
 		{
 			args: "output:*any",
+			replace: (args:string[]) => {
+				if(args[1].match(/(\w+)\.(\w+)/i)){
+					let [_, target, property] = args[1].match(/(\w+)\.(\w+)/i) as any;
+					if(target == null || property == null) throw new CompilerError("")
+					return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];
+				} else {
+					throw new CompilerError("Invalid command");
+				}
+			},
 			description: "sensor turret.x instead of sensor turret.x turret @x"
 		},{
 			args: "output:*any",

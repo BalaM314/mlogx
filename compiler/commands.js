@@ -1,3 +1,4 @@
+import { CompilerError } from "./classes.js";
 import { processCommands } from "./funcs.js";
 export const commands = processCommands({
     call: [{
@@ -134,6 +135,17 @@ export const commands = processCommands({
         },
         {
             args: "output:*any",
+            replace: (args) => {
+                if (args[1].match(/(\w+)\.(\w+)/i)) {
+                    let [_, target, property] = args[1].match(/(\w+)\.(\w+)/i);
+                    if (target == null || property == null)
+                        throw new CompilerError("");
+                    return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];
+                }
+                else {
+                    throw new CompilerError("Invalid command");
+                }
+            },
             description: "sensor turret.x instead of sensor turret.x turret @x"
         }, {
             args: "output:*any",
