@@ -200,7 +200,7 @@ export const commands: CommandDefinitions = processCommands({
 	}],
 	end: [{
 		args: "",
-		description: "Terminates execution."
+		description: "Goes back to the start."
 	}],
 	jump: [
 		{

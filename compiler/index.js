@@ -8,7 +8,7 @@ import { CompilerError } from "./classes.js";
 function main(processArgs) {
     const [programArgs, fileNames] = parseArgs(processArgs.slice(2));
     if (programArgs["help"] || programArgs["?"]) {
-        console.log(`Usage: compile [--help] [--directory <directory>] [--info <command>] [--init <projectname>] directory
+        console.log(`Usage: mlogx [--help] [--directory <directory>] [--info <command>] [--init <projectname>] directory
   --help -?\tDisplays this help message and exits.
   --info -i\tShows information about a command.
   --init -n\tCreates a new project.\

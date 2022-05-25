@@ -201,7 +201,7 @@ export function removeComments(line) {
         inMComment: false,
         inDString: false
     };
-    for (var _char in charsplitInput) {
+    for (let _char in charsplitInput) {
         let char = charsplitInput[_char];
         if (typeof char !== "string")
             continue;

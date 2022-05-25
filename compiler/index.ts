@@ -21,7 +21,7 @@ function main(processArgs: string[]):number {
 
 	if(programArgs["help"] || programArgs["?"]){
 		console.log(
-`Usage: compile [--help] [--directory <directory>] [--info <command>] [--init <projectname>] directory
+`Usage: mlogx [--help] [--directory <directory>] [--info <command>] [--init <projectname>] directory
   --help -?\tDisplays this help message and exits.
   --info -i\tShows information about a command.
   --init -n\tCreates a new project.\
