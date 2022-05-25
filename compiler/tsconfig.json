@@ -7,9 +7,11 @@
 		"removeComments": true,
 		"types": [
 			"node",
-			"jest"
+			"jasmine"
 		],
 		"strict": true,
-		"noImplicitAny": true
+		"noImplicitAny": true,
+		"moduleResolution": "node",
+		"module": "ES2022"
 	}
 }

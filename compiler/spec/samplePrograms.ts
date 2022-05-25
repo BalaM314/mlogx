@@ -1,4 +1,4 @@
-export const allMlogCommands = `\
+export const allMlogCommands:string[] =`\
 read result cell1 0
 write result cell1 0
 draw clear 128 128 128
@@ -52,4 +52,16 @@ ulocate building core true @copper outX outY found building
 ulocate building generator false _ outX outY found building
 ulocate ore turret true @copper outX outY found building
 ulocate damaged repair true @copper outX outY found building
-ulocate spawn factory false @copper outX outY found building`.split("\n");
+ulocate spawn factory false @copper outX outY found building`
+.split("\n");
+
+export const allMlogxCommands =
+`call amogus
+return
+throw "Error"
+uflag @flare
+radar player distance foreshadow1 1 player
+
+
+`
+.split('\n');
