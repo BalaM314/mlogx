@@ -119,7 +119,7 @@ export const commands = processCommands({
             args: "targetClass:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*unit",
             description: "Finds units of specified type within the range of (turret).",
             replace: [
-                "radar %1 %1 %1 %2 %3 %4 %5"
+                "radar %1 any any %2 %3 %4 %5"
             ]
         },
     ],
@@ -282,7 +282,7 @@ export const commands = processCommands({
             args: "targetClass:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
             description: "Finds units of specified type within the range of the bound unit.",
             replace: [
-                "radar %1 %1 %1 %2 0 %3 %4"
+                "radar %1 any any %2 0 %3 %4"
             ]
         },
     ],

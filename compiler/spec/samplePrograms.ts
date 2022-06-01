@@ -65,3 +65,10 @@ radar player distance foreshadow1 1 player
 
 `
 .split('\n');
+
+export const allShorthandCommands: [input:string, output:string][] = [
+	[`radar enemy distance scatter1 0 unit`, `radar enemy any any distance scatter1 0 unit`],
+	[`sensor arc1.shootX`, `sensor arc1.shootX arc1 @shootX`],
+	[`sensor unit.x`, `sensor unit.x @unit @x`],
+	
+];
