@@ -29,7 +29,7 @@ function main(processArgs: string[]):number {
 		return 0;
 	}
 	if(programArgs["info"] || programArgs["i"]){
-		let command = programArgs["info"] ?? programArgs["i"];
+		let command = programArgs["info"]! ?? programArgs["i"]!;
 		if(command == "null"){
 			console.log("Please specify a command to get information on.");
 			return 0;
@@ -52,7 +52,7 @@ ${commands[command].map(
 	}
 
 	if(programArgs["init"] || programArgs["n"]){
-		createProject(programArgs["init"] ?? programArgs["n"])
+		createProject(programArgs["init"]! ?? programArgs["n"]!)
 			.catch(err => console.error(err?.message ?? err));
 		return -1;
 	}
