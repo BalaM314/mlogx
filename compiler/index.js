@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import * as path from "path";
 import * as fs from "fs";
 import commands from "./commands.js";
@@ -43,7 +44,11 @@ ${commands[command].map(commandDefinition => command + " " + commandDefinition.a
         return 1;
     }
     try {
-        if (fs.existsSync(fileNames[0]) && fs.lstatSync(fileNames[0]).isDirectory()) {
+        if (!fs.existsSync(fileNames[0])) {
+            console.error(`Invalid path specified.\Path ${fileNames[0]} does not exist.`);
+            return 1;
+        }
+        if (fs.lstatSync(fileNames[0]).isDirectory()) {
             console.log("Compiling folder " + fileNames[0]);
         }
         else {

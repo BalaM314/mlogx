@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
 Copyright © <BalaM314>, 2022.
 This file is part of mlogx.
@@ -62,7 +64,11 @@ ${commands[command].map(
 		return 1;
 	}
 	try {
-		if(fs.existsSync(fileNames[0]) && fs.lstatSync(fileNames[0]).isDirectory()){
+		if(!fs.existsSync(fileNames[0])){
+			console.error(`Invalid path specified.\Path ${fileNames[0]} does not exist.`);
+			return 1;
+		}
+		if(fs.lstatSync(fileNames[0]).isDirectory()){
 			console.log("Compiling folder " + fileNames[0]);
 		} else {
 			console.error(`Invalid directory specified.\nDirectory ${fileNames[0]} does not exist.`);
