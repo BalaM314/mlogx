@@ -9,3 +9,4 @@
 * []Config file validation
 * []Show line numbers in error messages
 * []put 0 instead of allowing mindustry to create an `x` variable
+* []More compiler consts (like $oct.maxHealth, $mega.payloadCapacity)
