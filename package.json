@@ -36,6 +36,6 @@
     "@types/jasmine": "^4.0.3"
   },
   "bin": {
-    "mlogx": "compiler/index.js"
+    "mlogx": "node compiler/index.js"
   }
 }
