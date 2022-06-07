@@ -47,7 +47,7 @@ ${commands[command].map(commandDefinition => command + " " + commandDefinition.a
             console.log("Compiling folder " + fileNames[0]);
         }
         else {
-            console.error("Invalid directory specified!");
+            console.error(`Invalid directory specified.\nDirectory ${fileNames[0]} does not exist.`);
             return 1;
         }
     }

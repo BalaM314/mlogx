@@ -65,7 +65,7 @@ ${commands[command].map(
 		if(fs.existsSync(fileNames[0]) && fs.lstatSync(fileNames[0]).isDirectory()){
 			console.log("Compiling folder " + fileNames[0]);
 		} else {
-			console.error("Invalid directory specified!");
+			console.error(`Invalid directory specified.\nDirectory ${fileNames[0]} does not exist.`);
 			return 1;
 		}
 		// process.chdir(path.join(process.cwd(), fileNames[0]));
