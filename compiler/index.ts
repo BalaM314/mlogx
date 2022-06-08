@@ -54,7 +54,7 @@ ${commands[command].map(
 	}
 
 	if(programArgs["init"] || programArgs["n"]){
-		createProject(programArgs["init"]! ?? programArgs["n"]!)
+		createProject((programArgs["init"] ?? programArgs["n"])!)
 			.catch(err => console.error(err?.message ?? err));
 		return -1;
 	}
@@ -65,23 +65,23 @@ ${commands[command].map(
 	}
 	try {
 		if(!fs.existsSync(fileNames[0])){
-			console.error(`Invalid path specified.\Path ${fileNames[0]} does not exist.`);
+			console.error(`Invalid path specified.\nPath ${fileNames[0]} does not exist.`);
 			return 1;
 		}
 		if(fs.lstatSync(fileNames[0]).isDirectory()){
-			console.log("Compiling folder " + fileNames[0]);
+			console.log(`Compiling folder ${fileNames[0]}`);
+			compileDirectory(fileNames[0], path.join(processArgs[1], "../../stdlib"), defaultSettings);
+			return 0;
 		} else {
-			console.error(`Invalid directory specified.\nDirectory ${fileNames[0]} does not exist.`);
-			return 1;
+			console.error(`Compiling file ${fileNames[0]}`);
+			compileFile(fileNames[0], defaultSettings);
+			return 0;
 		}
 		// process.chdir(path.join(process.cwd(), fileNames[0]));
 	} catch(err){
 		console.error("Invalid directory specified.");
 		return 1;
 	}
-
-	compileDirectory(fileNames[0], path.join(processArgs[1], "../../stdlib"), defaultSettings);
-	return 0;
 }
 
 function compileDirectory(directory:string, stdlibPath:string, settings:Settings){
@@ -97,7 +97,7 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 		console.log("No config.json found, using default settings.");
 	}
 	
-	let icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
+	const icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
 
 	let srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
 
@@ -247,6 +247,45 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 	console.log("Done!");
 }
 
+function compileFile(name:string, settings:Settings){
+
+	const icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
+
+	let data:string[] = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
+	let outputData:string[];
+	try {
+		outputData = compileMlogxToMlog(data, {
+			filename: name,
+			...settings
+		}, {
+			...icons,
+			filename: name.split(".")[0],
+			name: settings.name,
+			authors: settings.authors.join(", "),
+			...settings.compilerVariables,
+		});
+	} catch(err){
+		console.error(`Failed to compile file ${name}!`);
+			if(err instanceof CompilerError)
+				console.error(err.message);
+			else 
+				console.error(err);
+			return;
+	}
+
+	if(settings.compilerOptions.checkTypes){
+		try {
+			checkTypes(outputData, settings);
+		} catch(err){
+			if(err instanceof CompilerError)
+				console.error((err as any).message);
+			else
+				throw err;
+		}
+	}
+	
+	fs.writeFileSync(name.slice(0, -1), outputData.join("\r\n"));
+}
 
 async function createProject(name: string){
 	if(name == "null"){
