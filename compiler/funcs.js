@@ -139,7 +139,7 @@ export function isArgOfType(argToCheck, arg) {
                 "lessThan", "greaterThanEq", "lessThanEq", "always"
             ].includes(argToCheck);
         case GenericArgType.operand:
-            if (["atan2", "dst", "len"].includes(argToCheck)) {
+            if (["atan2", "dst"].includes(argToCheck)) {
                 console.warn(`${argToCheck} is deprecated.`);
                 return true;
             }
