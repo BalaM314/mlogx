@@ -1,11 +1,12 @@
 {
   "devDependencies": {
     "@types/node": "^17.0.23",
-    "typescript": "^4.7.2"
+    "typescript": "^4.7.2",
+    "@types/jasmine": "^4.0.3"
   },
   "type": "module",
   "name": "mlogx",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MLOGX transpiler targeting Mindustry Logic.",
   "main": "index.js",
   "scripts": {
@@ -31,9 +32,6 @@
   "homepage": "https://github.com/BalaM314/mlogx#readme",
   "jest": {
     "testRegex": "(\\.|/)(test|spec)\\.js$"
-  },
-  "dependencies": {
-    "@types/jasmine": "^4.0.3"
   },
   "bin": {
     "mlogx": "./compiler/index.js"
