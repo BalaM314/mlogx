@@ -1,4 +1,3 @@
-* []--watch
 * []Refactor compile.ts
 * []Allow config.json file to specify custom commands
 * []Config file validation
@@ -7,3 +6,6 @@
 * []mlogx --info operand should show all valid operands
 * []namespaces
 * []loop syntax
+* []fix preprocessor directives
+* []properly update spec.md
+* []allow including stdlib functions in standalone file compilations

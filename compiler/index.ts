@@ -59,6 +59,43 @@ ${commands[command].map(
 		return -1;
 	}
 
+	if(programArgs["watch"] || programArgs["w"]){
+		let lastCompiledTime = Date.now();
+		compileDirectory(fileNames[0] ?? process.cwd(), path.join(processArgs[1], "../../stdlib"), defaultSettings);
+		fs.watch(fileNames[0] ?? process.cwd(), {
+			recursive: true
+		}, (type, filename) => {
+			if(filename.endsWith(".mlogx")){
+				if(Date.now() - lastCompiledTime > 1000){//WINDOWSSSSSSS
+					console.log(`\nFile changes detected! ${filename}`);
+
+					let parentdirs = filename.split(path.sep).slice(0, -1);
+					let dirToCompile:string;
+
+					if(parentdirs.at(-1) != undefined){
+						if(parentdirs.at(-1) == "src"){
+							if(parentdirs.at(-2)){
+								dirToCompile = parentdirs.slice(0, -1).join(path.sep);
+							} else {
+								dirToCompile = process.cwd();
+							}
+						} else {
+							dirToCompile = parentdirs.join(path.sep);
+						}
+					} else {
+						dirToCompile = process.cwd();
+					}
+					console.log(`Compiling directory ${dirToCompile}`);
+
+
+					compileDirectory(dirToCompile, path.join(processArgs[1], "../../stdlib"), defaultSettings);
+					lastCompiledTime = Date.now();
+				}
+			}
+		});
+		return -1;
+	}
+
 	if(fileNames[0] == undefined){
 		console.error("Please specify a project or directory to compile in");
 		return 1;
