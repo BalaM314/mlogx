@@ -8,9 +8,9 @@ You can use this to manage large projects and split your code into multiple file
 
 This project is now usable, but may be buggy.
 
-Usage: node compiler/compile.js
+Installation: `npm i -g mlogx`
 
-You may want to use a path script for that
+Usage: `mlogx`
 
 Features:
 
@@ -25,7 +25,7 @@ Features:
 * [ ] more functions
 * [ ] more extra instructions
 * [x] STATIC TYPE CHECKING
-* [ ] become an npm package
+* [x] become an npm package
 
 Current issues:
 Type checking is a bit wack, some warnings may be fake
