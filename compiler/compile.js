@@ -63,7 +63,6 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
             err(errors[0].message);
         }
         else {
-            console.warn("[DEBUG]", errors.map(error => error.message));
             err(`Line
 	\`${cleanedLine}\`
 	did not match any overloads for command ${args[0]}`);

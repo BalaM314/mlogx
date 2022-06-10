@@ -93,7 +93,6 @@ export function compileMlogxToMlog(
 		if(commandList.length == 1){
 			err(errors[0].message);
 		} else {
-			console.warn("[DEBUG]", errors.map(error => error.message));
 			err(
 	`Line
 	\`${cleanedLine}\`
