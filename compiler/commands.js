@@ -134,14 +134,14 @@ export const commands = processCommands({
         {
             args: "output:*any",
             replace: (args) => {
-                if (args[1].match(/(\w+)\.(\w+)/i)) {
-                    let [_, target, property] = args[1].match(/(\w+)\.(\w+)/i);
+                if (args[1].match(/^([\w@]+)\.([\w@]+)$/i)) {
+                    let [_, target, property] = args[1].match(/^([\w@]+)\.([\w@]+)$/i);
                     if (target == null || property == null)
                         throw new CompilerError("Impossible.");
                     return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];
                 }
                 else {
-                    throw new CompilerError(`Invalid command\n\tat ${args.join(" ")}\nCorrect usage: \`sensor @unit.health\``);
+                    throw new CompilerError(`Invalid command\n\tat ${args.join(" ")}\nCorrect usage: \`sensor foreshadow1.shootX\``);
                 }
             },
             description: "sensor turret.x instead of sensor turret.x turret @x"
