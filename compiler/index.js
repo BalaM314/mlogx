@@ -45,10 +45,10 @@ ${commands[command].map(commandDefinition => command + " " + commandDefinition.a
         fs.watch(fileNames[0] ?? process.cwd(), {
             recursive: true
         }, (type, filename) => {
-            if (filename.endsWith(".mlogx")) {
+            if (filename?.toString().endsWith(".mlogx")) {
                 if (Date.now() - lastCompiledTime > 1000) {
-                    console.log(`\nFile changes detected! ${filename}`);
-                    let parentdirs = filename.split(path.sep).slice(0, -1);
+                    console.log(`\nFile changes detected! ${filename.toString()}`);
+                    let parentdirs = filename.toString().split(path.sep).slice(0, -1);
                     let dirToCompile;
                     if (parentdirs.at(-1) != undefined) {
                         if (parentdirs.at(-1) == "src") {
