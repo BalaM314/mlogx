@@ -167,16 +167,16 @@ export const commands: CommandDefinitions = processCommands({
 		description: "Sets the value of (variable) to (value)."
 	}],
 	op: [
-		{
-			args: "operand:operand var1:*number arg1:number",
-			description: "Performs an operation on var1, mutating it.",
-			replace: [ "op %1 %2 %2 %3" ]
-		},
-		{
-			args: "operand:operand var1:*any arg1:valid",
-			description: "Performs an operation on var1, mutating it.",
-			replace: [ "op %1 %2 %2 %3" ]
-		},
+		// {
+		// 	args: "operand:operand var1:*number arg1:number",
+		// 	description: "Performs an operation on var1, mutating it.",
+		// 	replace: [ "op %1 %2 %2 %3" ]
+		// },
+		// {
+		// 	args: "operand:operand var1:*any arg1:valid",
+		// 	description: "Performs an operation on var1, mutating it.",
+		// 	replace: [ "op %1 %2 %2 %3" ]
+		// },
 		{
 			args: "operand:operand output:*number arg1:number arg2:number?",
 			description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
