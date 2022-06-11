@@ -199,7 +199,11 @@ export const commands = processCommands({
         {
             args: "null:null",
             description: "Unbinds the current unit."
-        }
+        },
+        {
+            args: "unit:unit",
+            description: "Binds a specific unit."
+        },
     ],
     ucontrol: [
         {

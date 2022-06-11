@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as path from "path";
 import * as fs from "fs";
-import commands from "./commands.js";
+import { commands } from "./commands.js";
 import { checkTypes, compileMlogxToMlog } from "./compile.js";
 import { parseArgs, askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";

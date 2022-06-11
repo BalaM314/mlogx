@@ -10,7 +10,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import * as path from "path";
 import * as fs from "fs";
-import commands from "./commands.js";
+import { commands } from "./commands.js";
 import { checkTypes, compileMlogxToMlog } from "./compile.js";
 import { parseArgs, exit, askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
