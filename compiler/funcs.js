@@ -1,6 +1,6 @@
-import { Arg } from "./classes.js";
+import { Arg, CompilerError } from "./classes.js";
 import commands from "./commands.js";
-import { CommandErrorType, GenericArgType } from "./types.js";
+import { GenericArgType } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 export function processCommands(preprocessedCommands) {
@@ -345,41 +345,16 @@ export function acceptsVariable(arg) {
     else
         return false;
 }
-export function checkCommand(command, line) {
-    let args = splitLineIntoArguments(line);
-    let commandArguments = args.slice(1);
-    if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length) {
-        return {
-            ok: false,
-            error: {
-                type: CommandErrorType.argumentCount,
-                message: `Incorrect number of arguments for command "${args[0]}"
-	at \`${line}\`
-Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
-            }
-        };
+export function isLabel(cleanedLine) {
+    return /[^ ]+:$/.test(cleanedLine);
+}
+export function err(message, settings) {
+    if (settings.compilerOptions.compileWithErrors) {
+        console.warn("Error: " + message);
     }
-    for (let arg in commandArguments) {
-        if (!isArgOfType(commandArguments[+arg], command.args[+arg])) {
-            return {
-                ok: false,
-                error: {
-                    type: CommandErrorType.type,
-                    message: `Type mismatch: value "${commandArguments[+arg]}" was expected to be of type "${command.args[+arg].isVariable ? "variable" : command.args[+arg].type}", but was of type "${typeofArg(commandArguments[+arg])}"
-	at \`${line}\``
-                }
-            };
-        }
+    else {
+        throw new CompilerError(message);
     }
-    if (command.replace) {
-        return {
-            ok: true,
-            replace: command.replace(args),
-        };
-    }
-    return {
-        ok: true
-    };
 }
 export function isCommand(line, command) {
     let args = splitLineIntoArguments(line);

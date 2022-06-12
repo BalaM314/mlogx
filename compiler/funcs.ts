@@ -6,9 +6,9 @@ mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANT
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 */
 
-import { Arg } from "./classes.js";
+import { Arg, CompilerError } from "./classes.js";
 import commands from "./commands.js";
-import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, PreprocessedCommand, PreprocessedCommandDefinitions } from "./types.js";
+import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, PreprocessedCommand, PreprocessedCommandDefinitions, Settings } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 
@@ -363,54 +363,16 @@ export function acceptsVariable(arg: Arg):boolean {
 		return false;
 }
 
-/**Checks if a command is valid for a command definition.*/
-export function checkCommand(command:CommandDefinition, line:string): {
-	ok: boolean
-	replace?: string[],
-	error?: CommandError
-} {
-	let args = splitLineIntoArguments(line);
-	let commandArguments = args.slice(1);
-	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
-		return {
-			ok: false,
-			error: {
-				type: CommandErrorType.argumentCount,
-				message:
-`Incorrect number of arguments for command "${args[0]}"
-	at \`${line}\`
-Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
-			}
-		};
+export function isLabel(cleanedLine:string):boolean {
+	return /[^ ]+:$/.test(cleanedLine);
+}
+
+export function err(message:string, settings:Settings){
+	if(settings.compilerOptions.compileWithErrors){
+		console.warn("Error: " + message);
+	} else {
+		throw new CompilerError(message);
 	}
-
-	for(let arg in commandArguments){
-		if(!isArgOfType(commandArguments[+arg], command.args[+arg])){
-			return {
-				ok: false,
-				error: {
-					type: CommandErrorType.type,
-					message:
-`Type mismatch: value "${commandArguments[+arg]}" was expected to be of type "${command.args[+arg].isVariable ? "variable" : command.args[+arg].type}", but was of type "${typeofArg(commandArguments[+arg])}"
-	at \`${line}\``
-				}
-			};
-		}
-		
-	}
-
-
-
-	if(command.replace){
-		return {
-			ok: true,
-			replace: command.replace(args),
-		};
-	}
-
-	return {
-		ok: true
-	};
 }
 
 export function isCommand(line:string, command:CommandDefinition): boolean {

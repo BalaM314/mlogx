@@ -7,12 +7,11 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { Settings, ArgType, CommandError, GenericArgType } from "./types.js";
-import { checkCommand, cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, typesAreCompatible, getParameters, replaceCompilerVariables, getJumpLabelUsed } from "./funcs.js";
+import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType } from "./types.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, typesAreCompatible, getParameters, replaceCompilerVariables, getJumpLabelUsed, isArgOfType, typeofArg, isLabel, err } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
-
 
 export function compileMlogxToMlog(
 	program:string[],
@@ -23,14 +22,6 @@ export function compileMlogxToMlog(
 	let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
 
 	let isMain = programType == "main" || settings.compilerOptions.mode == "single";
-
-	function err(message:string){
-		if(settings.compilerOptions.compileWithErrors){
-			console.warn("Error: " + message);
-		} else {
-			throw new CompilerError(message);
-		}
-	}
 	
 	let outputData:string[] = [];
 
@@ -38,75 +29,84 @@ export function compileMlogxToMlog(
 		if(requiredVarCode[requiredVar])
 			outputData.push(...requiredVarCode[requiredVar]);
 		else
-			err("Unknown require " + requiredVar);
+			err("Unknown require " + requiredVar, settings);
 	}
 	
-	//OMG I USED A JS LABEL
-	toNextLine:
 	for(let line of program){
-
-		line = replaceCompilerVariables(line, compilerVariables);
-
-		if(line.includes("\u{F4321}")){
-			console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
+		try {
+			outputData.push(...compileLine(line, compilerVariables, settings, isMain));
+		} catch(err){
+			throw err;
 		}
-
-		let cleanedLine = cleanLine(line);
-
-		if(cleanedLine == ""){
-			if(!settings.compilerOptions.removeComments){
-				outputData.push(line);
-			}
-			continue toNextLine;
-		}
-
-		if(cleanedLine.match(/[^ ]+:$/)){
-			//line is a label, don't touch it
-			outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
-			continue toNextLine;
-		}
-
-		let args = splitLineIntoArguments(cleanedLine)
-			.map(arg => arg.startsWith("__") ? `${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
-		//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
-
-		let commandList = commands[args[0]];
-		if(!commandList){
-			err(`Unknown command ${args[0]}\nat \`${line}\``);
-			continue toNextLine;
-		}
-
-		let errors:CommandError[] = [] as any;
-		
-		for(let command of commandList){
-			let result = checkCommand(command, cleanedLine);
-			if(result.replace){
-				outputData.push(...result.replace);
-				continue toNextLine;
-			} else if(result.error){
-				errors.push(result.error);
-			} else if(result.ok){
-				outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line);
-				continue toNextLine;
-			}
-		}
-		if(commandList.length == 1){
-			err(errors[0].message);
-		} else {
-			err(
-	`Line
-	\`${cleanedLine}\`
-	did not match any overloads for command ${args[0]}`
-			);
-		}
-
-		if(!commandList[0].replace){
-			outputData.push(settings.compilerOptions.removeComments ? cleanedLine : line + " #Error");
-		}
-
 	}
 
 	return outputData;
+}
+
+export function compileLine(
+	line:string, compilerVariables: {
+		[name: string]: string
+	}, settings:Settings & {filename:string},
+	isMain:boolean
+):string[]{
+
+	line = replaceCompilerVariables(line, compilerVariables);
+
+	if(line.includes("\u{F4321}")){
+		console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
+	}
+
+	let cleanedLine = cleanLine(line);
+
+	if(cleanedLine == ""){
+		if(settings.compilerOptions.removeComments){
+			return [];
+		} else {
+			return [line];
+		}
+	}
+
+	if(isLabel(cleanedLine)){
+		//line is a label, don't touch it
+		return [settings.compilerOptions.removeComments ? cleanedLine : line];
+	}
+
+	let args = splitLineIntoArguments(cleanedLine)
+		.map(arg => arg.startsWith("__") ? `${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
+	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
+
+	let commandList = commands[args[0]];
+	if(!commandList){
+		err(`Unknown command ${args[0]}\nat \`${line}\``, settings);
+	}
+
+	let errors:CommandError[] = [] as any;
+	
+	for(let command of commandList){
+		let result = checkCommand(command, cleanedLine);
+		if(result.replace){
+			return [...result.replace];
+		} else if(result.error){
+			errors.push(result.error);
+		} else if(result.ok){
+			return [settings.compilerOptions.removeComments ? cleanedLine : line];
+		}
+	}
+	if(commandList.length == 1){
+		err(errors[0].message, settings);
+	} else {
+		err(
+`Line
+\`${cleanedLine}\`
+did not match any overloads for command ${args[0]}`
+		, settings);
+	}
+
+	if(!commandList[0].replace){
+		return [settings.compilerOptions.removeComments ? cleanedLine : line + " #Error"];
+	} else {
+		return [];
+	}
 }
 
 /**Type checks an mlog program. */
@@ -252,4 +252,54 @@ but the command requires it to be of type [${variableUsage.variableTypes.map(t =
 
 	
 
+}
+
+/**Checks if a command is valid for a command definition.*/
+export function checkCommand(command:CommandDefinition, line:string): {
+	ok: boolean
+	replace?: string[],
+	error?: CommandError
+} {
+	let args = splitLineIntoArguments(line);
+	let commandArguments = args.slice(1);
+	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
+		return {
+			ok: false,
+			error: {
+				type: CommandErrorType.argumentCount,
+				message:
+`Incorrect number of arguments for command "${args[0]}"
+	at \`${line}\`
+Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
+			}
+		};
+	}
+
+	for(let arg in commandArguments){
+		if(!isArgOfType(commandArguments[+arg], command.args[+arg])){
+			return {
+				ok: false,
+				error: {
+					type: CommandErrorType.type,
+					message:
+`Type mismatch: value "${commandArguments[+arg]}" was expected to be of type "${command.args[+arg].isVariable ? "variable" : command.args[+arg].type}", but was of type "${typeofArg(commandArguments[+arg])}"
+	at \`${line}\``
+				}
+			};
+		}
+		
+	}
+
+
+
+	if(command.replace){
+		return {
+			ok: true,
+			replace: command.replace(args),
+		};
+	}
+
+	return {
+		ok: true
+	};
 }
