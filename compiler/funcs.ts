@@ -101,7 +101,6 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 	if(arg.type === GenericArgType.any) return true;
 	if(arg.type === GenericArgType.valid) return true;
 	if(argToCheck == "") return false;
-	if(argToCheck == "0") return true;
 	if(argToCheck == undefined) return false;
 	if(!isGenericArg(arg.type)){
 		return argToCheck === arg.type;
@@ -279,10 +278,49 @@ export function splitLineIntoArguments(line:string):string[] {
 	}
 }
 
+/**Uses a function to transform variables in a command. */
+export function transformVariables(args:string[], commandDefinition:CommandDefinition, transformFunction: (arg:string) => string){
+	return transformCommand(args, commandDefinition, transformFunction, 
+		(arg:string, commandArg:Arg|undefined) => (
+			commandArg?.isVariable || (acceptsVariable(commandArg)
+			&& isArgOfType(arg, new Arg(GenericArgType.variable)))
+		) && arg !== "_"
+	);
+}
+
+export function transformCommand(args:string[], commandDefinition:CommandDefinition, transformFunction: (arg:string) => string, filterFunction:(arg:string, commandArg:Arg|undefined) => boolean){
+	return args
+	.map((arg, index) => [arg, commandDefinition.args[index - 1]] as [name:string, arg:Arg|undefined])
+	.map(([arg, commandArg]) => 
+		filterFunction(arg, commandArg)
+		? transformFunction(arg) : arg
+	);
+}
+
+export function addNamespaces(variable:string, namespaceStack:string[]):string {
+	return `_${namespaceStack.join("_")}_${variable}`
+}
+
+export function addNamespacesToLine(args:string[], commandDefinition:CommandDefinition, namespaceStack:string[]):string {
+	if(namespaceStack.length == 0) return args.join(" ");
+	if(args[0] == "jump"){
+		//special handling for labels todo maybe remove
+		(arg:string, commandArg:Arg|undefined) => (
+			commandArg?.isVariable || (acceptsVariable(commandArg)
+			&& isArgOfType(arg, new Arg(GenericArgType.variable)))
+		) && arg !== "_"
+		return transformCommand(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack), 
+			(arg:string, commandArg:Arg|undefined) => commandArg?.type == GenericArgType.jumpAddress
+		).join(" ");
+	}
+	return transformVariables(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack)).join(" ");
+}
+
 /**Gets the variables defined by a command, given a list of arguments and a command definition. */
 export function getVariablesDefined(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
 	if(commandDefinition.name == "set"){
 		return [[args[0], typeofArg(args[1]) == GenericArgType.variable ? GenericArgType.any : typeofArg(args[1])]];
+		//Special handling for the set command TODO move into commands ast.
 	}
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
@@ -350,21 +388,22 @@ export function typesAreCompatible(input:ArgType, output:ArgType):boolean {
 }
 
 /**Checks if an argument accepts a variable as input. */
-export function acceptsVariable(arg: Arg):boolean {
+export function acceptsVariable(arg: Arg|undefined):boolean {
+	if(arg == undefined) return false;
 	if(arg.isVariable) return false;
-	if(isGenericArg(arg.type))
+	if(arg.isGeneric)
 		return [
 			GenericArgType.boolean, GenericArgType.building,
 			GenericArgType.number, GenericArgType.string,
 			GenericArgType.type, GenericArgType.unit,
 			GenericArgType.valid
-		].includes(arg.type);
+		].includes(arg.type as GenericArgType);
 	else
 		return false;
 }
 
-export function isLabel(cleanedLine:string):boolean {
-	return /[^ ]+:$/.test(cleanedLine);
+export function getLabel(cleanedLine:string):string|undefined {
+	return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0];
 }
 
 export function err(message:string, settings:Settings){

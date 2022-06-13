@@ -104,8 +104,6 @@ export function isArgOfType(argToCheck, arg) {
         return true;
     if (argToCheck == "")
         return false;
-    if (argToCheck == "0")
-        return true;
     if (argToCheck == undefined)
         return false;
     if (!isGenericArg(arg.type)) {
@@ -273,6 +271,29 @@ export function splitLineIntoArguments(line) {
         return line.split(" ");
     }
 }
+export function transformVariables(args, commandDefinition, transformFunction) {
+    return transformCommand(args, commandDefinition, transformFunction, (arg, commandArg) => (commandArg?.isVariable || (acceptsVariable(commandArg)
+        && isArgOfType(arg, new Arg(GenericArgType.variable)))) && arg !== "_");
+}
+export function transformCommand(args, commandDefinition, transformFunction, filterFunction) {
+    return args
+        .map((arg, index) => [arg, commandDefinition.args[index - 1]])
+        .map(([arg, commandArg]) => filterFunction(arg, commandArg)
+        ? transformFunction(arg) : arg);
+}
+export function addNamespaces(variable, namespaceStack) {
+    return `_${namespaceStack.join("_")}_${variable}`;
+}
+export function addNamespacesToLine(args, commandDefinition, namespaceStack) {
+    if (namespaceStack.length == 0)
+        return args.join(" ");
+    if (args[0] == "jump") {
+        (arg, commandArg) => (commandArg?.isVariable || (acceptsVariable(commandArg)
+            && isArgOfType(arg, new Arg(GenericArgType.variable)))) && arg !== "_";
+        return transformCommand(args, commandDefinition, (variable) => addNamespaces(variable, namespaceStack), (arg, commandArg) => commandArg?.type == GenericArgType.jumpAddress).join(" ");
+    }
+    return transformVariables(args, commandDefinition, (variable) => addNamespaces(variable, namespaceStack)).join(" ");
+}
 export function getVariablesDefined(args, commandDefinition) {
     if (commandDefinition.name == "set") {
         return [[args[0], typeofArg(args[1]) == GenericArgType.variable ? GenericArgType.any : typeofArg(args[1])]];
@@ -333,9 +354,11 @@ export function typesAreCompatible(input, output) {
     }
 }
 export function acceptsVariable(arg) {
+    if (arg == undefined)
+        return false;
     if (arg.isVariable)
         return false;
-    if (isGenericArg(arg.type))
+    if (arg.isGeneric)
         return [
             GenericArgType.boolean, GenericArgType.building,
             GenericArgType.number, GenericArgType.string,
@@ -345,8 +368,8 @@ export function acceptsVariable(arg) {
     else
         return false;
 }
-export function isLabel(cleanedLine) {
-    return /[^ ]+:$/.test(cleanedLine);
+export function getLabel(cleanedLine) {
+    return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0];
 }
 export function err(message, settings) {
     if (settings.compilerOptions.compileWithErrors) {

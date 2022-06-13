@@ -1,5 +1,5 @@
 import { GenericArgType, CommandErrorType } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerVariables, getJumpLabelUsed, isArgOfType, typeofArg, isLabel, err } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerVariables, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
@@ -7,6 +7,7 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
     let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
     let isMain = programType == "main" || settings.compilerOptions.mode == "single";
     let outputData = [];
+    let namespaceStack = [];
     for (let requiredVar of requiredVars) {
         if (requiredVarCode[requiredVar])
             outputData.push(...requiredVarCode[requiredVar]);
@@ -15,7 +16,7 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
     }
     for (let line of program) {
         try {
-            outputData.push(...compileLine(line, compilerVariables, settings, isMain));
+            outputData.push(...compileLine(line, compilerVariables, settings, isMain, namespaceStack));
         }
         catch (err) {
             throw err;
@@ -23,7 +24,7 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
     }
     return outputData;
 }
-export function compileLine(line, compilerVariables, settings, isMain) {
+export function compileLine(line, compilerVariables, settings, isMain, namespaceStack) {
     line = replaceCompilerVariables(line, compilerVariables);
     if (line.includes("\u{F4321}")) {
         console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
@@ -37,26 +38,45 @@ export function compileLine(line, compilerVariables, settings, isMain) {
             return [line];
         }
     }
-    if (isLabel(cleanedLine)) {
-        return [settings.compilerOptions.removeComments ? cleanedLine : line];
+    if (getLabel(cleanedLine)) {
+        return namespaceStack.length ? [`${addNamespaces(getLabel(cleanedLine), namespaceStack)}:`] : [settings.compilerOptions.removeComments ? cleanedLine : line];
     }
     let args = splitLineIntoArguments(cleanedLine)
         .map(arg => arg.startsWith("__") ? `${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
+    if (args[0] == "namespace") {
+        let name = args[1];
+        if (!(name?.length > 0)) {
+            err("No name specified for namespace", settings);
+            return [];
+        }
+        namespaceStack.push(name);
+        return [];
+    }
+    if (args[0] == "}") {
+        if (namespaceStack.length == 0) {
+            err("No namespace to end", settings);
+        }
+        else {
+            namespaceStack.pop();
+        }
+        return [];
+    }
     let commandList = commands[args[0]];
     if (!commandList) {
         err(`Unknown command ${args[0]}\nat \`${line}\``, settings);
+        return [];
     }
     let errors = [];
     for (let command of commandList) {
         let result = checkCommand(command, cleanedLine);
         if (result.replace) {
-            return [...result.replace];
+            return result.replace.map((line) => addNamespacesToLine(splitLineIntoArguments(line), getCommandDefinitions(line)[0], namespaceStack));
         }
         else if (result.error) {
             errors.push(result.error);
         }
         else if (result.ok) {
-            return [settings.compilerOptions.removeComments ? cleanedLine : line];
+            return [addNamespacesToLine(args, command, namespaceStack)];
         }
     }
     if (commandList.length == 1) {
