@@ -166,7 +166,6 @@ export function cleanLine(line:string):string {
 
 export function removeTrailingSpaces(line:string):string {
 	return line
-		.replace(/\/\*.*\*\//g, "")
 		.replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
 
