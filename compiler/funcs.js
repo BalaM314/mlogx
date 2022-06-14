@@ -287,11 +287,6 @@ export function addNamespaces(variable, namespaceStack) {
 export function addNamespacesToLine(args, commandDefinition, namespaceStack) {
     if (namespaceStack.length == 0)
         return args.join(" ");
-    if (args[0] == "jump") {
-        (arg, commandArg) => (commandArg?.isVariable || (acceptsVariable(commandArg)
-            && isArgOfType(arg, new Arg(GenericArgType.variable)))) && arg !== "_";
-        return transformCommand(args, commandDefinition, (variable) => addNamespaces(variable, namespaceStack), (arg, commandArg) => commandArg?.type == GenericArgType.jumpAddress).join(" ");
-    }
     return transformVariables(args, commandDefinition, (variable) => addNamespaces(variable, namespaceStack)).join(" ");
 }
 export function getVariablesDefined(args, commandDefinition) {

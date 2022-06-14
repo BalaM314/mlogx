@@ -303,16 +303,12 @@ export function addNamespaces(variable:string, namespaceStack:string[]):string {
 
 export function addNamespacesToLine(args:string[], commandDefinition:CommandDefinition, namespaceStack:string[]):string {
 	if(namespaceStack.length == 0) return args.join(" ");
-	if(args[0] == "jump"){
-		//special handling for labels todo maybe remove
-		(arg:string, commandArg:Arg|undefined) => (
-			commandArg?.isVariable || (acceptsVariable(commandArg)
-			&& isArgOfType(arg, new Arg(GenericArgType.variable)))
-		) && arg !== "_"
-		return transformCommand(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack), 
-			(arg:string, commandArg:Arg|undefined) => commandArg?.type == GenericArgType.jumpAddress
-		).join(" ");
-	}
+	// if(args[0] == "jump"){
+	// 	//special handling for labels todo maybe remove
+	// 	return transformCommand(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack), 
+	// 		(arg:string, commandArg:Arg|undefined) => commandArg?.type == GenericArgType.jumpAddress
+	// 	).join(" ");
+	// }
 	return transformVariables(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack)).join(" ");
 }
 
