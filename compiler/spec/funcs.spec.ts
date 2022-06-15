@@ -1,7 +1,10 @@
 import { Arg } from "../classes.js";
-import { addNamespaces, addNamespacesToLine, cleanLine, getParameters, isArgOfType, isGenericArg, replaceCompilerVariables, splitLineIntoArguments, transformCommand, transformVariables, typeofArg } from "../funcs.js";
+import commands from "../commands.js";
+import { addNamespacesToLine, getParameters, isArgOfType, replaceCompilerVariables, splitLineIntoArguments, transformCommand, transformVariables } from "../funcs.js";
+import { getVariablesDefined } from "../funcs.js";
+import { cleanLine } from "../funcs.js";
+import { isGenericArg, typeofArg } from "../funcs.js";
 import { ArgType, GenericArgType } from "../types.js";
-import { commands } from "../commands.js";
 
 
 
@@ -164,3 +167,12 @@ describe("addNamespacesToLine", () => {
 
 
 
+describe("getVariablesDefined", () => {
+	it("should get variables defined in statements", () => {
+		expect(getVariablesDefined(["read", "x", "cell1", "4"], commands["read"][0])).toEqual([["x", "number"]]);
+		expect(getVariablesDefined(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][4]))
+	});
+	it("should infer type in a set statement", () => {
+		expect(getVariablesDefined(["set", "core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);
+	});
+});

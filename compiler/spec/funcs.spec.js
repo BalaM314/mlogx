@@ -1,7 +1,10 @@
 import { Arg } from "../classes.js";
-import { addNamespacesToLine, cleanLine, getParameters, isArgOfType, isGenericArg, replaceCompilerVariables, splitLineIntoArguments, transformCommand, transformVariables, typeofArg } from "../funcs.js";
+import commands from "../commands.js";
+import { addNamespacesToLine, getParameters, isArgOfType, replaceCompilerVariables, splitLineIntoArguments, transformCommand, transformVariables } from "../funcs.js";
+import { getVariablesDefined } from "../funcs.js";
+import { cleanLine } from "../funcs.js";
+import { isGenericArg, typeofArg } from "../funcs.js";
 import { GenericArgType } from "../types.js";
-import { commands } from "../commands.js";
 describe("isGenericArg", () => {
     it("should determine if an arg is generic", () => {
         for (let genericArg of Object.values(GenericArgType)) {
@@ -125,5 +128,14 @@ describe("addNamespacesToLine", () => {
     it("should add namespaces to a statement", () => {
         expect(addNamespacesToLine(["set", "x", "5"], commands["set"][0], ["amogus"])).toEqual(["set", "_amogus_x", "5"]);
         expect(addNamespacesToLine(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3], ["amogus"])).toEqual(["ulocate", "BUILDING", "core", "true", "outX", "outY", "found", "building"]);
+    });
+});
+describe("getVariablesDefined", () => {
+    it("should get variables defined in statements", () => {
+        expect(getVariablesDefined(["read", "x", "cell1", "4"], commands["read"][0])).toEqual([["x", "number"]]);
+        expect(getVariablesDefined(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][4]));
+    });
+    it("should infer type in a set statement", () => {
+        expect(getVariablesDefined(["set", "core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);
     });
 });
