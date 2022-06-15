@@ -1,6 +1,6 @@
 import { Arg } from "../classes.js";
 import commands from "../commands.js";
-import { addNamespacesToLine, getParameters, isArgOfType, replaceCompilerVariables, splitLineIntoArguments, transformCommand, transformVariables } from "../funcs.js";
+import { addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, replaceCompilerVariables, splitLineIntoArguments, transformCommand, transformVariables } from "../funcs.js";
 import { getVariablesDefined } from "../funcs.js";
 import { cleanLine } from "../funcs.js";
 import { isGenericArg, typeofArg } from "../funcs.js";
@@ -164,15 +164,44 @@ describe("addNamespacesToLine", () => {
 	});
 });
 
-
-
-
 describe("getVariablesDefined", () => {
 	it("should get variables defined in statements", () => {
 		expect(getVariablesDefined(["x", "cell1", "4"], commands["read"][0])).toEqual([["x", "number"]]);
-		expect(getVariablesDefined(["building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][4]))
+		expect(getVariablesDefined(["building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3]))
+			.toEqual([["outX", "number"], ["outY", "number"], ["found", "boolean"], ["building", "building"]])
 	});
 	it("should infer type in a set statement", () => {
 		expect(getVariablesDefined(["core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);
+	});
+});
+
+describe("getVariablesUsed", () => {
+	it("should get variables used by a statement", () => {
+		expect(getVariablesUsed(["x", "cell1", "y"], commands["read"][0])).toEqual([["y", "number"]]);
+		expect(getVariablesUsed(["building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3]))
+			.toEqual([]);
+	});
+});
+
+describe("getAllPossibleVariablesUsed", () => {
+	it("should get variables used by a statement", () => {
+		expect(getAllPossibleVariablesUsed("read x cell1 y")).toEqual([["y", ["number"]]]);
+		expect(getAllPossibleVariablesUsed("ucontrol within x y 10 close")).toEqual([["x", ["number"]], ["y", ["number"]]]);
+		expect(getAllPossibleVariablesUsed("ulocate building core true outX outY found building"))
+			.toEqual([]);
+		// expect(getAllPossibleVariablesUsed("sensor building.x")).toEqual([["building", ["building", "unit"]]]);
+		//TODO fix
+	});
+	it("should return multiple possible types for certain commands", () => {
+		expect(getAllPossibleVariablesUsed("sensor x thing @x")).toEqual([["thing", ["building", "unit"]]]);
+	});
+});
+
+describe("getJumpLabelUsed", () => {
+	it("should get the jump label used", () => {
+		expect(getJumpLabelUsed("jump label always")).toEqual("label");
+	});
+	it("should return null if no jump label exists", () => {
+		expect(getJumpLabelUsed("set label \"greaterThan\"")).toEqual(null);
 	});
 });
