@@ -236,6 +236,11 @@ export function removeComments(line:string):string {
 			if(char === "\"" && lastChar !== `\\`){
 				state.inDString = true;
 			}
+		} else if(lastChar === "/" && char === "/"){
+			state.inSComment = true;
+			parsedChars.pop();
+			lastChar = char;
+			continue;
 		}
 		lastChar = char;
 		parsedChars.push(char);

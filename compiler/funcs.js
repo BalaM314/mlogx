@@ -169,7 +169,6 @@ export function cleanLine(line) {
 }
 export function removeTrailingSpaces(line) {
     return line
-        .replace(/\/\*.*\*\//g, "")
         .replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
 export function replaceCompilerVariables(line, variables) {
@@ -236,6 +235,12 @@ export function removeComments(line) {
             if (char === "\"" && lastChar !== `\\`) {
                 state.inDString = true;
             }
+        }
+        else if (lastChar === "/" && char === "/") {
+            state.inSComment = true;
+            parsedChars.pop();
+            lastChar = char;
+            continue;
         }
         lastChar = char;
         parsedChars.push(char);
