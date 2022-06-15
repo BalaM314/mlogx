@@ -126,16 +126,16 @@ describe("transformCommand", () => {
 });
 describe("addNamespacesToLine", () => {
     it("should add namespaces to a statement", () => {
-        expect(addNamespacesToLine(["set", "x", "5"], commands["set"][0], ["amogus"])).toEqual(["set", "_amogus_x", "5"]);
-        expect(addNamespacesToLine(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3], ["amogus"])).toEqual(["ulocate", "BUILDING", "core", "true", "outX", "outY", "found", "building"]);
+        expect(addNamespacesToLine(["set", "x", "5"], commands["set"][0], ["amogus"])).toEqual("set _amogus_x 5");
+        expect(addNamespacesToLine(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3], ["amogus"])).toEqual("ulocate building core true _amogus_outX _amogus_outY _amogus_found _amogus_building");
     });
 });
 describe("getVariablesDefined", () => {
     it("should get variables defined in statements", () => {
-        expect(getVariablesDefined(["read", "x", "cell1", "4"], commands["read"][0])).toEqual([["x", "number"]]);
-        expect(getVariablesDefined(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][4]));
+        expect(getVariablesDefined(["x", "cell1", "4"], commands["read"][0])).toEqual([["x", "number"]]);
+        expect(getVariablesDefined(["building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][4]));
     });
     it("should infer type in a set statement", () => {
-        expect(getVariablesDefined(["set", "core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);
+        expect(getVariablesDefined(["core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);
     });
 });

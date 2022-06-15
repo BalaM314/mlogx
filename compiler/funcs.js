@@ -300,7 +300,7 @@ export function getVariablesDefined(args, commandDefinition) {
     }
     return args
         .map((arg, index) => [arg, commandDefinition.args[index]])
-        .filter(([arg, commandArg]) => commandArg.isVariable && arg !== "_")
+        .filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
         .map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 export function getAllPossibleVariablesUsed(command) {

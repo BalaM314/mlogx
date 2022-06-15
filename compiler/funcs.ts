@@ -323,9 +323,9 @@ export function getVariablesDefined(args:string[], commandDefinition:CommandDefi
 		//Special handling for the set command TODO move into commands ast.
 	}
 	return args
-		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
-		.filter(([arg, commandArg]) => commandArg.isVariable && arg !== "_")
-		.map(([arg, commandArg]) => [arg, commandArg.type]);
+		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg|undefined])
+		.filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
+		.map(([arg, commandArg]) => [arg, commandArg!.type]);
 }
 
 /**
