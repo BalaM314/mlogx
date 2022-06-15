@@ -1,4 +1,5 @@
 import { isArgOfType } from "../funcs.js";
+import { getVariablesDefined } from "../funcs.js";
 import { cleanLine } from "../funcs.js";
 import { isGenericArg, typeofArg } from "../funcs.js";
 import { GenericArgType } from "../types.js";
@@ -75,3 +76,12 @@ describe("cleanLine", () => {
 })
 
 
+describe("getVariablesDefined", () => {
+	it("should get variables defined in statements", () => {
+		expect(getVariablesDefined(["read", "x", "cell1", "4"], commands["read"][0])).toEqual(["x", "number"]);
+		expect(getVariablesDefined(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][4]))
+	});
+	it("should infer type in a set statement", () => {
+		expect(getVariablesDefined(["set", "core", "nucleus1"], commands["set"][0])).toEqual(["core", "building"]);
+	});
+});
