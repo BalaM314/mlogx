@@ -25,7 +25,7 @@ You can also run --watch to compile a directory automatically whenever a file in
 Run `mlogx --init [projectname]`, which will create a new project(directory) named \[projectname].
 Place your source files in `src/`. They will be compiled into `build/` and combined into `out.mlog`.
 
-Note that you don't *need* to use mlogx, you can call functions and bundle your files with vanilla MLOG(it'll just be annoying to write function calls without `call`).
+Note that you don't *need* to use mlogx, you can call functions and bundle your files with vanilla MLOG(but why though, all valid mlog is valid mlogx).
 
 Note: Without jump or call statements, the only file executed is main.mlog(x). Your other files should contain functions or subroutines that you can call.
 
@@ -143,3 +143,19 @@ Code like `print "$name"` will get replaced with `print "ExampleProject by [#314
 `authors`: List of authors from config.json
 
 `$_[any mindustry icon name]`: The Unicode character that displays as the icon in-game. Example: $\_lead will get replaced with <> (U+F837), the char for lead.
+
+## Inline functions
+**This section is not yet implemented.**
+
+Example declaration:
+```
+inline 
+```
+Example usage:
+```
+
+```
+Compiled output:
+```
+
+```
