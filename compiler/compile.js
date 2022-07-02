@@ -7,24 +7,27 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
     let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
     let isMain = programType == "main" || settings.compilerOptions.mode == "single";
     let outputData = [];
-    let namespaceStack = [];
+    let stack = [];
     for (let requiredVar of requiredVars) {
         if (requiredVarCode[requiredVar])
             outputData.push(...requiredVarCode[requiredVar]);
         else
             err("Unknown require " + requiredVar, settings);
     }
-    for (let line of program) {
+    for (let line in program) {
         try {
-            outputData.push(...compileLine(line, compilerVariables, settings, isMain, namespaceStack));
+            outputData.push(...compileLine(program[line], compilerVariables, settings, +line, isMain, stack));
         }
         catch (err) {
             throw err;
         }
     }
+    if (stack.length !== 0) {
+        err(`Some blocks were not closed.\n${stack.map(el => el.name).join(", ")}`, settings);
+    }
     return outputData;
 }
-export function compileLine(line, compilerVariables, settings, isMain, namespaceStack) {
+export function compileLine(line, compilerVariables, settings, lineNumber, isMain, stack) {
     line = replaceCompilerVariables(line, compilerVariables);
     if (line.includes("\u{F4321}")) {
         console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
@@ -39,7 +42,7 @@ export function compileLine(line, compilerVariables, settings, isMain, namespace
         }
     }
     if (getLabel(cleanedLine)) {
-        return namespaceStack.length ? [`${addNamespaces(getLabel(cleanedLine), namespaceStack)}:`] : [settings.compilerOptions.removeComments ? cleanedLine : line];
+        return stack.length ? [`${addNamespaces(getLabel(cleanedLine), stack)}:`] : [settings.compilerOptions.removeComments ? cleanedLine : line];
     }
     let args = splitLineIntoArguments(cleanedLine)
         .map(arg => arg.startsWith("__") ? `${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
@@ -49,15 +52,18 @@ export function compileLine(line, compilerVariables, settings, isMain, namespace
             err("No name specified for namespace", settings);
             return [];
         }
-        namespaceStack.push(name);
+        stack.push({
+            name,
+            type: "namespace"
+        });
         return [];
     }
     if (args[0] == "}") {
-        if (namespaceStack.length == 0) {
-            err("No namespace to end", settings);
+        if (stack.length == 0) {
+            err("No block to end", settings);
         }
         else {
-            namespaceStack.pop();
+            stack.pop();
         }
         return [];
     }
@@ -70,13 +76,13 @@ export function compileLine(line, compilerVariables, settings, isMain, namespace
     for (let command of commandList) {
         let result = checkCommand(command, cleanedLine);
         if (result.replace) {
-            return result.replace.map((line) => addNamespacesToLine(splitLineIntoArguments(line), getCommandDefinitions(line)[0], namespaceStack));
+            return result.replace.map((line) => addNamespacesToLine(splitLineIntoArguments(line), getCommandDefinitions(line)[0], stack));
         }
         else if (result.error) {
             errors.push(result.error);
         }
         else if (result.ok) {
-            return [addNamespacesToLine(args, command, namespaceStack)];
+            return [addNamespacesToLine(args, command, stack)];
         }
     }
     if (commandList.length == 1) {

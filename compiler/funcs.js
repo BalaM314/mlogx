@@ -286,13 +286,13 @@ export function transformCommand(args, commandDefinition, transformFunction, fil
         .map(([arg, commandArg]) => filterFunction(arg, commandArg)
         ? transformFunction(arg) : arg);
 }
-export function addNamespaces(variable, namespaceStack) {
-    return `_${namespaceStack.join("_")}_${variable}`;
+export function addNamespaces(variable, stack) {
+    return `_${stack.filter(el => el.type == "namespace").map(el => el.name).join("_")}_${variable}`;
 }
-export function addNamespacesToLine(args, commandDefinition, namespaceStack) {
-    if (namespaceStack.length == 0)
+export function addNamespacesToLine(args, commandDefinition, stack) {
+    if (stack.length == 0)
         return args.join(" ");
-    return transformVariables(args, commandDefinition, (variable) => addNamespaces(variable, namespaceStack)).join(" ");
+    return transformVariables(args, commandDefinition, (variable) => addNamespaces(variable, stack)).join(" ");
 }
 export function getVariablesDefined(args, commandDefinition) {
     if (commandDefinition.name == "set") {

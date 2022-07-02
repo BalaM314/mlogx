@@ -78,3 +78,9 @@ export interface PreprocessedCommandDefinitions {
 }
 
 export type ArgType = GenericArgType | string;
+
+export type StackType = "namespace";
+export interface StackElement {
+	type: StackType;
+	name: string;
+}

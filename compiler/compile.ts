@@ -7,7 +7,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType } from "./types.js";
+import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType, StackElement } from "./types.js";
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerVariables, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
@@ -24,7 +24,7 @@ export function compileMlogxToMlog(
 	let isMain = programType == "main" || settings.compilerOptions.mode == "single";
 	
 	let outputData:string[] = [];
-	let namespaceStack:string[] = [];
+	let stack:StackElement[] = [];
 
 	for(let requiredVar of requiredVars){
 		if(requiredVarCode[requiredVar])
@@ -33,12 +33,16 @@ export function compileMlogxToMlog(
 			err("Unknown require " + requiredVar, settings);
 	}
 	
-	for(let line of program){
+	for(let line in program){
 		try {
-			outputData.push(...compileLine(line, compilerVariables, settings, isMain, namespaceStack));
+			outputData.push(...compileLine(program[line], compilerVariables, settings, +line, isMain, stack));
 		} catch(err){
 			throw err;
 		}
+	}
+
+	if(stack.length !== 0){
+		err(`Some blocks were not closed.\n${stack.map(el => el.name).join(", ")}`, settings);
 	}
 
 	return outputData;
@@ -48,8 +52,9 @@ export function compileLine(
 	line:string, compilerVariables: {
 		[name: string]: string
 	}, settings:Settings & {filename:string},
+	lineNumber:number,
 	isMain:boolean,
-	namespaceStack:string[]
+	stack:StackElement[]
 ):string[]{
 
 	line = replaceCompilerVariables(line, compilerVariables);
@@ -69,7 +74,7 @@ export function compileLine(
 	}
 
 	if(getLabel(cleanedLine)){
-		return namespaceStack.length ? [`${addNamespaces(getLabel(cleanedLine)!, namespaceStack)}:`] : [settings.compilerOptions.removeComments ? cleanedLine : line];
+		return stack.length ? [`${addNamespaces(getLabel(cleanedLine)!, stack)}:`] : [settings.compilerOptions.removeComments ? cleanedLine : line];
 		//TODO fix the way comments are handled
 	}
 
@@ -84,15 +89,18 @@ export function compileLine(
 			err("No name specified for namespace", settings);
 			return [];
 		}
-		namespaceStack.push(name);
+		stack.push({
+			name,
+			type: "namespace"
+		});
 		return [];
 	}
 
 	if(args[0] == "}"){
-		if(namespaceStack.length == 0){
-			err("No namespace to end", settings);
+		if(stack.length == 0){
+			err("No block to end", settings);
 		} else {
-			namespaceStack.pop();
+			stack.pop();
 		}
 		return [];
 	}
@@ -108,12 +116,12 @@ export function compileLine(
 	for(let command of commandList){
 		let result = checkCommand(command, cleanedLine);
 		if(result.replace){
-			return result.replace.map((line:string) => addNamespacesToLine(splitLineIntoArguments(line), getCommandDefinitions(line)[0], namespaceStack));
+			return result.replace.map((line:string) => addNamespacesToLine(splitLineIntoArguments(line), getCommandDefinitions(line)[0], stack));
 			//the use of getCommandDefinitions here is sorta wrong
 		} else if(result.error){
 			errors.push(result.error);
 		} else if(result.ok){
-			return [addNamespacesToLine(args, command, namespaceStack)];
+			return [addNamespacesToLine(args, command, stack)];
 		}
 	}
 	if(commandList.length == 1){

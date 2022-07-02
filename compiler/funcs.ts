@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { Arg, CompilerError } from "./classes.js";
 import commands from "./commands.js";
-import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, PreprocessedCommand, PreprocessedCommandDefinitions, Settings } from "./types.js";
+import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, PreprocessedCommand, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 
@@ -301,19 +301,19 @@ export function transformCommand(args:string[], commandDefinition:CommandDefinit
 	);
 }
 
-export function addNamespaces(variable:string, namespaceStack:string[]):string {
-	return `_${namespaceStack.join("_")}_${variable}`
+export function addNamespaces(variable:string, stack:StackElement[]):string {
+	return `_${stack.filter(el => el.type == "namespace").map(el => el.name).join("_")}_${variable}`
 }
 
-export function addNamespacesToLine(args:string[], commandDefinition:CommandDefinition, namespaceStack:string[]):string {
-	if(namespaceStack.length == 0) return args.join(" ");
+export function addNamespacesToLine(args:string[], commandDefinition:CommandDefinition, stack:StackElement[]):string {
+	if(stack.length == 0) return args.join(" ");
 	// if(args[0] == "jump"){
 	// 	//special handling for labels todo maybe remove
 	// 	return transformCommand(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack), 
 	// 		(arg:string, commandArg:Arg|undefined) => commandArg?.type == GenericArgType.jumpAddress
 	// 	).join(" ");
 	// }
-	return transformVariables(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack)).join(" ");
+	return transformVariables(args, commandDefinition, (variable:string) => addNamespaces(variable, stack)).join(" ");
 }
 
 /**Gets the variables defined by a command, given a list of arguments and a command definition. */
