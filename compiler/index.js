@@ -96,7 +96,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
     }
     if (fs.lstatSync(target).isDirectory()) {
         console.log(`Compiling folder ${target}`);
-        compileDirectory(target, path.join(target, "../../stdlib"), defaultSettings);
+        compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
         return 0;
     }
     else {
