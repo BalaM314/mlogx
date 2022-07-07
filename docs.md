@@ -1,17 +1,31 @@
-Specification for stdlib and mlogx(mindustry logic extended)
+Documentation for mlogx(mindustry logic extended)
 
 This project is a work in progress! These instructions are not complete!
 
 ## Guide to making programs
-This guide assumes you already know how to make mlog programs, but are frustrated when you try to make larger projects.
+This guide assumes you already know how to make mlog programs, but are frustrated when you try to make larger projects. You also need basic knowledge of the command line.
 
-Need help? I'm BalaM314#4781, you can ping me in the #logic channel of the official Mindustry discord.
+Need help? I'm BalaM314#4781, you can ping me in the #logic channel of the official Mindustry discord or in .io community.
+
+## Installation
+Prerequisites: Node.JS and npm(which should be bundled with node).
+
+1. `npm i -g mlogx`
+
+Run `mlogx` with no arguments. You should get the message "Please specify a project or directory to compile in.".
+
+## Usage
+
+### Running the compiler
+
+Run `mlogx`, passing the thing to compile as the first argument. It can either be a directory with .mlogx files in it, a project with .mlogx files in src/, or a single .mlogx file.
+You can also run --watch to compile a directory automatically whenever a file in it changes. I recommend running this in the parent directory of all your projects.
 
 ### For larger projects
-Run `mlogx --init [projectname]`, which will create a new project(directory) named [projectname].
-Running the compiler with `mlogx [projectname]` in the project's parent directory transpiles .mlogx files into .mlog files, and then combines all your separate files into one(out.mlog), which you paste into a processor in-game.
+Run `mlogx --init [projectname]`, which will create a new project(directory) named \[projectname].
+Place your source files in `src/`. They will be compiled into `build/` and combined into `out.mlog`.
 
-Note that you don't *need* to use mlogx, you can call functions and bundle your files with vanilla MLOG(it'll just be annoying to write function calls without `call`).
+Note that you don't *need* to use mlogx, you can call functions and bundle your files with vanilla MLOG(but why though, all valid mlog is valid mlogx).
 
 Note: Without jump or call statements, the only file executed is main.mlog(x). Your other files should contain functions or subroutines that you can call.
 
@@ -23,7 +37,7 @@ The standard library is just a bunch of functions you may find useful. You can i
 
 ## Functions
 
-A function is simply a jump label that expects a variable to be set, can run some code, and then use @counter and <_stack1> to jump back to where you called them.
+A function is simply a jump label that expects a variable to be set, can run some code, and then use @counter and <\_stack1> to jump back to where you called them.
 
 ## List of custom instructions
 
@@ -41,14 +55,6 @@ Calls a function. Equivalent instructions:
 
 `jump [function_name] always`
 
-### increment
-
-`increment [variable_name] [amount(5)]`
-
-Increments a variable by a number. Equivalent instructions:
-
-`op add [variable_name] [variable_name] [amount]`
-
 ### return
 
 `return`
@@ -57,19 +63,17 @@ Returns from a function. Equivalent instructions:
 
 `set @counter _stack1`
 
-### throw
+### sensor shorthand
 
-`throw [error_message]`
+`sensor building1.property`
 
-Throws an error. Equivalent instructions:
+A shorthand for sensor statements. Equivalent instructions:
 
-```
-print [error_message]
-printflush stderr
-end
-```
+`sensor building1.property building1 @property`
 
 ## Preprocessor directives
+
+WARNING: THESE MAY NOT WORK.
 
 They're cool so I added them.
 
@@ -89,9 +93,9 @@ A list of variables you want to include.
 
 List of stdlib functions that you want to include.
 
-`#function functionName(arg1, arg2) -> outputVar`
+`#function functionName(arg1:type, arg2:type) -> outputVar`
 
-Specifies that a program is a function. Eventually will be used for intelligence.
+Specifies that a program is a function. Used for type checking.
 ## Requireable vars
 Not prefixed with an underscore, so take note if you're using them!
 
@@ -103,6 +107,20 @@ Generates a random cookie based on the processor's x and y coordinates. Useful f
 
 [NYI] Uses a unit to ulocate the nearest core. Errors if no units are available.
 
+## Namespaces
+
+Cause all variables inside to be prefixed with \_name_.
+
+```mlogx
+set x 5
+namespace amogus {
+  set x 2
+  print x #will output 2
+  label1: #will compile to _amogus_label1
+  jump label1 #NYI will not work.
+}
+print x #will output 5
+```
 
 ## Compiler variables
 Replace bits of your program with variables defined by the compiler.
@@ -124,4 +142,20 @@ Code like `print "$name"` will get replaced with `print "ExampleProject by [#314
 
 `authors`: List of authors from config.json
 
-`$_[any mindustry icon name]`: The Unicode character that displays as the icon in-game. Example: $_lead will get replaced with <> (U+F837), the char for lead.
+`$_[any mindustry icon name]`: The Unicode character that displays as the icon in-game. Example: $\_lead will get replaced with <> (U+F837), the char for lead.
+
+## Inline functions
+**This section is not yet implemented.**
+
+Example declaration:
+```
+inline 
+```
+Example usage:
+```
+
+```
+Compiled output:
+```
+
+```
