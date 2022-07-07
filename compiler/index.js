@@ -3,46 +3,62 @@ import * as path from "path";
 import * as fs from "fs";
 import { commands } from "./commands.js";
 import { checkTypes, compileMlogxToMlog } from "./compile.js";
-import { parseArgs, askQuestion, parseIcons } from "./funcs.js";
+import { askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError } from "./classes.js";
-function main(processArgs) {
-    const [programArgs, fileNames] = parseArgs(processArgs.slice(2));
-    if (programArgs["help"] || programArgs["?"]) {
-        console.log(`Usage: mlogx [--help] [--directory <directory>] [--info <command>] [--init <projectname>] directory
-  --help -?\tDisplays this help message and exits.
-  --info -i\tShows information about a command.
-  --init -n\tCreates a new project.\
-`);
-        return 0;
+import { Application } from "cli-app";
+const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
+mlogx.command("info", "Shows information about a logic command", (opts) => {
+    let command = opts.positionalArgs[0];
+    if (!commands[command]) {
+        console.log(`Unknown command ${command}`);
+        return 1;
     }
-    if (programArgs["info"] || programArgs["i"]) {
-        let command = programArgs["info"] ?? programArgs["i"];
-        if (command == "null") {
-            console.log("Please specify a command to get information on.");
-            return 0;
-        }
-        if (!commands[command])
-            console.log(`Unknown command ${command}`);
-        else
-            console.log(`${command}
+    else {
+        console.log(`${command}
 Usage:
 
 ${commands[command].map(commandDefinition => command + " " + commandDefinition.args
-                .map(arg => arg.toString())
-                .join(" ") + "\n" + commandDefinition.description).join("\n\n")}
+            .map(arg => arg.toString())
+            .join(" ") + "\n" + commandDefinition.description).join("\n\n")}
 `);
         return 0;
     }
-    if (programArgs["init"] || programArgs["n"]) {
-        createProject((programArgs["init"] ?? programArgs["n"]))
-            .catch(err => console.error(err?.message ?? err));
-        return -1;
+}, false, {
+    namedArgs: {},
+    positionalArgs: [{
+            name: "command",
+            description: "The command to get information about"
+        }]
+}, ["i"]);
+mlogx.command("init", "Creates a new project", (opts) => {
+    createProject(opts.positionalArgs[0])
+        .catch(err => console.error(err?.message ?? err));
+}, false, {
+    positionalArgs: [
+        {
+            name: "projectname",
+            description: "Name of the project to create",
+            required: false
+        }
+    ],
+    namedArgs: {}
+}, ["new", "n"]);
+mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
+    if ("init" in opts.namedArgs) {
+        console.error(`"${app.name} --init" was moved to "${app.name} init".`);
+        return 1;
     }
-    if (programArgs["watch"] || programArgs["w"]) {
+    if ("info" in opts.namedArgs) {
+        console.error(`"${app.name} --info" was moved to "${app.name} info".`);
+        return 1;
+    }
+    const target = opts.positionalArgs[0] ?? process.cwd();
+    if ("watch" in opts.namedArgs) {
         let lastCompiledTime = Date.now();
-        compileDirectory(fileNames[0] ?? process.cwd(), path.join(processArgs[1], "../../stdlib"), defaultSettings);
-        fs.watch(fileNames[0] ?? process.cwd(), {
+        console.log(opts.positionalArgs);
+        compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
+        fs.watch(target, {
             recursive: true
         }, (type, filename) => {
             if (filename?.toString().endsWith(".mlogx")) {
@@ -67,37 +83,42 @@ ${commands[command].map(commandDefinition => command + " " + commandDefinition.a
                         dirToCompile = process.cwd();
                     }
                     console.log(`Compiling directory ${dirToCompile}`);
-                    compileDirectory(dirToCompile, path.join(processArgs[1], "../../stdlib"), defaultSettings);
+                    compileDirectory(dirToCompile, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
                     lastCompiledTime = Date.now();
                 }
             }
         });
         return -1;
     }
-    if (fileNames[0] == undefined) {
-        console.error("Please specify a project or directory to compile in");
+    if (!fs.existsSync(target)) {
+        console.error(`Invalid path specified.\nPath ${target} does not exist.`);
         return 1;
     }
-    try {
-        if (!fs.existsSync(fileNames[0])) {
-            console.error(`Invalid path specified.\nPath ${fileNames[0]} does not exist.`);
-            return 1;
-        }
-        if (fs.lstatSync(fileNames[0]).isDirectory()) {
-            console.log(`Compiling folder ${fileNames[0]}`);
-            compileDirectory(fileNames[0], path.join(processArgs[1], "../../stdlib"), defaultSettings);
-            return 0;
-        }
-        else {
-            console.error(`Compiling file ${fileNames[0]}`);
-            compileFile(fileNames[0], defaultSettings);
-            return 0;
+    if (fs.lstatSync(target).isDirectory()) {
+        console.log(`Compiling folder ${target}`);
+        compileDirectory(target, path.join(target, "../../stdlib"), defaultSettings);
+        return 0;
+    }
+    else {
+        console.error(`Compiling file ${target}`);
+        compileFile(target, defaultSettings);
+        return 0;
+    }
+}, true, {
+    positionalArgs: [{
+            name: "target",
+            description: "Thing to compile",
+            required: false
+        }],
+    namedArgs: {
+        watch: {
+            description: "Whether to watch for and compile on file changes instead of exiting immediately.",
+            needsValue: false
         }
     }
-    catch (err) {
-        console.error("Invalid directory specified.");
-        return 1;
-    }
+}, ["build"]);
+function main(argv) {
+    mlogx.run(argv);
 }
 function compileDirectory(directory, stdlibPath, settings) {
     try {
@@ -257,7 +278,7 @@ function compileFile(name, settings) {
     fs.writeFileSync(name.slice(0, -1), outputData.join("\r\n"));
 }
 async function createProject(name) {
-    if (name == "null") {
+    if (!name) {
         name = await askQuestion("Project name: ");
     }
     if (fs.existsSync(path.join(process.cwd(), name))) {

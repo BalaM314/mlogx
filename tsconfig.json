@@ -12,6 +12,10 @@
 		"strict": true,
 		"noImplicitAny": true,
 		"moduleResolution": "node",
-		"module": "ES2022"
-	}
+		"module": "ES2022",
+		"allowSyntheticDefaultImports": true
+	},
+	"include": [
+		"compiler/*.ts"
+	]
 }
