@@ -298,7 +298,7 @@ async function createProject(name) {
             ...defaultSettings.compilerOptions,
             mode: "project"
         }
-    }), "utf-8");
+    }, null, "\t"), "utf-8");
     console.log(`Successfully created a new project in ${path.join(process.cwd(), name)}`);
     return true;
 }
