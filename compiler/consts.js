@@ -12,7 +12,7 @@ export const defaultSettings = {
         prependFileName: true,
         checkTypes: true,
     },
-    compilerVariables: {}
+    compilerConstants: {}
 };
 export const requiredVarCode = {
     "cookie": [

@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType, StackElement } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerVariables, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants as replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
@@ -16,7 +16,7 @@ import { CompilerError } from "./classes.js";
 export function compileMlogxToMlog(
 	program:string[],
 	settings:Settings & {filename: string},
-	compilerVariables:{[index: string]: string}
+	compilerConstants:{[index: string]: string}
 ):string[] {
 
 	let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
@@ -35,7 +35,7 @@ export function compileMlogxToMlog(
 	
 	for(let line in program){
 		try {
-			outputData.push(...compileLine(program[line], compilerVariables, settings, +line, isMain, stack));
+			outputData.push(...compileLine(program[line], compilerConstants, settings, +line, isMain, stack));
 		} catch(err){
 			throw err;
 		}
@@ -49,7 +49,7 @@ export function compileMlogxToMlog(
 }
 
 export function compileLine(
-	line:string, compilerVariables: {
+	line:string, compilerConstants: {
 		[name: string]: string
 	}, settings:Settings & {filename:string},
 	lineNumber:number,
@@ -57,7 +57,7 @@ export function compileLine(
 	stack:StackElement[]
 ):string[]{
 
-	line = replaceCompilerVariables(line, compilerVariables);
+	line = replaceCompilerConstants(line, compilerConstants);
 
 	if(line.includes("\u{F4321}")){
 		console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);

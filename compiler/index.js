@@ -127,6 +127,9 @@ function compileDirectory(directory, stdlibPath, settings) {
             ...settings,
             ...JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"))
         };
+        if (settings["compilerVariables"]) {
+            settings.compilerConstants = settings["compilerVariables"];
+        }
     }
     catch (err) {
         console.log("No config.json found, using default settings.");
@@ -169,7 +172,7 @@ function compileDirectory(directory, stdlibPath, settings) {
                 filename: filename.split(".")[0],
                 name: settings.name,
                 authors: settings.authors.join(", "),
-                ...settings.compilerVariables,
+                ...settings.compilerConstants,
             });
         }
         catch (err) {
@@ -253,7 +256,7 @@ function compileFile(name, settings) {
             filename: name.split(".")[0],
             name: settings.name,
             authors: settings.authors.join(", "),
-            ...settings.compilerVariables,
+            ...settings.compilerConstants,
         });
     }
     catch (err) {

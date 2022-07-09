@@ -23,7 +23,7 @@ export const defaultSettings:Settings = {
 		prependFileName: true,
 		checkTypes: true,
 	},
-	compilerVariables: {
+	compilerConstants: {
 		
 	}
 };

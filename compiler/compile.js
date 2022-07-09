@@ -1,9 +1,9 @@
 import { GenericArgType, CommandErrorType } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerVariables, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants as replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
-export function compileMlogxToMlog(program, settings, compilerVariables) {
+export function compileMlogxToMlog(program, settings, compilerConstants) {
     let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
     let isMain = programType == "main" || settings.compilerOptions.mode == "single";
     let outputData = [];
@@ -16,7 +16,7 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
     }
     for (let line in program) {
         try {
-            outputData.push(...compileLine(program[line], compilerVariables, settings, +line, isMain, stack));
+            outputData.push(...compileLine(program[line], compilerConstants, settings, +line, isMain, stack));
         }
         catch (err) {
             throw err;
@@ -27,8 +27,8 @@ export function compileMlogxToMlog(program, settings, compilerVariables) {
     }
     return outputData;
 }
-export function compileLine(line, compilerVariables, settings, lineNumber, isMain, stack) {
-    line = replaceCompilerVariables(line, compilerVariables);
+export function compileLine(line, compilerConstants, settings, lineNumber, isMain, stack) {
+    line = replaceCompilerConstants(line, compilerConstants);
     if (line.includes("\u{F4321}")) {
         console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
     }

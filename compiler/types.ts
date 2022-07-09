@@ -19,7 +19,7 @@ export interface Settings {
 		prependFileName: boolean;
 		checkTypes: boolean;
 	};
-	compilerVariables: {
+	compilerConstants: {
 		[index: string]: string;
 	}
 }

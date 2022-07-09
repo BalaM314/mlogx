@@ -147,6 +147,9 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 			...settings,
 			...JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"))
 		};
+		if((settings as any)["compilerVariables"]){
+			settings.compilerConstants = (settings as any)["compilerVariables"];
+		}
 		//Todo: config file validation
 	} catch(err){
 		console.log("No config.json found, using default settings.");
@@ -212,7 +215,7 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 				filename: filename.split(".")[0],
 				name: settings.name,
 				authors: settings.authors.join(", "),
-				...settings.compilerVariables,
+				...settings.compilerConstants,
 			});
 		} catch(err){
 			console.error(`Failed to compile file ${filename}!`);
@@ -317,7 +320,7 @@ function compileFile(name:string, settings:Settings){
 			filename: name.split(".")[0],
 			name: settings.name,
 			authors: settings.authors.join(", "),
-			...settings.compilerVariables,
+			...settings.compilerConstants,
 		});
 	} catch(err){
 		console.error(`Failed to compile file ${name}!`);

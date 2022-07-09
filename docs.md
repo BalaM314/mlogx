@@ -122,19 +122,19 @@ namespace amogus {
 print x #will output 5
 ```
 
-## Compiler variables
-Replace bits of your program with variables defined by the compiler.
+## Compiler constants
+Replace bits of your program with constants defined by the compiler.
 
-Use the compilerVariables object in settings.json to define custom variables.
+Use the compilerConsts object in settings.json to define custom constants.
 
 Example:
-"compilerVariables": {
+"compilerConsts": {
 	"name": "ExampleProject by [#3141FF]BalaM314"
 }
 
 Code like `print "$name"` will get replaced with `print "ExampleProject by [#3141FF]BalaM314"`.
 
-### Builtin compiler variables
+### Builtin compiler consts
 
 `filename`: The filename of the file being compiled(minus the .mlogx at the end).
 
@@ -143,6 +143,8 @@ Code like `print "$name"` will get replaced with `print "ExampleProject by [#314
 `authors`: List of authors from config.json
 
 `$_[any mindustry icon name]`: The Unicode character that displays as the icon in-game. Example: $\_lead will get replaced with <> (U+F837), the char for lead.
+
+\[NYI\] `oct.itemCapacity` and other stuff like that will be added eventually.
 
 ## Inline functions
 **This section is not yet implemented.**
