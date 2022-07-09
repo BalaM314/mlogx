@@ -3,7 +3,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { commands } from "./commands.js";
 import { checkTypes, compileMlogxToMlog } from "./compile.js";
-import { askQuestion, parseIcons } from "./funcs.js";
+import { addJumpLabels, askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError } from "./classes.js";
 import { Application } from "cli-app";
@@ -117,6 +117,37 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
         }
     }
 }, ["build"]);
+mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded jumps.", (opts, app) => {
+    const target = opts.positionalArgs[0];
+    if (!fs.existsSync(target)) {
+        console.error(`Invalid path specified.\nPath ${target} does not exist.`);
+        return 1;
+    }
+    if (fs.lstatSync(target).isDirectory()) {
+        console.error(`Invalid path specified.\nPath ${target} is a directory.`);
+        return 1;
+    }
+    else {
+        console.log(`Adding jump labels to file ${target}`);
+        const data = fs.readFileSync(target, "utf-8").split(/\r?\n/g);
+        const output = addJumpLabels(data);
+        console.log(`Writing to ${opts.namedArgs["output"]}`);
+        fs.writeFileSync(opts.namedArgs["output"], output.join("\r\n"));
+        return 0;
+    }
+}, false, {
+    namedArgs: {
+        output: {
+            description: "Output file path",
+            required: true
+        }
+    },
+    positionalArgs: [{
+            name: "source",
+            description: "File containing the MLOG code",
+            required: true
+        }],
+}, ["generateLabels", "gen-labels", "genLabels", "gl"]);
 function main(argv) {
     mlogx.run(argv);
 }
