@@ -159,6 +159,7 @@ function compileDirectory(directory, stdlibPath, settings) {
             ...JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"))
         };
         if (settings["compilerVariables"]) {
+            console.warn(`settings.compilerVariables is deprecated, please use settings.compilerConsts instead.`);
             settings.compilerConstants = settings["compilerVariables"];
         }
     }
