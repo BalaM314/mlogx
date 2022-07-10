@@ -146,6 +146,7 @@ mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded j
 		console.error(`Invalid path specified.\nPath ${target} is a directory.`);
 		return 1;
 	} else {
+		console.log(`This command was made by looking at SByte's python code.`);
 		console.log(`Adding jump labels to file ${target}`);
 		const data = fs.readFileSync(target, "utf-8").split(/\r?\n/g);
 		const output = addJumpLabels(data);
