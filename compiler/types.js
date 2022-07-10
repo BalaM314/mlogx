@@ -26,3 +26,4 @@ export var CommandErrorType;
     CommandErrorType[CommandErrorType["argumentCount"] = 0] = "argumentCount";
     CommandErrorType[CommandErrorType["type"] = 1] = "type";
 })(CommandErrorType || (CommandErrorType = {}));
+;

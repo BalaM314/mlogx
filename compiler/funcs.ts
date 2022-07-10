@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { Arg, CompilerError } from "./classes.js";
 import commands from "./commands.js";
-import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, PreprocessedCommand, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
+import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, NamespaceStackElement, PreprocessedCommand, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 
@@ -362,11 +362,11 @@ export function transformCommand(args:string[], commandDefinition:CommandDefinit
 }
 
 export function addNamespaces(variable:string, stack:StackElement[]):string {
-	return `_${stack.filter(el => el.type == "namespace").map(el => el.name).join("_")}_${variable}`
+	return `_${(stack.filter(el => el.type == "namespace") as NamespaceStackElement[]).map(el => el.name).join("_")}_${variable}`
 }
 
 export function addNamespacesToLine(args:string[], commandDefinition:CommandDefinition, stack:StackElement[]):string {
-	if(stack.length == 0) return args.join(" ");
+	if(!inNamespace(stack)) return args.join(" ");
 	// if(args[0] == "jump"){
 	// 	//special handling for labels todo maybe remove
 	// 	return transformCommand(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack), 
@@ -385,6 +385,16 @@ export function getVariablesDefined(args:string[], commandDefinition:CommandDefi
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg|undefined])
 		.filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
 		.map(([arg, commandArg]) => [arg, commandArg!.type]);
+}
+
+/**Returns if the stack contains a for loop. */
+export function inForLoop(stack:StackElement[]):boolean {
+	return stack.filter(el => el.type == "&for").length != 0;
+}
+
+/**Returns if the stack contains a namespace. */
+export function inNamespace(stack:StackElement[]):boolean {
+	return stack.filter(el => el.type == "namespace").length != 0;
 }
 
 /**

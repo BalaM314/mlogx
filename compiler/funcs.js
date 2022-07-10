@@ -333,7 +333,7 @@ export function addNamespaces(variable, stack) {
     return `_${stack.filter(el => el.type == "namespace").map(el => el.name).join("_")}_${variable}`;
 }
 export function addNamespacesToLine(args, commandDefinition, stack) {
-    if (stack.length == 0)
+    if (!inNamespace(stack))
         return args.join(" ");
     return transformVariables(args, commandDefinition, (variable) => addNamespaces(variable, stack)).join(" ");
 }
@@ -345,6 +345,12 @@ export function getVariablesDefined(args, commandDefinition) {
         .map((arg, index) => [arg, commandDefinition.args[index]])
         .filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
         .map(([arg, commandArg]) => [arg, commandArg.type]);
+}
+export function inForLoop(stack) {
+    return stack.filter(el => el.type == "&for").length != 0;
+}
+export function inNamespace(stack) {
+    return stack.filter(el => el.type == "namespace").length != 0;
 }
 export function getAllPossibleVariablesUsed(command) {
     let args = splitLineIntoArguments(command).slice(1);

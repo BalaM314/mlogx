@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType, StackElement } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants as replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants as replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine, inForLoop, inNamespace } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
@@ -25,6 +25,7 @@ export function compileMlogxToMlog(
 	
 	let outputData:string[] = [];
 	let stack:StackElement[] = [];
+	let loopBuffer:string[] = [];
 
 	for(let requiredVar of requiredVars){
 		if(requiredVarCode[requiredVar])
@@ -35,14 +36,20 @@ export function compileMlogxToMlog(
 	
 	for(let line in program){
 		try {
-			outputData.push(...compileLine(program[line], compilerConstants, settings, +line, isMain, stack));
+			let compiledOutput = compileLine(program[line], compilerConstants, settings, +line, isMain, stack, loopBuffer);
+			if(inForLoop(stack)){
+				loopBuffer.push(...compiledOutput);
+			} else {
+				outputData.push(...compiledOutput);
+			}
 		} catch(err){
 			throw err;
 		}
 	}
 
 	if(stack.length !== 0){
-		err(`Some blocks were not closed.\n${stack.map(el => el.name).join(", ")}`, settings);
+		err(`Some blocks were not closed.`, settings);
+		console.error(stack);
 	}
 
 	return outputData;
@@ -54,17 +61,16 @@ export function compileLine(
 	}, settings:Settings & {filename:string},
 	lineNumber:number,
 	isMain:boolean,
-	stack:StackElement[]
+	stack:StackElement[],
+	loopBuffer:string[],
 ):string[]{
 
-	line = replaceCompilerConstants(line, compilerConstants);
-
+	
 	if(line.includes("\u{F4321}")){
 		console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
 	}
-
+	
 	let cleanedLine = cleanLine(line);
-
 	if(cleanedLine == ""){
 		if(settings.compilerOptions.removeComments){
 			return [];
@@ -73,13 +79,16 @@ export function compileLine(
 		}
 	}
 
+	
+	cleanedLine = replaceCompilerConstants(cleanedLine, compilerConstants);
+	
 	if(getLabel(cleanedLine)){
-		return stack.length ? [`${addNamespaces(getLabel(cleanedLine)!, stack)}:`] : [settings.compilerOptions.removeComments ? cleanedLine : line];
+		return inNamespace(stack) ? [`${addNamespaces(getLabel(cleanedLine)!, stack)}:`] : [settings.compilerOptions.removeComments ? cleanedLine : line];
 		//TODO fix the way comments are handled
 	}
 
 	let args = splitLineIntoArguments(cleanedLine)
-		.map(arg => arg.startsWith("__") ? `${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
+		.map(arg => arg.startsWith("__") ? `__${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
 	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 	//if it's a namespace: special handling
@@ -96,11 +105,46 @@ export function compileLine(
 		return [];
 	}
 
+	//if its an &for loop: special handling
+	if(args[0] == "&for"){
+		if(inForLoop(stack)){
+			throw new CompilerError("nested for loops are not yet implemented");
+		}
+		const variableName = args[1];
+		const lowerBound = parseInt(args[2]);
+		const upperBound = parseInt(args[3]);
+		if(isNaN(lowerBound) || isNaN(upperBound))
+			throw new CompilerError("invalid for loop syntax: one of the bounds was not a number or does not exist");
+		if(lowerBound < 0 || (upperBound - lowerBound) > 100)
+			throw new CompilerError("bounds outside of range");
+		stack.push({
+			type: "&for",
+			lowerBound,
+			upperBound,
+			variableName
+		});
+		return [];
+	}
+
 	if(args[0] == "}"){
 		if(stack.length == 0){
 			err("No block to end", settings);
 		} else {
-			stack.pop();
+			const endedBlock = stack.pop();
+			if(endedBlock?.type == "&for"){
+				let output = [];
+				for(let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i ++){
+					output.push(
+						...loopBuffer.map(line => replaceCompilerConstants(line, {
+							[endedBlock.variableName]: i.toString()
+						}))
+					);
+				}
+				loopBuffer.splice(0);
+				return output;
+			} else if(endedBlock?.type == "namespace"){
+				//do nothing
+			}
 		}
 		return [];
 	}

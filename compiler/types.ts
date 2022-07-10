@@ -82,8 +82,15 @@ export interface PreprocessedCommandDefinitions {
 
 export type ArgType = GenericArgType | string;
 
-export type StackType = "namespace";
-export interface StackElement {
-	type: StackType;
+export interface NamespaceStackElement {
+	type: "namespace";
 	name: string;
 }
+export interface ForStackElement {
+	type: "&for";
+	upperBound: number;
+	lowerBound: number;
+	variableName: string;
+};
+
+export type StackElement = NamespaceStackElement | ForStackElement;
