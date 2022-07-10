@@ -28,7 +28,8 @@ export function processCommands(preprocessedCommands) {
             let processedCommand = {
                 description: command.description,
                 name,
-                args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : []
+                args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
+                getVariablesDefined: command.getVariablesDefined
             };
             if (command.replace instanceof Array) {
                 processedCommand.replace = function (args) {
@@ -337,11 +338,8 @@ export function addNamespacesToLine(args, commandDefinition, stack) {
     return transformVariables(args, commandDefinition, (variable) => addNamespaces(variable, stack)).join(" ");
 }
 export function getVariablesDefined(args, commandDefinition) {
-    if (commandDefinition == commands.set[0]) {
-        return [[args[0], typeofArg(args[1]) == GenericArgType.variable ? GenericArgType.any : typeofArg(args[1])]];
-    }
-    else if (commandDefinition == commands.set[1]) {
-        return [[args[0], args[1]]];
+    if (commandDefinition.getVariablesDefined) {
+        return commandDefinition.getVariablesDefined(args);
     }
     return args
         .map((arg, index) => [arg, commandDefinition.args[index]])

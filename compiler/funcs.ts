@@ -41,7 +41,8 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 			let processedCommand:CommandDefinition = {
 				description: command.description,
 				name,
-				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as any)) : []
+				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as any)) : [],
+				getVariablesDefined: command.getVariablesDefined
 			}
 			if(command.replace instanceof Array){
 				processedCommand.replace = function(args:string[]){
@@ -377,13 +378,8 @@ export function addNamespacesToLine(args:string[], commandDefinition:CommandDefi
 
 /**Gets the variables defined by a command, given a list of arguments and a command definition. */
 export function getVariablesDefined(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
-	if(commandDefinition == commands.set[0]){
-		return [[args[0], typeofArg(args[1]) == GenericArgType.variable ? GenericArgType.any : typeofArg(args[1])]];
-		//Special handling for the set command TODO move into commands ast.
-	} else if(commandDefinition == commands.set[1]){
-		return [[args[0], args[1]]];
-		//TODO needs validation as well.
-		//Special handling for the set command TODO move into commands ast.
+	if(commandDefinition.getVariablesDefined){
+		return commandDefinition.getVariablesDefined(args);
 	}
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg|undefined])

@@ -62,12 +62,14 @@ export interface CommandDefinition {
 	replace?: (args:string[]) => string[];
 	description: string;
 	name: string;
+	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][]
 }
 
 export interface PreprocessedCommand {
 	args: string;
 	replace?: string[] | ((args:string[]) => string[]);
 	description: string;
+	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][]
 }
 
 export interface CommandDefinitions {

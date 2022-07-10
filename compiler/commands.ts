@@ -7,8 +7,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 import { CompilerError } from "./classes.js";
-import { processCommands } from "./funcs.js";
-import { CommandDefinitions } from "./types.js";
+import { processCommands, typeofArg } from "./funcs.js";
+import { CommandDefinitions, GenericArgType } from "./types.js";
 
 //welcome to AST hell
 /** Contains the arguments for all types.*/
@@ -165,12 +165,14 @@ export const commands: CommandDefinitions = processCommands({
 	set: [
 		{
 			args: "variable:*any value:valid",
-			description: "Sets the value of (variable) to (value)."
+			description: "Sets the value of (variable) to (value).",
+			getVariablesDefined: (args) => [[args[0], typeofArg(args[1]) == GenericArgType.variable ? GenericArgType.any : typeofArg(args[1])]]
 		},
 		{
 			args: "variable:*any type:ctype value:valid",
 			description: "Sets the value of (variable) to (value), and the type of (variable) to (type).",
-			replace: [ "set %1 %3" ]
+			replace: [ "set %1 %3" ],
+			getVariablesDefined: (args) => [[args[0], args[1]]] //TODO this needs validation
 		},
 	],
 	op: [

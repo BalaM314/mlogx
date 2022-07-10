@@ -141,6 +141,7 @@ describe("getVariablesDefined", () => {
     });
     it("should infer type in a set statement", () => {
         expect(getVariablesDefined(["core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);
+        expect(getVariablesDefined(["amogus", `"sus"`], commands["set"][0])).toEqual([["amogus", "string"]]);
     });
 });
 describe("getVariablesUsed", () => {
