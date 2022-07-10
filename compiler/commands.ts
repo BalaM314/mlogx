@@ -149,7 +149,7 @@ export const commands: CommandDefinitions = processCommands({
 			args: "output:*any",
 			replace: (args:string[]) => {
 				if(args[1].match(/^([\w@_$-]+?)\.([\w@_$-]+?)$/i)){
-					let [_, target, property] = args[1].match(/^([\w@_-]+)\.([\w@_-]+)$/i) as any;
+					let [_, target, property] = args[1].match(/^([\w@_$-]+?)\.([\w@_$-]+?)$/i)!;
 					if(target == null || property == null) throw new CompilerError("Impossible.");
 					return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];
 				} else {
