@@ -162,10 +162,17 @@ export const commands: CommandDefinitions = processCommands({
 			description: "sensor unit.x instead of sensor unit.x @unit @x"
 		},
 	],
-	set: [{
-		args: "variable:*any value:valid",
-		description: "Sets the value of (variable) to (value)."
-	}],
+	set: [
+		{
+			args: "variable:*any value:valid",
+			description: "Sets the value of (variable) to (value)."
+		},
+		{
+			args: "variable:*any type:ctype value:valid",
+			description: "Sets the value of (variable) to (value), and the type of (variable) to (type).",
+			replace: [ "set %1 %3" ]
+		},
+	],
 	op: [
 		// {
 		// 	args: "operand:operand var1:*number arg1:number",

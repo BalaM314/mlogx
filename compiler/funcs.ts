@@ -84,6 +84,7 @@ export function typeofArg(arg:string):GenericArgType {
 		if(arg == "@counter") return GenericArgType.variable;
 		return GenericArgType.type;
 	}
+	if(arg.match(/:\w+/i)) return GenericArgType.ctype;
 	if(["null"].includes(arg)) return GenericArgType.null;
 	if(["equal", "notEqual", "strictEqual", "greaterThan", "lessThan", "greaterThanEq", "lessThanEq", "always"].includes(arg)) return GenericArgType.operandTest;
 	// if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
@@ -109,6 +110,8 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 	if(arg.isVariable) return knownType == GenericArgType.variable;
 	if(knownType == arg.type) return true;
 	switch(arg.type){
+		case GenericArgType.ctype:
+			return /:\w+/.test(argToCheck);
 		case GenericArgType.number:
 			return knownType == GenericArgType.boolean || knownType == GenericArgType.variable;
 		case GenericArgType.jumpAddress:
@@ -374,8 +377,12 @@ export function addNamespacesToLine(args:string[], commandDefinition:CommandDefi
 
 /**Gets the variables defined by a command, given a list of arguments and a command definition. */
 export function getVariablesDefined(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
-	if(commandDefinition.name == "set"){
+	if(commandDefinition == commands.set[0]){
 		return [[args[0], typeofArg(args[1]) == GenericArgType.variable ? GenericArgType.any : typeofArg(args[1])]];
+		//Special handling for the set command TODO move into commands ast.
+	} else if(commandDefinition == commands.set[1]){
+		return [[args[0], args[1]]];
+		//TODO needs validation as well.
 		//Special handling for the set command TODO move into commands ast.
 	}
 	return args

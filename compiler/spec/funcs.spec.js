@@ -1,6 +1,6 @@
 import { Arg } from "../classes.js";
 import commands from "../commands.js";
-import { addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, replaceCompilerVariables, splitLineIntoArguments, transformCommand, transformVariables } from "../funcs.js";
+import { addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables } from "../funcs.js";
 import { getVariablesDefined } from "../funcs.js";
 import { cleanLine } from "../funcs.js";
 import { isGenericArg, typeofArg } from "../funcs.js";
@@ -20,7 +20,8 @@ describe("typeofArg", () => {
             ["@this", GenericArgType.building],
             ["greaterThanEq", GenericArgType.operandTest],
             ["-50.2", GenericArgType.number],
-            [`"amogus"`, GenericArgType.string]
+            [`"amogus"`, GenericArgType.string],
+            [`:number`, GenericArgType.ctype],
         ];
         for (let [arg, expectedOutput] of args) {
             expect(typeofArg(arg)).toBe(expectedOutput);
@@ -36,7 +37,8 @@ describe("isArgOfType", () => {
             ["greaterThanEq", GenericArgType.operandTest],
             ["-50.2", GenericArgType.number],
             [`"amogus"`, GenericArgType.string],
-            ["sussyFlarogus", GenericArgType.unit]
+            ["sussyFlarogus", GenericArgType.unit],
+            [`:number`, GenericArgType.ctype],
         ];
         const wrongTypes = [
             ["@unit", GenericArgType.building],
@@ -45,6 +47,7 @@ describe("isArgOfType", () => {
             ["greaterThanEq", GenericArgType.buildingGroup],
             ["-50.2", GenericArgType.unit],
             [`"amogus"`, GenericArgType.number],
+            [`:number`, GenericArgType.variable],
         ];
         for (let [arg, expectedType] of correctTypes) {
             expect(isArgOfType(arg, new Arg(expectedType))).toBe(true);
@@ -85,16 +88,16 @@ describe("cleanLine", () => {
         expect(cleanLine(`   \t say amogus /*#"a*/nd""#     \t\t  `)).toBe(`say amogus nd""`);
     });
 });
-describe("replaceCompilerVariables", () => {
+describe("replaceCompilerConstants", () => {
     const sampleVars = {
         mog: "amogus",
         e: "building core true"
     };
-    it("should not modify lines without compiler variables", () => {
-        expect(replaceCompilerVariables(`print "x + 5 is $amogus"`, sampleVars)).toBe(`print "x + 5 is $amogus"`);
+    it("should not modify lines without compiler constants", () => {
+        expect(replaceCompilerConstants(`print "x + 5 is $amogus"`, sampleVars)).toBe(`print "x + 5 is $amogus"`);
     });
-    it("should replace compiler variables", () => {
-        expect(replaceCompilerVariables(`print "$mog"`, sampleVars)).toBe(`print "amogus"`);
+    it("should replace compiler constants", () => {
+        expect(replaceCompilerConstants(`print "$mog"`, sampleVars)).toBe(`print "amogus"`);
     });
 });
 describe("getParameters", () => {

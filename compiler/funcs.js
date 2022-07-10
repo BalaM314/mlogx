@@ -81,6 +81,8 @@ export function typeofArg(arg) {
             return GenericArgType.variable;
         return GenericArgType.type;
     }
+    if (arg.match(/:\w+/i))
+        return GenericArgType.ctype;
     if (["null"].includes(arg))
         return GenericArgType.null;
     if (["equal", "notEqual", "strictEqual", "greaterThan", "lessThan", "greaterThanEq", "lessThanEq", "always"].includes(arg))
@@ -115,6 +117,8 @@ export function isArgOfType(argToCheck, arg) {
     if (knownType == arg.type)
         return true;
     switch (arg.type) {
+        case GenericArgType.ctype:
+            return /:\w+/.test(argToCheck);
         case GenericArgType.number:
             return knownType == GenericArgType.boolean || knownType == GenericArgType.variable;
         case GenericArgType.jumpAddress:
@@ -333,8 +337,11 @@ export function addNamespacesToLine(args, commandDefinition, stack) {
     return transformVariables(args, commandDefinition, (variable) => addNamespaces(variable, stack)).join(" ");
 }
 export function getVariablesDefined(args, commandDefinition) {
-    if (commandDefinition.name == "set") {
+    if (commandDefinition == commands.set[0]) {
         return [[args[0], typeofArg(args[1]) == GenericArgType.variable ? GenericArgType.any : typeofArg(args[1])]];
+    }
+    else if (commandDefinition == commands.set[1]) {
+        return [[args[0], args[1]]];
     }
     return args
         .map((arg, index) => [arg, commandDefinition.args[index]])

@@ -19,6 +19,7 @@ export var GenericArgType;
     GenericArgType["jumpAddress"] = "jumpAddress";
     GenericArgType["buildingGroup"] = "buildingGroup";
     GenericArgType["invalid"] = "invalid";
+    GenericArgType["ctype"] = "ctype";
 })(GenericArgType || (GenericArgType = {}));
 export var CommandErrorType;
 (function (CommandErrorType) {

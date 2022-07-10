@@ -43,7 +43,8 @@ export enum GenericArgType {
 	lookupType="lookupType",
 	jumpAddress="jumpAddress",
 	buildingGroup="buildingGroup",
-	invalid="invalid"
+	invalid="invalid",
+	ctype="ctype"
 }
 
 export enum CommandErrorType {

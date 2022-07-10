@@ -24,7 +24,8 @@ describe("typeofArg", () => {
 			["@this", GenericArgType.building],
 			["greaterThanEq", GenericArgType.operandTest],
 			["-50.2", GenericArgType.number],
-			[`"amogus"`, GenericArgType.string]
+			[`"amogus"`, GenericArgType.string],
+			[`:number`, GenericArgType.ctype],
 		];
 		for(let [arg, expectedOutput] of args){
 			expect(typeofArg(arg)).toBe(expectedOutput);
@@ -41,7 +42,8 @@ describe("isArgOfType", () => {
 			["greaterThanEq", GenericArgType.operandTest],
 			["-50.2", GenericArgType.number],
 			[`"amogus"`, GenericArgType.string],
-			["sussyFlarogus", GenericArgType.unit]
+			["sussyFlarogus", GenericArgType.unit],
+			[`:number`, GenericArgType.ctype],
 		];
 		const wrongTypes: [arg:string, expectedType:ArgType][] = [
 			["@unit", GenericArgType.building],
@@ -50,6 +52,7 @@ describe("isArgOfType", () => {
 			["greaterThanEq", GenericArgType.buildingGroup],
 			["-50.2", GenericArgType.unit],
 			[`"amogus"`, GenericArgType.number],
+			[`:number`, GenericArgType.variable],
 		];
 		for(let [arg, expectedType] of correctTypes){
 			expect(isArgOfType(arg, new Arg(expectedType))).toBe(true);
