@@ -73,10 +73,14 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
         const variableName = args[1];
         const lowerBound = parseInt(args[2]);
         const upperBound = parseInt(args[3]);
-        if (isNaN(lowerBound) || isNaN(upperBound))
-            throw new CompilerError("invalid for loop syntax: one of the bounds was not a number or does not exist");
-        if (lowerBound < 0 || (upperBound - lowerBound) > 100)
-            throw new CompilerError("bounds outside of range");
+        if (isNaN(lowerBound))
+            throw new CompilerError(`Invalid for loop syntax: lowerBound(${lowerBound}) is invalid`);
+        if (isNaN(upperBound))
+            throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
+        if (lowerBound < 0)
+            throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
+        if ((upperBound - lowerBound) > 200)
+            throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
         stack.push({
             type: "&for",
             lowerBound,
