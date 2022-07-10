@@ -155,7 +155,11 @@ export function checkTypes(compiledProgram, settings, uncompiledProgram) {
         });
     }
     for (let [name, variable] of Object.entries(variablesDefined)) {
-        let types = [...new Set(variable.map(el => el.variableType))].filter(el => el != GenericArgType.valid && el != GenericArgType.any && el != GenericArgType.variable && el != GenericArgType.valid);
+        let types = [
+            ...new Set(variable.map(el => el.variableType))
+        ].filter(el => el != GenericArgType.valid && el != GenericArgType.any &&
+            el != GenericArgType.variable && el != GenericArgType.valid &&
+            el != GenericArgType.null).map(el => el == "boolean" ? "number" : el);
         if (types.length > 1) {
             console.warn(`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
 	First definition: \`${variable[0].line}\`

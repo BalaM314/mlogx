@@ -233,9 +233,14 @@ export function checkTypes(compiledProgram:string[], settings:Settings, uncompil
 	for(let [name, variable] of Object.entries(variablesDefined)){
 		//Create a list of each definition's type and remove duplicates.
 		//If this list has more than one element there are definitions of conflicting types.
-		let types = [...new Set(variable.map(el => el.variableType))].filter(el => el != GenericArgType.valid && el != GenericArgType.any && el != GenericArgType.variable && el != GenericArgType.valid);
-		//Todo fix this ^^ it isn't good enough.
-
+		let types = [
+			...new Set(variable.map(el => el.variableType))
+		].filter(el => 
+			el != GenericArgType.valid && el != GenericArgType.any &&
+			el != GenericArgType.variable && el != GenericArgType.valid &&
+			el != GenericArgType.null
+		).map(el => el == "boolean" ? "number" : el);
+		//TODO do this properly
 		if(types.length > 1){
 			console.warn(
 `Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])

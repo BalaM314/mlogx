@@ -389,6 +389,8 @@ export function typesAreCompatible(input, output) {
         return true;
     if (output == GenericArgType.valid)
         return true;
+    if (output == GenericArgType.null)
+        return true;
     switch (input) {
         case GenericArgType.any: return true;
         case GenericArgType.number: return output == GenericArgType.boolean;

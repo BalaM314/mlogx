@@ -438,6 +438,7 @@ export function typesAreCompatible(input:ArgType, output:ArgType):boolean {
 	if(input == output) return true;
 	if(output == GenericArgType.any) return true;
 	if(output == GenericArgType.valid) return true;
+	if(output == GenericArgType.null) return true;//TODO make sure this doesn't cause issues
 	switch(input){
 		case GenericArgType.any: return true;
 		case GenericArgType.number: return output == GenericArgType.boolean;
