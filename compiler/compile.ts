@@ -13,6 +13,7 @@ import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
 import { topForLoop } from "./funcs.js";
+import { prependFilenameToArg } from "./funcs.js";
 
 export function compileMlogxToMlog(
 	program:string[],
@@ -87,7 +88,7 @@ export function compileLine(
 	}
 
 	let args = splitLineIntoArguments(cleanedLine)
-		.map(arg => arg.startsWith("__") ? `__${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
+		.map(prependFilenameToArg);
 	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 	//if it's a namespace: special handling
@@ -130,6 +131,7 @@ export function compileLine(
 		return [];
 	}
 
+	//} means a block ended
 	if(args[0] == "}"){
 		if(stack.length == 0){
 			err("No block to end", settings);
@@ -146,12 +148,13 @@ export function compileLine(
 				}
 				return output;
 			} else if(endedBlock?.type == "namespace"){
-				//do nothing
+				//no special handling needed
 			}
 		}
 		return [];
 	}
 
+	//TODO: refactor this code, there are already functions implemented for this
 	let commandList = commands[args[0]];
 	if(!commandList){
 		err(`Unknown command ${args[0]}\nat \`${line}\``, settings);
@@ -160,6 +163,7 @@ export function compileLine(
 
 	let errors:CommandError[] = [] as any;
 	
+	//especially this part needs refactoring its kinda sussy
 	for(let command of commandList){
 		let result = checkCommand(command, cleanedLine);
 		if(result.replace){
@@ -171,6 +175,8 @@ export function compileLine(
 			return [addNamespacesToLine(args, command, stack)];
 		}
 	}
+
+	//this code is *weird*
 	if(commandList.length == 1){
 		err(errors[0].message, settings);
 	} else {
@@ -229,7 +235,7 @@ export function checkTypes(compiledProgram:string[], settings:Settings, uncompil
 		if(cleanedLine == "") continue toNextLine;
 
 
-		let labelName = cleanedLine.match(/^.+?(?=\:$)/i)?.[0];
+		let labelName = getLabel(cleanedLine);
 		if(labelName){
 			jumpLabelsDefined[labelName] ??= [];
 			jumpLabelsDefined[labelName].push({

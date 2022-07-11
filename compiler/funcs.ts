@@ -363,7 +363,11 @@ export function transformCommand(args:string[], commandDefinition:CommandDefinit
 }
 
 export function addNamespaces(variable:string, stack:StackElement[]):string {
-	return `_${(stack.filter(el => el.type == "namespace") as NamespaceStackElement[]).map(el => el.name).join("_")}_${variable}`
+	return `_${(stack.filter(el => el.type == "namespace") as NamespaceStackElement[]).map(el => el.name).join("_")}_${variable}`;
+}
+
+export function prependFilenameToArg(arg:string, isMain:boolean, filename:string){
+	return arg.startsWith("__") ? `__${isMain ? "" : filename.replace(/\.mlogx?/gi, "")}${arg}` : arg;
 }
 
 export function addNamespacesToLine(args:string[], commandDefinition:CommandDefinition, stack:StackElement[]):string {
