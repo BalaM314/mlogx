@@ -12,6 +12,7 @@ import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVaria
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
+import { topForLoop } from "./funcs.js";
 
 export function compileMlogxToMlog(
 	program:string[],
@@ -25,7 +26,6 @@ export function compileMlogxToMlog(
 	
 	let outputData:string[] = [];
 	let stack:StackElement[] = [];
-	let loopBuffer:string[] = [];
 
 	for(let requiredVar of requiredVars){
 		if(requiredVarCode[requiredVar])
@@ -36,9 +36,9 @@ export function compileMlogxToMlog(
 	
 	for(let line in program){
 		try {
-			let compiledOutput = compileLine(program[line], compilerConstants, settings, +line, isMain, stack, loopBuffer);
+			let compiledOutput = compileLine(program[line], compilerConstants, settings, +line, isMain, stack, loopBufferStack);
 			if(inForLoop(stack)){
-				loopBuffer.push(...compiledOutput);
+				topForLoop(stack).loopBuffer.push(...compiledOutput);
 			} else {
 				outputData.push(...compiledOutput);
 			}
@@ -61,8 +61,7 @@ export function compileLine(
 	}, settings:Settings & {filename:string},
 	lineNumber:number,
 	isMain:boolean,
-	stack:StackElement[],
-	loopBuffer:string[],
+	stack:StackElement[]
 ):string[]{
 
 	
@@ -125,7 +124,8 @@ export function compileLine(
 			type: "&for",
 			lowerBound,
 			upperBound,
-			variableName
+			variableName,
+			loopBuffer: []
 		});
 		return [];
 	}
@@ -139,12 +139,11 @@ export function compileLine(
 				let output = [];
 				for(let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i ++){
 					output.push(
-						...loopBuffer.map(line => replaceCompilerConstants(line, {
+						...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line, {
 							[endedBlock.variableName]: i.toString()
 						}))
 					);
 				}
-				loopBuffer.splice(0);
 				return output;
 			} else if(endedBlock?.type == "namespace"){
 				//do nothing

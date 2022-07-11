@@ -91,6 +91,7 @@ export interface ForStackElement {
 	upperBound: number;
 	lowerBound: number;
 	variableName: string;
+	loopBuffer: string[];
 };
 
 export type StackElement = NamespaceStackElement | ForStackElement;

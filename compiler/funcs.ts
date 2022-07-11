@@ -11,6 +11,7 @@ import commands from "./commands.js";
 import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, NamespaceStackElement, PreprocessedCommand, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
+import { ForStackElement } from "./types.js";
 
 
 /**Processes commands(adds in what would otherwise be boilerplate). */
@@ -390,6 +391,11 @@ export function getVariablesDefined(args:string[], commandDefinition:CommandDefi
 /**Returns if the stack contains a for loop. */
 export function inForLoop(stack:StackElement[]):boolean {
 	return stack.filter(el => el.type == "&for").length != 0;
+}
+
+/**Returns the topmost for loop in the stack. */
+export function topForLoop(stack:StackElement[]):ForStackElement | undefined {
+	return stack.filter(el => el.type == "&for").at(-1);
 }
 
 /**Returns if the stack contains a namespace. */
