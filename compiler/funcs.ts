@@ -399,7 +399,7 @@ export function inForLoop(stack:StackElement[]):boolean {
 
 /**Returns the topmost for loop in the stack. */
 export function topForLoop(stack:StackElement[]):ForStackElement | undefined {
-	return stack.filter(el => el.type == "&for").at(-1);
+	return stack.filter(el => el.type == "&for").at(-1) as ForStackElement;
 }
 
 /**Returns if the stack contains a namespace. */

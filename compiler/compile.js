@@ -1,5 +1,5 @@
 import { GenericArgType, CommandErrorType } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants as replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine, inForLoop, inNamespace } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
@@ -8,7 +8,6 @@ export function compileMlogxToMlog(program, settings, compilerConstants) {
     let isMain = programType == "main" || settings.compilerOptions.mode == "single";
     let outputData = [];
     let stack = [];
-    let loopBuffer = [];
     for (let requiredVar of requiredVars) {
         if (requiredVarCode[requiredVar])
             outputData.push(...requiredVarCode[requiredVar]);
@@ -17,9 +16,9 @@ export function compileMlogxToMlog(program, settings, compilerConstants) {
     }
     for (let line in program) {
         try {
-            let compiledOutput = compileLine(program[line], compilerConstants, settings, +line, isMain, stack, loopBuffer);
+            let compiledOutput = compileLine(program[line], compilerConstants, settings, +line, isMain, stack);
             if (inForLoop(stack)) {
-                loopBuffer.push(...compiledOutput);
+                topForLoop(stack).loopBuffer.push(...compiledOutput);
             }
             else {
                 outputData.push(...compiledOutput);
@@ -35,7 +34,7 @@ export function compileMlogxToMlog(program, settings, compilerConstants) {
     }
     return outputData;
 }
-export function compileLine(line, compilerConstants, settings, lineNumber, isMain, stack, loopBuffer) {
+export function compileLine(line, compilerConstants, settings, lineNumber, isMain, stack) {
     if (line.includes("\u{F4321}")) {
         console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
     }
@@ -53,7 +52,7 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
         return inNamespace(stack) ? [`${addNamespaces(getLabel(cleanedLine), stack)}:`] : [settings.compilerOptions.removeComments ? cleanedLine : line];
     }
     let args = splitLineIntoArguments(cleanedLine)
-        .map(arg => arg.startsWith("__") ? `__${isMain ? "" : settings.filename.replace(/\.mlogx?/gi, "")}${arg}` : arg);
+        .map(arg => prependFilenameToArg(arg, isMain, settings.filename));
     if (args[0] == "namespace") {
         let name = args[1];
         if (!(name?.length > 0)) {
@@ -85,7 +84,8 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
             type: "&for",
             lowerBound,
             upperBound,
-            variableName
+            variableName,
+            loopBuffer: []
         });
         return [];
     }
@@ -98,11 +98,10 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
             if (endedBlock?.type == "&for") {
                 let output = [];
                 for (let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i++) {
-                    output.push(...loopBuffer.map(line => replaceCompilerConstants(line, {
+                    output.push(...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line, {
                         [endedBlock.variableName]: i.toString()
                     })));
                 }
-                loopBuffer.splice(0);
                 return output;
             }
             else if (endedBlock?.type == "namespace") {
@@ -159,7 +158,7 @@ export function checkTypes(compiledProgram, settings, uncompiledProgram) {
         let cleanedLine = cleanLine(line);
         if (cleanedLine == "")
             continue toNextLine;
-        let labelName = cleanedLine.match(/^.+?(?=\:$)/i)?.[0];
+        let labelName = getLabel(cleanedLine);
         if (labelName) {
             jumpLabelsDefined[labelName] ??= [];
             jumpLabelsDefined[labelName].push({

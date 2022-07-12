@@ -8,12 +8,10 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType, StackElement } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants as replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine, inForLoop, inNamespace } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg,  } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
-import { topForLoop } from "./funcs.js";
-import { prependFilenameToArg } from "./funcs.js";
 
 export function compileMlogxToMlog(
 	program:string[],
@@ -37,9 +35,9 @@ export function compileMlogxToMlog(
 	
 	for(let line in program){
 		try {
-			let compiledOutput = compileLine(program[line], compilerConstants, settings, +line, isMain, stack, loopBufferStack);
+			let compiledOutput = compileLine(program[line], compilerConstants, settings, +line, isMain, stack);
 			if(inForLoop(stack)){
-				topForLoop(stack).loopBuffer.push(...compiledOutput);
+				topForLoop(stack)!.loopBuffer.push(...compiledOutput);
 			} else {
 				outputData.push(...compiledOutput);
 			}
@@ -88,7 +86,7 @@ export function compileLine(
 	}
 
 	let args = splitLineIntoArguments(cleanedLine)
-		.map(prependFilenameToArg);
+		.map(arg => prependFilenameToArg(arg, isMain, settings.filename));
 	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 	//if it's a namespace: special handling

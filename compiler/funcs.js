@@ -332,6 +332,9 @@ export function transformCommand(args, commandDefinition, transformFunction, fil
 export function addNamespaces(variable, stack) {
     return `_${stack.filter(el => el.type == "namespace").map(el => el.name).join("_")}_${variable}`;
 }
+export function prependFilenameToArg(arg, isMain, filename) {
+    return arg.startsWith("__") ? `__${isMain ? "" : filename.replace(/\.mlogx?/gi, "")}${arg}` : arg;
+}
 export function addNamespacesToLine(args, commandDefinition, stack) {
     if (!inNamespace(stack))
         return args.join(" ");
@@ -348,6 +351,9 @@ export function getVariablesDefined(args, commandDefinition) {
 }
 export function inForLoop(stack) {
     return stack.filter(el => el.type == "&for").length != 0;
+}
+export function topForLoop(stack) {
+    return stack.filter(el => el.type == "&for").at(-1);
 }
 export function inNamespace(stack) {
     return stack.filter(el => el.type == "namespace").length != 0;
