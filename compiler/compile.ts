@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType, StackElement } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg,  } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition,  } from "./funcs.js";
 import commands from "./commands.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
@@ -33,6 +33,7 @@ export function compileMlogxToMlog(
 			err("Unknown require " + requiredVar, settings);
 	}
 	
+	//Loop through each line and compile it
 	for(let line in program){
 		try {
 			let compiledOutput = compileLine(program[line], compilerConstants, settings, +line, isMain, stack);
@@ -46,6 +47,7 @@ export function compileMlogxToMlog(
 		}
 	}
 
+	//Check for unclosed blocks
 	if(stack.length !== 0){
 		err(`Some blocks were not closed.`, settings);
 		console.error(stack);
@@ -149,44 +151,36 @@ export function compileLine(
 		return [];
 	}
 
-	//TODO: refactor this code, there are already functions implemented for this
-	let commandList = commands[args[0]];
-	if(!commandList){
-		err(`Unknown command ${args[0]}\nat \`${line}\``, settings);
-		return [];
-	}
+	let [ commandList, errors ] = getCommandDefinitions(cleanedLine, true);
 
-	let errors:CommandError[] = [] as any;
-	
-	//especially this part needs refactoring its kinda sussy
-	for(let command of commandList){
-		let result = checkCommand(command, cleanedLine);
-		if(result.replace){
-			return result.replace.map((line:string) => addNamespacesToLine(splitLineIntoArguments(line), getCommandDefinitions(line)[0], stack));
-			//the use of getCommandDefinitions here is sorta wrong
-		} else if(result.error){
-			errors.push(result.error);
-		} else if(result.ok){
-			return [addNamespacesToLine(args, command, stack)];
+	if(commandList.length == 0){
+		//No commands were valid
+		if(errors.length == 0){
+			throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${line}"\nPlease copy this and file an issue on Github.`);
 		}
-	}
+		if(errors.length == 1){
+			err(errors[0].message, settings);
+		} else {
 
-	//this code is *weird*
-	if(commandList.length == 1){
-		err(errors[0].message, settings);
-	} else {
-		err(
-`Line
-\`${cleanedLine}\`
-did not match any overloads for command ${args[0]}`
-		, settings);
-	}
-
-	if(!commandList[0].replace){
-		return [settings.compilerOptions.removeComments ? cleanedLine : line + " #Error"];
-	} else {
+			//Find the right error message
+			const typeErrors = errors.filter(error => error.type == CommandErrorType.type);
+			if(typeErrors.length != 0){
+				//one of the errors was a type error
+				err(typeErrors[0].message, settings);
+			} else {
+				//Otherwise there's nothing that can be done and we have to say "no overloads matched"
+				err(
+					`Line
+					\`${cleanedLine}\`
+					did not match any overloads for command ${args[0]}`
+				, settings);
+			}
+		}
 		return [];
 	}
+	//Otherwise, the command was valid, so output
+	return getOutputForCommand(args, commandList[0], stack);
+
 }
 
 /**Type checks an mlog program. */
@@ -337,6 +331,19 @@ but the command requires it to be of type [${variableUsage.variableTypes.map(t =
 
 	
 
+}
+
+/**Gets the compiled output for a command given a command definition and the stack. */
+export function getOutputForCommand(args:string[], command:CommandDefinition, stack:StackElement[]):string[] {
+	if(command.replace){
+		const compiledCommand = command.replace(args);
+		return compiledCommand.map(line => {
+			const compiledCommandDefinition = getCommandDefinition(line);
+			if(!compiledCommandDefinition) throw new Error("Line compiled to invalid statement. This is an error with MLOGX.");
+			return addNamespacesToLine(splitLineIntoArguments(line), compiledCommandDefinition, stack);
+		});
+	}
+	return [ addNamespacesToLine(args, command, stack) ];
 }
 
 /**Checks if a command is valid for a command definition.*/

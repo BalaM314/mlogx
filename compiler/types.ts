@@ -49,7 +49,9 @@ export enum GenericArgType {
 
 export enum CommandErrorType {
 	argumentCount,
-	type
+	type,
+	noCommand,
+	badStructure,
 }
 
 export interface CommandError {

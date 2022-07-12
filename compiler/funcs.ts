@@ -52,7 +52,7 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 							replaceLine = replaceLine.replace(new RegExp(`%${i}`, "g"), args[i]);
 						}
 						return replaceLine;
-					})
+					});
 				};
 			} else if(typeof command.replace == "function"){
 				processedCommand.replace = (command.replace as (args:string[]) => string[]);
@@ -494,20 +494,37 @@ export function err(message:string, settings:Settings){
 	}
 }
 
-export function isCommand(line:string, command:CommandDefinition): boolean {
+export function isCommand(line:string, command:CommandDefinition): [valid:false, error:CommandError] | [valid:true, error:null] {
 	let args = splitLineIntoArguments(line);
 	let commandArguments = args.slice(1);
 	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
-		return false;
+		return [false, {
+			type: CommandErrorType.argumentCount,
+			message:
+`Incorrect number of arguments for command "${args[0]}"
+at \`${line}\`
+Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
+		}];
 	}
 
 	for(let arg in commandArguments){
 		if(!isArgOfType(commandArguments[+arg], command.args[+arg])){
-			return false;
+			if(command.args[+arg].isGeneric)
+				return [false, {
+					type: CommandErrorType.type,
+					message: `Type mismatch: value "${commandArguments[+arg]}" was expected to be of type "${command.args[+arg].isVariable ? "variable" : command.args[+arg].type}", but was of type "${typeofArg(commandArguments[+arg])}"
+	at \`${line}\``
+				}];
+			else
+				return [false, {
+					type: CommandErrorType.badStructure,
+					message: `Incorrect argument: value "${commandArguments[+arg]}" was expected to be "${command.args[+arg].type}", but was "${typeofArg(commandArguments[+arg])}"
+	at \`${line}\``
+				}];
 		}
 	}
 
-	return true;
+	return [true, null];
 }
 
 /**Gets the first valid command definition for a command. */
@@ -515,22 +532,39 @@ export function getCommandDefinition(cleanedLine:string): CommandDefinition | un
 	return getCommandDefinitions(cleanedLine)[0];
 }
 
+
+export function getCommandDefinitions(cleanedLine:string): CommandDefinition[];
+export function getCommandDefinitions(cleanedLine:string, returnErrors:true): [CommandDefinition[], CommandError[]];
+
 /**Gets all valid command definitions for a command. */
-export function getCommandDefinitions(cleanedLine:string): CommandDefinition[] {
+export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean = false): 
+	CommandDefinition[] | [CommandDefinition[], CommandError[]] {
 	let args = splitLineIntoArguments(cleanedLine);
 
 	let commandList = commands[args[0]];
 	let possibleCommands = [];
+	let errors = [];
 
-	if(commandList == null) return [];
+	if(commandList == undefined){
+		return returnErrors ? [[], [{
+			type: CommandErrorType.noCommand,
+			message: ``
+		}]] : [];
+	}
 
 	for(let possibleCommand of commandList){
-		if(isCommand(cleanedLine, possibleCommand)){
+		const result = isCommand(cleanedLine, possibleCommand);
+		if(result[0]){
 			possibleCommands.push(possibleCommand)
-		};
+		} else {
+			errors.push(result[1]);
+		}
 	}
 	
-	return possibleCommands;
+	if(returnErrors)
+		return [ possibleCommands, errors ];
+	else
+		return possibleCommands;
 }
 
 /**Parses preprocessor directives from a program. */

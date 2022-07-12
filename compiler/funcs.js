@@ -1,6 +1,6 @@
 import { Arg, CompilerError } from "./classes.js";
 import commands from "./commands.js";
-import { GenericArgType } from "./types.js";
+import { CommandErrorType, GenericArgType } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 export function processCommands(preprocessedCommands) {
@@ -440,31 +440,58 @@ export function isCommand(line, command) {
     let args = splitLineIntoArguments(line);
     let commandArguments = args.slice(1);
     if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length) {
-        return false;
+        return [false, {
+                type: CommandErrorType.argumentCount,
+                message: `Incorrect number of arguments for command "${args[0]}"
+at \`${line}\`
+Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
+            }];
     }
     for (let arg in commandArguments) {
         if (!isArgOfType(commandArguments[+arg], command.args[+arg])) {
-            return false;
+            if (command.args[+arg].isGeneric)
+                return [false, {
+                        type: CommandErrorType.type,
+                        message: `Type mismatch: value "${commandArguments[+arg]}" was expected to be of type "${command.args[+arg].isVariable ? "variable" : command.args[+arg].type}", but was of type "${typeofArg(commandArguments[+arg])}"
+	at \`${line}\``
+                    }];
+            else
+                return [false, {
+                        type: CommandErrorType.badStructure,
+                        message: `Incorrect argument: value "${commandArguments[+arg]}" was expected to be "${command.args[+arg].type}", but was "${typeofArg(commandArguments[+arg])}"
+	at \`${line}\``
+                    }];
         }
     }
-    return true;
+    return [true, null];
 }
 export function getCommandDefinition(cleanedLine) {
     return getCommandDefinitions(cleanedLine)[0];
 }
-export function getCommandDefinitions(cleanedLine) {
+export function getCommandDefinitions(cleanedLine, returnErrors = false) {
     let args = splitLineIntoArguments(cleanedLine);
     let commandList = commands[args[0]];
     let possibleCommands = [];
-    if (commandList == null)
-        return [];
+    let errors = [];
+    if (commandList == undefined) {
+        return returnErrors ? [[], [{
+                    type: CommandErrorType.noCommand,
+                    message: ``
+                }]] : [];
+    }
     for (let possibleCommand of commandList) {
-        if (isCommand(cleanedLine, possibleCommand)) {
+        const result = isCommand(cleanedLine, possibleCommand);
+        if (result[0]) {
             possibleCommands.push(possibleCommand);
         }
-        ;
+        else {
+            errors.push(result[1]);
+        }
     }
-    return possibleCommands;
+    if (returnErrors)
+        return [possibleCommands, errors];
+    else
+        return possibleCommands;
 }
 export function parsePreprocessorDirectives(data) {
     let program_type = "unknown";
