@@ -220,7 +220,10 @@ function compileDirectory(directory, stdlibPath, settings) {
             outputData.push("end", ...compilerMark);
             if (settings.compilerOptions.checkTypes) {
                 try {
-                    checkTypes(outputData, settings, data);
+                    checkTypes(outputData, {
+                        filename,
+                        ...settings
+                    }, data);
                 }
                 catch (err) {
                     if (err instanceof CompilerError)
@@ -263,7 +266,10 @@ function compileDirectory(directory, stdlibPath, settings) {
         ];
         if (settings.compilerOptions.checkTypes) {
             try {
-                checkTypes(outputData, settings);
+                checkTypes(outputData, {
+                    filename: `out.mlog`,
+                    ...settings
+                });
             }
             catch (err) {
                 if (err instanceof CompilerError)
@@ -302,7 +308,10 @@ function compileFile(name, settings) {
     }
     if (settings.compilerOptions.checkTypes) {
         try {
-            checkTypes(outputData, settings);
+            checkTypes(outputData, {
+                filename: name,
+                ...settings
+            });
         }
         catch (err) {
             if (err instanceof CompilerError)

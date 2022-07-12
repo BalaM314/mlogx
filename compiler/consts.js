@@ -23,7 +23,10 @@ export const requiredVarCode = {
 export const processorVariables = {
     "@counter": [{
             variableType: GenericArgType.number,
-            line: "[processor variable]"
+            line: {
+                text: "[processor variable]",
+                lineNumber: 0
+            }
         }]
 };
 export const buildingInternalNames = [

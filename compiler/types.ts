@@ -97,3 +97,8 @@ export interface ForStackElement {
 };
 
 export type StackElement = NamespaceStackElement | ForStackElement;
+
+export interface Line {
+	text: string;
+	lineNumber: number;
+}

@@ -6,7 +6,7 @@ mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANT
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 */
 
-import { ArgType, GenericArgType, Settings } from "./types.js";
+import { ArgType, GenericArgType, Line, Settings } from "./types.js";
 
 export const compilerMark = 
 [`print "Made with mlogx"`,
@@ -40,12 +40,15 @@ export const requiredVarCode: {
 export const processorVariables:{
 	[name: string]: {
 		variableType: ArgType;
-		line: string;
+		line: Line;
 	}[]
 } = {
 	"@counter": [{
 		variableType: GenericArgType.number,
-		line: "[processor variable]"
+		line: {
+			text: "[processor variable]",
+			lineNumber: 0
+		}
 	}]
 };
 

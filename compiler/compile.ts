@@ -7,7 +7,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType, StackElement } from "./types.js";
+import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType, StackElement, Line } from "./types.js";
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition,  } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
@@ -44,9 +44,8 @@ export function compileMlogxToMlog(
 		} catch(err){
 			if(err instanceof CompilerError){
 				console.error(
-`${settings.filename}:${+line + 1}
-	\`${program[line]}\`
-	Error: ${err.message}`
+`Error: ${err.message}
+	at ${settings.filename}:${+line + 1} \`${program[line]}\``
 				);
 			} else {
 				throw err;
@@ -185,42 +184,46 @@ export function compileLine(
 }
 
 /**Type checks an mlog program. */
-export function checkTypes(compiledProgram:string[], settings:Settings, uncompiledProgram?:string[]){
+export function checkTypes(compiledProgram:string[], settings:Settings & {filename: string}, uncompiledProgram?:string[]){
 
 	let variablesUsed: {
 		[name: string]: {
 			variableTypes: ArgType[];
-			line: string;
+			line: Line;
 		}[]
 	} = {};
 
 	let variablesDefined: {
 		[name: string]: {
 			variableType: ArgType;
-			line: string;
+			line: Line;
 		}[]
 	} = {
 		...processorVariables,
 		...(uncompiledProgram ? getParameters(uncompiledProgram).reduce((accumulator:typeof variablesDefined, [name, type]) => {
 			accumulator[name] ??= [];
-			accumulator[name].push({variableType: type, line: "[function parameter]"})
+			accumulator[name].push({variableType: type, line: {
+				text: "[function parameter]",
+				lineNumber: 1
+			}})
 			return accumulator;
 		}, {}) : {})
 	};
 
 	let jumpLabelsUsed: {
 		[name: string]: {
-			line: string;
+			line: Line;
 		}[]
 	} = {};
 	let jumpLabelsDefined: {
 		[name: string]: {
-			line: string;
+			line: Line;
 		}[]
 	} = {};
 
 	toNextLine:
-	for(let line of compiledProgram){
+	for(let lineNumber in compiledProgram){
+		const line = compiledProgram[lineNumber];
 		let cleanedLine = cleanLine(line);
 		if(cleanedLine == "") continue toNextLine;
 
@@ -229,7 +232,10 @@ export function checkTypes(compiledProgram:string[], settings:Settings, uncompil
 		if(labelName){
 			jumpLabelsDefined[labelName] ??= [];
 			jumpLabelsDefined[labelName].push({
-				line: line
+				line: {
+					text: line,
+					lineNumber: +lineNumber + 1
+				}
 			});
 			continue toNextLine;
 		}
@@ -238,8 +244,7 @@ export function checkTypes(compiledProgram:string[], settings:Settings, uncompil
 		let commandDefinitions = getCommandDefinitions(cleanedLine);
 		if(commandDefinitions.length == 0){
 			throw new CompilerError(
-`Type checking aborted because the program contains invalid commands.
-	at \`${line}\``
+`Type checking aborted because the program contains invalid commands.`
 			);
 		}
 
@@ -247,7 +252,10 @@ export function checkTypes(compiledProgram:string[], settings:Settings, uncompil
 		if(jumpLabelUsed){
 			jumpLabelsUsed[jumpLabelUsed] ??= [];
 			jumpLabelsUsed[jumpLabelUsed].push({
-				line: cleanedLine
+				line: {
+					text: line,
+					lineNumber: +lineNumber + 1
+				}
 			});
 		}
 
@@ -256,7 +264,10 @@ export function checkTypes(compiledProgram:string[], settings:Settings, uncompil
 				variablesDefined[variableName] ??= [];
 				variablesDefined[variableName].push({
 					variableType,
-					line: line
+					line: {
+						text: line,
+						lineNumber: +lineNumber + 1
+					}
 				});
 			});
 		}
@@ -265,7 +276,10 @@ export function checkTypes(compiledProgram:string[], settings:Settings, uncompil
 			variablesUsed[variableName] ??= [];
 			variablesUsed[variableName].push({
 				variableTypes,
-				line: line
+				line: {
+					text: line,
+					lineNumber: +lineNumber + 1
+				}
 			});
 		});
 
@@ -286,10 +300,12 @@ export function checkTypes(compiledProgram:string[], settings:Settings, uncompil
 		//TODO do this properly
 		if(types.length > 1){
 			console.warn(
-`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
-	First definition: \`${variable[0].line}\`
-	First conflicting definition: \`${variable.filter(v => v.variableType == types[1])[0].line}\``);
-			
+`Warning: Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
+First definition:
+	at ${settings.filename}:${variable[0].line.lineNumber} \`${variable[0].line.text}\`
+First conflicting definition:
+	at ${settings.filename}:${variable.filter(v => v.variableType == types[1])[0].line.lineNumber} \`${variable.filter(v => v.variableType == types[1])[0].line.text}\``
+			);
 		}
 	};
 
@@ -301,14 +317,16 @@ export function checkTypes(compiledProgram:string[], settings:Settings, uncompil
 			//If the list of possible types does not include the type of the first definition
 			if(!variablesDefined[name]){
 				console.warn(
-`Variable "${name}" seems to be undefined.
-	at ${variableUsage.line}`);
+`Warning: Variable "${name}" seems to be undefined.
+	at ${settings.filename}:${variableUsage.line.lineNumber} \`${variableUsage.line.text}\``
+				);
 			} else if(!areAnyOfInputsCompatibleWithType(variableUsage.variableTypes, variablesDefined[name][0].variableType)){
 				console.warn(
-`Type mismatch: variable "${name}" is of type "${variablesDefined[name][0].variableType}",\
+`Warning: variable "${name}" is of type "${variablesDefined[name][0].variableType}",\
 but the command requires it to be of type [${variableUsage.variableTypes.map(t => `"${t}"`).join(", ")}]
-	at ${variableUsage.line}
-	First definition at: ${variablesDefined[name][0].line}`);
+	at ${settings.filename}:${variableUsage.line.lineNumber} \`${variableUsage.line.text}\`
+	First definition at: ${settings.filename}:${variablesDefined[name][0].line.lineNumber} \`${variablesDefined[name][0].line.text}\``
+				);
 			}
 		}
 	}
@@ -316,17 +334,24 @@ but the command requires it to be of type [${variableUsage.variableTypes.map(t =
 	//Check for redefined jump labels
 	for(let [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)){
 		if(definitions.length > 1){
-			console.warn(`Jump label ${jumpLabel} was defined ${definitions.length} times.`);
+			console.warn(`Warning: Jump label ${jumpLabel} was defined ${definitions.length} times.`);
+			definitions.forEach(definition => 
+				console.warn(
+`	at ${settings.filename}:${definition.line.lineNumber} \`${definition.line.text}\``
+				)
+			);
 		}
 	}
 
 	//Check for undefined jump labels
-	for(let [jumpLabel, definitions] of Object.entries(jumpLabelsUsed)){
+	for(let [jumpLabel, usages] of Object.entries(jumpLabelsUsed)){
 		if(!jumpLabelsDefined[jumpLabel]){
-			console.warn(
-`Jump label ${jumpLabel} is missing.
-	at ${definitions[0].line}`
-			)
+			console.warn(`Warning: Jump label ${jumpLabel} is missing.`);
+			usages.forEach(usage => 
+				console.warn(
+`${settings.filename}:${usage.line.lineNumber} \`${usage.line.text}\``
+				)
+			);
 		}
 	}
 
