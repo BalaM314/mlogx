@@ -44,7 +44,7 @@ export function compileMlogxToMlog(
 		} catch(err){
 			if(err instanceof CompilerError){
 				console.error(
-`${settings.filename}:${line}
+`${settings.filename}:${+line + 1}
 	\`${program[line]}\`
 	Error: ${err.message}`
 				);
