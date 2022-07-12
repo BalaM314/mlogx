@@ -1,4 +1,4 @@
-import { Arg, CompilerError } from "./classes.js";
+import { Arg } from "./classes.js";
 import commands from "./commands.js";
 import { CommandErrorType, GenericArgType } from "./types.js";
 import * as readline from "readline";
@@ -428,23 +428,13 @@ export function acceptsVariable(arg) {
 export function getLabel(cleanedLine) {
     return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0];
 }
-export function err(message, settings) {
-    if (settings.compilerOptions.compileWithErrors) {
-        console.warn("Error: " + message);
-    }
-    else {
-        throw new CompilerError(message);
-    }
-}
 export function isCommand(line, command) {
     let args = splitLineIntoArguments(line);
     let commandArguments = args.slice(1);
     if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length) {
         return [false, {
                 type: CommandErrorType.argumentCount,
-                message: `Incorrect number of arguments for command "${args[0]}"
-at \`${line}\`
-Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
+                message: `Incorrect number of arguments for command "${args[0]}", see \`mlogx info ${args[0]}\``
             }];
     }
     for (let arg in commandArguments) {
@@ -452,14 +442,12 @@ Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
             if (command.args[+arg].isGeneric)
                 return [false, {
                         type: CommandErrorType.type,
-                        message: `Type mismatch: value "${commandArguments[+arg]}" was expected to be of type "${command.args[+arg].isVariable ? "variable" : command.args[+arg].type}", but was of type "${typeofArg(commandArguments[+arg])}"
-	at \`${line}\``
+                        message: `Type mismatch: value "${commandArguments[+arg]}" was expected to be of type "${command.args[+arg].isVariable ? "variable" : command.args[+arg].type}", but was of type "${typeofArg(commandArguments[+arg])}"`
                     }];
             else
                 return [false, {
                         type: CommandErrorType.badStructure,
-                        message: `Incorrect argument: value "${commandArguments[+arg]}" was expected to be "${command.args[+arg].type}", but was "${typeofArg(commandArguments[+arg])}"
-	at \`${line}\``
+                        message: `Incorrect argument: value "${commandArguments[+arg]}" was expected to be "${command.args[+arg].type}", but was "${typeofArg(commandArguments[+arg])}"`
                     }];
         }
     }
@@ -476,7 +464,7 @@ export function getCommandDefinitions(cleanedLine, returnErrors = false) {
     if (commandList == undefined) {
         return returnErrors ? [[], [{
                     type: CommandErrorType.noCommand,
-                    message: ``
+                    message: `Command ${args[0]} does not exist.`
                 }]] : [];
     }
     for (let possibleCommand of commandList) {

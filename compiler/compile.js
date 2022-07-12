@@ -1,5 +1,5 @@
 import { GenericArgType, CommandErrorType } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, err, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
 export function compileMlogxToMlog(program, settings, compilerConstants) {
@@ -11,7 +11,7 @@ export function compileMlogxToMlog(program, settings, compilerConstants) {
         if (requiredVarCode[requiredVar])
             outputData.push(...requiredVarCode[requiredVar]);
         else
-            err("Unknown require " + requiredVar, settings);
+            console.warn("Unknown require " + requiredVar, settings);
     }
     for (let line in program) {
         try {
@@ -24,11 +24,18 @@ export function compileMlogxToMlog(program, settings, compilerConstants) {
             }
         }
         catch (err) {
-            throw err;
+            if (err instanceof CompilerError) {
+                console.error(`${settings.filename}:${line}
+	\`${program[line]}\`
+	Error: ${err.message}`);
+            }
+            else {
+                throw err;
+            }
         }
     }
     if (stack.length !== 0) {
-        err(`Some blocks were not closed.`, settings);
+        console.error(`Error: Some blocks were not closed.`, settings);
         console.error(stack);
     }
     return outputData;
@@ -55,8 +62,7 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
     if (args[0] == "namespace") {
         let name = args[1];
         if (!(name?.length > 0)) {
-            err("No name specified for namespace", settings);
-            return [];
+            throw new CompilerError("No name specified for namespace");
         }
         stack.push({
             name,
@@ -87,7 +93,7 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
     }
     if (args[0] == "}") {
         if (stack.length == 0) {
-            err("No block to end", settings);
+            throw new CompilerError("No block to end");
         }
         else {
             const endedBlock = stack.pop();
@@ -111,20 +117,17 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
             throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${line}"\nPlease copy this and file an issue on Github.`);
         }
         if (errors.length == 1) {
-            err(errors[0].message, settings);
+            throw new CompilerError(errors[0].message);
         }
         else {
             const typeErrors = errors.filter(error => error.type == CommandErrorType.type);
             if (typeErrors.length != 0) {
-                err(typeErrors[0].message, settings);
+                throw new CompilerError(typeErrors[0].message + `\nErrors for other overloads not displayed.`);
             }
             else {
-                err(`Line
-					\`${cleanedLine}\`
-					did not match any overloads for command ${args[0]}`, settings);
+                throw new CompilerError(`Line did not match any overloads for command ${args[0]}`);
             }
         }
-        return [];
     }
     return getOutputForCommand(args, commandList[0], stack);
 }
