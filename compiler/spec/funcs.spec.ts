@@ -160,10 +160,10 @@ describe("addNamespacesToLine", () => {
 			[{name: "amogus", type:"namespace"}]
 		)).toEqual("set _amogus_x 5");
 		expect(addNamespacesToLine(
-			["ulocate", "building", "core", "true", "outX", "outY", "found", "building"],
+			["ulocate", "building", "core", "true", "outX", "outY", "found", "core"],
 			commands["ulocate"][3],
 			[{name: "amogus", type:"namespace"}]
-		)).toEqual("ulocate building core true _amogus_outX _amogus_outY _amogus_found _amogus_building");
+		)).toEqual("ulocate building core true _amogus_outX _amogus_outY _amogus_found _amogus_core");
 	});
 });
 

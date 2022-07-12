@@ -130,7 +130,7 @@ describe("transformCommand", () => {
 describe("addNamespacesToLine", () => {
     it("should add namespaces to a statement", () => {
         expect(addNamespacesToLine(["set", "x", "5"], commands["set"][0], [{ name: "amogus", type: "namespace" }])).toEqual("set _amogus_x 5");
-        expect(addNamespacesToLine(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3], [{ name: "amogus", type: "namespace" }])).toEqual("ulocate building core true _amogus_outX _amogus_outY _amogus_found _amogus_building");
+        expect(addNamespacesToLine(["ulocate", "building", "core", "true", "outX", "outY", "found", "core"], commands["ulocate"][3], [{ name: "amogus", type: "namespace" }])).toEqual("ulocate building core true _amogus_outX _amogus_outY _amogus_found _amogus_core");
     });
 });
 describe("getVariablesDefined", () => {
