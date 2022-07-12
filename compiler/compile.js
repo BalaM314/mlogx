@@ -66,9 +66,6 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
         return [];
     }
     if (args[0] == "&for") {
-        if (inForLoop(stack)) {
-            throw new CompilerError("nested for loops are not yet implemented");
-        }
         const variableName = args[1];
         const lowerBound = parseInt(args[2]);
         const upperBound = parseInt(args[3]);
