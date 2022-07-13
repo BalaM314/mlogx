@@ -370,7 +370,10 @@ export function getOutputForCommand(args:string[], command:CommandDefinition, st
 		const compiledCommand = command.replace(args);
 		return compiledCommand.map(line => {
 			const compiledCommandDefinition = getCommandDefinition(line);
-			if(!compiledCommandDefinition) throw new Error("Line compiled to invalid statement. This is an error with MLOGX.");
+			if(!compiledCommandDefinition){
+				Log.dump({args, command, compiledCommand, compiledCommandDefinition})
+				throw new Error("Line compiled to invalid statement. This is an error with MLOGX.")
+			};
 			return addNamespacesToLine(splitLineIntoArguments(line), compiledCommandDefinition, stack);
 		});
 	}

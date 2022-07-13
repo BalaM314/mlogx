@@ -277,7 +277,7 @@ export const commands = processCommands({
             args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*any",
             description: "Finds units of specified type within the range of the bound unit.",
             replace: [
-                "radar %1 %2 %3 %4 0 %5 %6"
+                "uradar %1 %2 %3 %4 0 %5 %6"
             ]
         }, {
             args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sillyness:any sortOrder:number output:*any",
@@ -286,7 +286,7 @@ export const commands = processCommands({
             args: "targetClass:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
             description: "Finds units of specified type within the range of the bound unit.",
             replace: [
-                "radar %1 any any %2 0 %3 %4"
+                "uradar %1 any any %2 0 %3 %4"
             ]
         },
     ],
