@@ -12,6 +12,7 @@ import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandEr
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
+import chalk from "chalk";
 
 
 /**Processes commands(adds in what would otherwise be boilerplate). */
@@ -517,7 +518,12 @@ export function isCommand(line:string, command:CommandDefinition): [valid:false,
 
 /**Displays a Line. */
 export function formatLine(line:Line, settings:Settings & {filename: string}):string {
-	return `${settings.filename}:${line.lineNumber} \`${line.text}\``;
+	return chalk.gray(`${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
+}
+
+/**Displays a Line with at before it. */
+export function formatLineWithPrefix(line:Line, settings:Settings & {filename: string}, prefix:string = "\tat "):string {
+	return chalk.gray(`${prefix}${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
 
 /**Gets the first valid command definition for a command. */

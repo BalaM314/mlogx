@@ -38,7 +38,7 @@ export class CompilerError extends Error {
 export class Log {
 	/**For debug information. */
 	static debug(message:string){
-		console.log(`[DEBUG] ${message}`);
+		console.log(chalk.gray(`[DEBUG] ${message}`));
 	}
 	/**Dumps objects */
 	static dump(...objects:any[]){
@@ -46,23 +46,27 @@ export class Log {
 	}
 	/**For general info. */
 	static info(message:string){
-		console.log(`[INFO] ${message}`);
-	}
-	/**Used by the program to announce what it is doing. */
-	static announce(message:string){
-		console.log(`${message}`);
+		console.log(chalk.white(`[INFO] ${message}`));
 	}
 	/**Warnings */
 	static warn(message:string){
-		console.warn(`[WARN] ${message}`);
+		console.warn(chalk.yellow(`[WARN] ${message}`));
 	}
 	/**Errors */
 	static err(message:string){
-		console.error(`[ERROR] ${message}`);
+		console.error(chalk.redBright(`[ERROR] ${message}`));
 	}
 	/**Fatal errors */
 	static fatal(message:string){
-		console.error(`[FATAL] ${message}`);
+		console.error(`[FATAL] ${chalk.bgRed.white(message)}`);
+	}
+	/**Used by the program to announce what it is doing. */
+	static announce(message:string){
+		console.log(chalk.green(`${message}`));
+	}
+	/**Just prints a message without any formatting */
+	static none(message:string){
+		console.log(message);
 	}
 
 }

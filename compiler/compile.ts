@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { Settings, ArgType, GenericArgType, CommandDefinition, CommandErrorType, StackElement, Line } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLine,  } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLine, formatLineWithPrefix,  } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 
@@ -45,7 +45,7 @@ export function compileMlogxToMlog(
 			if(err instanceof CompilerError){
 				Log.err(
 `${err.message}
-	at ${formatLine({
+${formatLineWithPrefix({
 		lineNumber:+line+1, text:program[line]
 	}, settings)}`
 				);
@@ -304,10 +304,8 @@ export function checkTypes(compiledProgram:string[], settings:Settings & {filena
 		if(types.length > 1){
 			Log.warn(
 `Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
-First definition:
-	at ${formatLine(definitions[0].line, settings)}
-First conflicting definition:
-	at ${formatLine(definitions.filter(v => v.variableType == types[1])[0].line, settings)}`
+	First definition ${formatLineWithPrefix(definitions[0].line, settings, "at ")}
+	First conflicting definition ${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].line, settings, "at ")}`
 			);
 		}
 	};
@@ -321,14 +319,14 @@ First conflicting definition:
 				//If the variable has never been defined
 				Log.warn(
 `Variable "${name}" seems to be undefined.
-	at ${formatLine(variableUsage.line, settings)}`
+${formatLineWithPrefix(variableUsage.line, settings)}`
 				);
 			} else if(!areAnyOfInputsCompatibleWithType(variableUsage.variableTypes, variablesDefined[name][0].variableType)){
 				//If the list of possible types does not include the type of the first definition
 				Log.warn(
-`Variable "${name}" is of type "${variablesDefined[name][0].variableType}",\
+`Variable "${name}" is of type "${variablesDefined[name][0].variableType}", \
 but the command requires it to be of type ${variableUsage.variableTypes.map(t => `"${t}"`).join(" or ")}
-	at ${formatLine(variableUsage.line, settings)}
+${formatLineWithPrefix(variableUsage.line, settings)}
 	First definition at: ${formatLine(variablesDefined[name][0].line, settings)}`
 				);
 			}
@@ -338,10 +336,10 @@ but the command requires it to be of type ${variableUsage.variableTypes.map(t =>
 	//Check for redefined jump labels
 	for(let [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)){
 		if(definitions.length > 1){
-			Log.warn(`Jump label ${jumpLabel} was defined ${definitions.length} times.`);
+			Log.warn(`Jump label "${jumpLabel}" was defined ${definitions.length} times.`);
 			definitions.forEach(definition => 
-				Log.warn(
-`	at ${formatLine(definition.line, settings)}`
+				Log.none(
+formatLineWithPrefix(definition.line, settings)
 				)
 			);
 		}
@@ -350,10 +348,10 @@ but the command requires it to be of type ${variableUsage.variableTypes.map(t =>
 	//Check for undefined jump labels
 	for(let [jumpLabel, usages] of Object.entries(jumpLabelsUsed)){
 		if(!jumpLabelsDefined[jumpLabel]){
-			Log.warn(`Jump label ${jumpLabel} is missing.`);
+			Log.warn(`Jump label "${jumpLabel}" is missing.`);
 			usages.forEach(usage => 
-				Log.warn(
-`	at ${formatLine(usage.line, settings)}`
+				Log.none(
+					formatLineWithPrefix(usage.line, settings)
 				)
 			);
 		}

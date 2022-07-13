@@ -3,6 +3,7 @@ import commands from "./commands.js";
 import { CommandErrorType, GenericArgType } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
+import chalk from "chalk";
 export function processCommands(preprocessedCommands) {
     function arg(str) {
         if (!str.includes(":")) {
@@ -454,7 +455,10 @@ export function isCommand(line, command) {
     return [true, null];
 }
 export function formatLine(line, settings) {
-    return `${settings.filename}:${line.lineNumber} \`${line.text}\``;
+    return chalk.gray(`${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
+}
+export function formatLineWithPrefix(line, settings, prefix = "\tat ") {
+    return chalk.gray(`${prefix}${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
 export function getCommandDefinition(cleanedLine) {
     return getCommandDefinitions(cleanedLine)[0];
