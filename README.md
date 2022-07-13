@@ -1,6 +1,6 @@
 A transpiler for Mindustry Logic.
 
-(404 logo currently does not exist)
+![logo](logo.png)
 
 Design goals:
 1. Validation
@@ -21,13 +21,13 @@ Usage: `mlogx`
 
 
 # Example images
-![image](https://user-images.githubusercontent.com/71201189/178729128-d7acd742-24e8-4e10-bae8-f97a41fcfd9e.png)
+![Image of error messages](https://user-images.githubusercontent.com/71201189/178729128-d7acd742-24e8-4e10-bae8-f97a41fcfd9e.png)
 
-![image](https://user-images.githubusercontent.com/71201189/178733137-9cdcc42f-3b0a-4d9c-abb3-cd65118ef4c9.png)
+![Image of concise statements](https://user-images.githubusercontent.com/71201189/178733137-9cdcc42f-3b0a-4d9c-abb3-cd65118ef4c9.png)
 
-![image](https://user-images.githubusercontent.com/71201189/178735730-9bb5783c-6ea7-4e20-8012-7be6af6d9399.png)
+![Image of compiler consts](https://user-images.githubusercontent.com/71201189/178735730-9bb5783c-6ea7-4e20-8012-7be6af6d9399.png)
 
-![image](https://user-images.githubusercontent.com/71201189/178742854-59b85a72-29e2-4651-90ab-93bf0726e49c.png)
+![Image of &for loops](https://user-images.githubusercontent.com/71201189/178742854-59b85a72-29e2-4651-90ab-93bf0726e49c.png)
 
 Features:
 
