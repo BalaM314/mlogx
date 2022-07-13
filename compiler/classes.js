@@ -24,22 +24,22 @@ export class CompilerError extends Error {
 }
 export class Log {
     static debug(message) {
-        console.log(chalk.gray(`[DEBUG] ${message}`));
+        console.log(chalk.gray(`[DEBUG]\t${message}`));
     }
     static dump(...objects) {
         console.log(`[DEBUG]`, objects);
     }
     static info(message) {
-        console.log(chalk.white(`[INFO] ${message}`));
+        console.log(chalk.white(` [INFO]\t${message}`));
     }
     static warn(message) {
-        console.warn(chalk.yellow(`[WARN] ${message}`));
+        console.warn(chalk.yellow(` [WARN]\t${message}`));
     }
     static err(message) {
-        console.error(chalk.redBright(`[ERROR] ${message}`));
+        console.error(chalk.redBright(`[ERROR]\t${message}`));
     }
     static fatal(message) {
-        console.error(`[FATAL] ${chalk.bgRed.white(message)}`);
+        console.error(`[FATAL]\t${chalk.bgRed.white(message)}`);
     }
     static announce(message) {
         console.log(chalk.green(`${message}`));

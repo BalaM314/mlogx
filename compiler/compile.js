@@ -1,5 +1,5 @@
 import { GenericArgType, CommandErrorType } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLine, formatLineWithPrefix, } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 export function compileMlogxToMlog(program, settings, compilerConstants) {
@@ -209,8 +209,10 @@ export function checkTypes(compiledProgram, settings, uncompiledProgram) {
             el != GenericArgType.null).map(el => el == "boolean" ? "number" : el);
         if (types.length > 1) {
             Log.warn(`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
-	First definition ${formatLineWithPrefix(definitions[0].line, settings, "at ")}
-	First conflicting definition ${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].line, settings, "at ")}`);
+	First definition:
+${formatLineWithPrefix(definitions[0].line, settings, "\t\t")}
+	First conflicting definition:
+${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].line, settings, "\t\t")}`);
         }
     }
     ;
@@ -226,7 +228,8 @@ ${formatLineWithPrefix(variableUsage.line, settings)}`);
                 Log.warn(`Variable "${name}" is of type "${variablesDefined[name][0].variableType}", \
 but the command requires it to be of type ${variableUsage.variableTypes.map(t => `"${t}"`).join(" or ")}
 ${formatLineWithPrefix(variableUsage.line, settings)}
-	First definition at: ${formatLine(variablesDefined[name][0].line, settings)}`);
+	First definition: 
+${formatLineWithPrefix(variablesDefined[name][0].line, settings, "\t\t")}`);
             }
         }
     }

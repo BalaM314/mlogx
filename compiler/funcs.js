@@ -457,7 +457,7 @@ export function isCommand(line, command) {
 export function formatLine(line, settings) {
     return chalk.gray(`${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
-export function formatLineWithPrefix(line, settings, prefix = "\tat ") {
+export function formatLineWithPrefix(line, settings, prefix = "\t\tat ") {
     return chalk.gray(`${prefix}${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
 export function getCommandDefinition(cleanedLine) {

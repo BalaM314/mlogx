@@ -522,7 +522,7 @@ export function formatLine(line:Line, settings:Settings & {filename: string}):st
 }
 
 /**Displays a Line with at before it. */
-export function formatLineWithPrefix(line:Line, settings:Settings & {filename: string}, prefix:string = "\tat "):string {
+export function formatLineWithPrefix(line:Line, settings:Settings & {filename: string}, prefix:string = "\t\tat "):string {
 	return chalk.gray(`${prefix}${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
 

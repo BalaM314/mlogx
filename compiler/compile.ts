@@ -304,8 +304,10 @@ export function checkTypes(compiledProgram:string[], settings:Settings & {filena
 		if(types.length > 1){
 			Log.warn(
 `Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
-	First definition ${formatLineWithPrefix(definitions[0].line, settings, "at ")}
-	First conflicting definition ${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].line, settings, "at ")}`
+	First definition:
+${formatLineWithPrefix(definitions[0].line, settings, "\t\t")}
+	First conflicting definition:
+${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].line, settings, "\t\t")}`
 			);
 		}
 	};
@@ -327,7 +329,8 @@ ${formatLineWithPrefix(variableUsage.line, settings)}`
 `Variable "${name}" is of type "${variablesDefined[name][0].variableType}", \
 but the command requires it to be of type ${variableUsage.variableTypes.map(t => `"${t}"`).join(" or ")}
 ${formatLineWithPrefix(variableUsage.line, settings)}
-	First definition at: ${formatLine(variablesDefined[name][0].line, settings)}`
+	First definition: 
+${formatLineWithPrefix(variablesDefined[name][0].line, settings, "\t\t")}`
 				);
 			}
 		}
