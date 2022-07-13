@@ -453,6 +453,9 @@ export function isCommand(line, command) {
     }
     return [true, null];
 }
+export function formatLine(line, settings) {
+    return `${settings.filename}:${line.lineNumber} \`${line.text}\``;
+}
 export function getCommandDefinition(cleanedLine) {
     return getCommandDefinitions(cleanedLine)[0];
 }

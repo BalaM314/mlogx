@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { Arg, CompilerError } from "./classes.js";
 import commands from "./commands.js";
-import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, NamespaceStackElement, PreprocessedCommand, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
+import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, Line, NamespaceStackElement, PreprocessedCommand, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -513,6 +513,11 @@ export function isCommand(line:string, command:CommandDefinition): [valid:false,
 	}
 
 	return [true, null];
+}
+
+/**Displays a Line. */
+export function formatLine(line:Line, settings:Settings & {filename: string}):string {
+	return `${settings.filename}:${line.lineNumber} \`${line.text}\``;
 }
 
 /**Gets the first valid command definition for a command. */

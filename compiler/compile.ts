@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType, StackElement, Line } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition,  } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLine,  } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError } from "./classes.js";
 
@@ -45,7 +45,9 @@ export function compileMlogxToMlog(
 			if(err instanceof CompilerError){
 				console.error(
 `Error: ${err.message}
-	at ${settings.filename}:${+line + 1} \`${program[line]}\``
+	at ${formatLine({
+		lineNumber:+line+1, text:program[line]
+	}, settings)}`
 				);
 			} else {
 				throw err;
@@ -287,11 +289,11 @@ export function checkTypes(compiledProgram:string[], settings:Settings & {filena
 	}
 
 	//Check for conflicting definitions
-	for(let [name, variable] of Object.entries(variablesDefined)){
+	for(let [name, definitions] of Object.entries(variablesDefined)){
 		//Create a list of each definition's type and remove duplicates.
 		//If this list has more than one element there are definitions of conflicting types.
 		let types = [
-			...new Set(variable.map(el => el.variableType))
+			...new Set(definitions.map(el => el.variableType))
 		].filter(el => 
 			el != GenericArgType.valid && el != GenericArgType.any &&
 			el != GenericArgType.variable && el != GenericArgType.valid &&
@@ -302,9 +304,9 @@ export function checkTypes(compiledProgram:string[], settings:Settings & {filena
 			console.warn(
 `Warning: Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
 First definition:
-	at ${settings.filename}:${variable[0].line.lineNumber} \`${variable[0].line.text}\`
+	at ${formatLine(definitions[0].line, settings)}
 First conflicting definition:
-	at ${settings.filename}:${variable.filter(v => v.variableType == types[1])[0].line.lineNumber} \`${variable.filter(v => v.variableType == types[1])[0].line.text}\``
+	at ${formatLine(definitions.filter(v => v.variableType == types[1])[0].line, settings)}`
 			);
 		}
 	};
@@ -314,18 +316,19 @@ First conflicting definition:
 	for(let [name, variableUsages] of Object.entries(variablesUsed)){
 		if(name == "_") continue;
 		for(let variableUsage of variableUsages){
-			//If the list of possible types does not include the type of the first definition
-			if(!variablesDefined[name]){
+			if(!(name in variablesDefined)){
+				//If the variable has never been defined
 				console.warn(
 `Warning: Variable "${name}" seems to be undefined.
-	at ${settings.filename}:${variableUsage.line.lineNumber} \`${variableUsage.line.text}\``
+	at ${formatLine(variableUsage.line, settings)}`
 				);
 			} else if(!areAnyOfInputsCompatibleWithType(variableUsage.variableTypes, variablesDefined[name][0].variableType)){
+				//If the list of possible types does not include the type of the first definition
 				console.warn(
 `Warning: variable "${name}" is of type "${variablesDefined[name][0].variableType}",\
-but the command requires it to be of type [${variableUsage.variableTypes.map(t => `"${t}"`).join(", ")}]
-	at ${settings.filename}:${variableUsage.line.lineNumber} \`${variableUsage.line.text}\`
-	First definition at: ${settings.filename}:${variablesDefined[name][0].line.lineNumber} \`${variablesDefined[name][0].line.text}\``
+but the command requires it to be of type ${variableUsage.variableTypes.map(t => `"${t}"`).join(" or ")}
+	at ${formatLine(variableUsage.line, settings)}
+	First definition at: ${formatLine(variablesDefined[name][0].line, settings)}`
 				);
 			}
 		}
@@ -337,7 +340,7 @@ but the command requires it to be of type [${variableUsage.variableTypes.map(t =
 			console.warn(`Warning: Jump label ${jumpLabel} was defined ${definitions.length} times.`);
 			definitions.forEach(definition => 
 				console.warn(
-`	at ${settings.filename}:${definition.line.lineNumber} \`${definition.line.text}\``
+`	at ${formatLine(definition.line, settings)}`
 				)
 			);
 		}
@@ -349,7 +352,7 @@ but the command requires it to be of type [${variableUsage.variableTypes.map(t =
 			console.warn(`Warning: Jump label ${jumpLabel} is missing.`);
 			usages.forEach(usage => 
 				console.warn(
-`${settings.filename}:${usage.line.lineNumber} \`${usage.line.text}\``
+`	at ${formatLine(usage.line, settings)}`
 				)
 			);
 		}
@@ -370,54 +373,4 @@ export function getOutputForCommand(args:string[], command:CommandDefinition, st
 		});
 	}
 	return [ addNamespacesToLine(args, command, stack) ];
-}
-
-/**Checks if a command is valid for a command definition.*/
-export function checkCommand(command:CommandDefinition, line:string): {
-	ok: boolean
-	replace?: string[],
-	error?: CommandError
-} {
-	let args = splitLineIntoArguments(line);
-	let commandArguments = args.slice(1);
-	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
-		return {
-			ok: false,
-			error: {
-				type: CommandErrorType.argumentCount,
-				message:
-`Incorrect number of arguments for command "${args[0]}"
-	at \`${line}\`
-Correct usage: ${args[0]} ${command.args.map(arg => arg.toString()).join(" ")}`
-			}
-		};
-	}
-
-	for(let arg in commandArguments){
-		if(!isArgOfType(commandArguments[+arg], command.args[+arg])){
-			return {
-				ok: false,
-				error: {
-					type: CommandErrorType.type,
-					message:
-`Type mismatch: value "${commandArguments[+arg]}" was expected to be of type "${command.args[+arg].isVariable ? "variable" : command.args[+arg].type}", but was of type "${typeofArg(commandArguments[+arg])}"
-	at \`${line}\``
-				}
-			};
-		}
-		
-	}
-
-
-
-	if(command.replace){
-		return {
-			ok: true,
-			replace: command.replace(args),
-		};
-	}
-
-	return {
-		ok: true
-	};
 }
