@@ -37,6 +37,7 @@
     "mlogx": "./compiler/index.js"
   },
   "dependencies": {
+    "chalk": "^5.0.1",
     "cli-app": "github:BalaM314/cli-app",
     "jasmine": "^4.2.0"
   }
