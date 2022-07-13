@@ -14,7 +14,7 @@ import { commands } from "./commands.js";
 import { checkTypes, compileMlogxToMlog } from "./compile.js";
 import { addJumpLabels, askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
-import { CompilerError } from "./classes.js";
+import { CompilerError, Log } from "./classes.js";
 import { Settings } from "./types.js";
 import { Application } from "cli-app";
 
@@ -22,7 +22,7 @@ const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
 	let command = opts.positionalArgs[0]!;
 	if(!commands[command]){
-		console.log(`Unknown command ${command}`);
+		console.error(`Unknown command ${command}`);
 		return 1;
 	} else {
 		console.log(
@@ -416,8 +416,8 @@ async function createProject(name:string|undefined){
 try {
 	main(process.argv);
 } catch(err){
-	console.error("Unhandled runtime error!");
-	console.error(err);
-	console.error("Please report this to BalaM314 by pinging him on discord.");
+	Log.fatal("Unhandled runtime error!");
+	Log.dump(err);
+	Log.fatal("Please report this to BalaM314 by pinging him on discord.");
 	process.exit(1);
 }

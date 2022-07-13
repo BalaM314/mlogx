@@ -1,4 +1,4 @@
-import { Arg } from "./classes.js";
+import { Arg, Log } from "./classes.js";
 import commands from "./commands.js";
 import { CommandErrorType, GenericArgType } from "./types.js";
 import * as readline from "readline";
@@ -143,7 +143,7 @@ export function isArgOfType(argToCheck, arg) {
             ].includes(argToCheck);
         case GenericArgType.operand:
             if (["atan2", "dst"].includes(argToCheck)) {
-                console.warn(`${argToCheck} is deprecated.`);
+                Log.warn(`${argToCheck} is deprecated.`);
                 return true;
             }
             return [
@@ -505,7 +505,7 @@ export function parsePreprocessorDirectives(data) {
     return [program_type, required_vars, author];
 }
 export function exit(message) {
-    console.error(message);
+    Log.fatal(message);
     process.exit(1);
 }
 export function askQuestion(query) {

@@ -21,3 +21,26 @@ export class CompilerError extends Error {
         this.name = "CompilerError";
     }
 }
+export class Log {
+    static debug(message) {
+        console.log(`[DEBUG] ${message}`);
+    }
+    static dump(...objects) {
+        console.log(`[DEBUG]`, objects);
+    }
+    static info(message) {
+        console.log(`[INFO] ${message}`);
+    }
+    static announce(message) {
+        console.log(`${message}`);
+    }
+    static warn(message) {
+        console.warn(`[WARN] ${message}`);
+    }
+    static err(message) {
+        console.error(`[ERROR] ${message}`);
+    }
+    static fatal(message) {
+        console.error(`[FATAL] ${message}`);
+    }
+}

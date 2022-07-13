@@ -6,9 +6,9 @@ mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANT
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 */
 
-import { Arg, CompilerError } from "./classes.js";
+import { Arg, Log } from "./classes.js";
 import commands from "./commands.js";
-import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, Line, NamespaceStackElement, PreprocessedCommand, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
+import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, Line, NamespaceStackElement, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -137,7 +137,7 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 			].includes(argToCheck);
 		case GenericArgType.operand:
 			if(["atan2", "dst"].includes(argToCheck)){
-				console.warn(`${argToCheck} is deprecated.`);
+				Log.warn(`${argToCheck} is deprecated.`);
 				return true;
 			}
 			return [
@@ -586,7 +586,7 @@ export function parsePreprocessorDirectives(data:string[]): [string, string[], s
 
 /**oh no */
 export function exit(message: string):never {
-	console.error(message);
+	Log.fatal(message);
 	process.exit(1);
 }
 

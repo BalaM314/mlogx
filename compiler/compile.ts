@@ -7,10 +7,10 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { Settings, ArgType, CommandError, GenericArgType, CommandDefinition, CommandErrorType, StackElement, Line } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, isArgOfType, typeofArg, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLine,  } from "./funcs.js";
+import { Settings, ArgType, GenericArgType, CommandDefinition, CommandErrorType, StackElement, Line } from "./types.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLine,  } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
-import { CompilerError } from "./classes.js";
+import { CompilerError, Log } from "./classes.js";
 
 export function compileMlogxToMlog(
 	program:string[],
@@ -29,7 +29,7 @@ export function compileMlogxToMlog(
 		if(requiredVarCode[requiredVar])
 			outputData.push(...requiredVarCode[requiredVar]);
 		else
-			console.warn("Unknown require " + requiredVar, settings);
+			Log.warn("Unknown require " + requiredVar);
 	}
 	
 	//Loop through each line and compile it
@@ -43,8 +43,8 @@ export function compileMlogxToMlog(
 			}
 		} catch(err){
 			if(err instanceof CompilerError){
-				console.error(
-`Error: ${err.message}
+				Log.err(
+`${err.message}
 	at ${formatLine({
 		lineNumber:+line+1, text:program[line]
 	}, settings)}`
@@ -57,8 +57,9 @@ export function compileMlogxToMlog(
 
 	//Check for unclosed blocks
 	if(stack.length !== 0){
-		console.error(`Error: Some blocks were not closed.`, settings);
-		console.error(stack);
+		Log.err(`Some blocks were not closed.`);
+		Log.dump(stack);
+		//TODO better
 	}
 
 	return outputData;
@@ -75,7 +76,7 @@ export function compileLine(
 
 	
 	if(line.includes("\u{F4321}")){
-		console.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
+		Log.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
 	}
 	
 	let cleanedLine = cleanLine(line);
@@ -301,8 +302,8 @@ export function checkTypes(compiledProgram:string[], settings:Settings & {filena
 		).map(el => el == "boolean" ? "number" : el);
 		//TODO do this properly
 		if(types.length > 1){
-			console.warn(
-`Warning: Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
+			Log.warn(
+`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
 First definition:
 	at ${formatLine(definitions[0].line, settings)}
 First conflicting definition:
@@ -318,14 +319,14 @@ First conflicting definition:
 		for(let variableUsage of variableUsages){
 			if(!(name in variablesDefined)){
 				//If the variable has never been defined
-				console.warn(
-`Warning: Variable "${name}" seems to be undefined.
+				Log.warn(
+`Variable "${name}" seems to be undefined.
 	at ${formatLine(variableUsage.line, settings)}`
 				);
 			} else if(!areAnyOfInputsCompatibleWithType(variableUsage.variableTypes, variablesDefined[name][0].variableType)){
 				//If the list of possible types does not include the type of the first definition
-				console.warn(
-`Warning: variable "${name}" is of type "${variablesDefined[name][0].variableType}",\
+				Log.warn(
+`Variable "${name}" is of type "${variablesDefined[name][0].variableType}",\
 but the command requires it to be of type ${variableUsage.variableTypes.map(t => `"${t}"`).join(" or ")}
 	at ${formatLine(variableUsage.line, settings)}
 	First definition at: ${formatLine(variablesDefined[name][0].line, settings)}`
@@ -337,9 +338,9 @@ but the command requires it to be of type ${variableUsage.variableTypes.map(t =>
 	//Check for redefined jump labels
 	for(let [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)){
 		if(definitions.length > 1){
-			console.warn(`Warning: Jump label ${jumpLabel} was defined ${definitions.length} times.`);
+			Log.warn(`Jump label ${jumpLabel} was defined ${definitions.length} times.`);
 			definitions.forEach(definition => 
-				console.warn(
+				Log.warn(
 `	at ${formatLine(definition.line, settings)}`
 				)
 			);
@@ -349,9 +350,9 @@ but the command requires it to be of type ${variableUsage.variableTypes.map(t =>
 	//Check for undefined jump labels
 	for(let [jumpLabel, usages] of Object.entries(jumpLabelsUsed)){
 		if(!jumpLabelsDefined[jumpLabel]){
-			console.warn(`Warning: Jump label ${jumpLabel} is missing.`);
+			Log.warn(`Jump label ${jumpLabel} is missing.`);
 			usages.forEach(usage => 
-				console.warn(
+				Log.warn(
 `	at ${formatLine(usage.line, settings)}`
 				)
 			);

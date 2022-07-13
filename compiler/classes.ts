@@ -6,6 +6,7 @@ mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANT
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 */
 
+import chalk from "chalk";
 import { ArgType } from "./types";
 
 /**Represents an argument(type) for a command.*/
@@ -32,4 +33,36 @@ export class CompilerError extends Error {
 		super(...arguments);
 		this.name = "CompilerError";
 	}
+}
+
+export class Log {
+	/**For debug information. */
+	static debug(message:string){
+		console.log(`[DEBUG] ${message}`);
+	}
+	/**Dumps objects */
+	static dump(...objects:any[]){
+		console.log(`[DEBUG]`, objects);
+	}
+	/**For general info. */
+	static info(message:string){
+		console.log(`[INFO] ${message}`);
+	}
+	/**Used by the program to announce what it is doing. */
+	static announce(message:string){
+		console.log(`${message}`);
+	}
+	/**Warnings */
+	static warn(message:string){
+		console.warn(`[WARN] ${message}`);
+	}
+	/**Errors */
+	static err(message:string){
+		console.error(`[ERROR] ${message}`);
+	}
+	/**Fatal errors */
+	static fatal(message:string){
+		console.error(`[FATAL] ${message}`);
+	}
+
 }
