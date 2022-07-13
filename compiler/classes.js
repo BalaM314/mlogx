@@ -30,10 +30,10 @@ export class Log {
         console.log(`[DEBUG]`, objects);
     }
     static info(message) {
-        console.log(chalk.white(` [INFO]\t${message}`));
+        console.log(chalk.white(`[INFO]\t${message}`));
     }
     static warn(message) {
-        console.warn(chalk.yellow(` [WARN]\t${message}`));
+        console.warn(chalk.yellow(`[WARN]\t${message}`));
     }
     static err(message) {
         console.error(chalk.redBright(`[ERROR]\t${message}`));
@@ -41,8 +41,8 @@ export class Log {
     static fatal(message) {
         console.error(`[FATAL]\t${chalk.bgRed.white(message)}`);
     }
-    static announce(message) {
-        console.log(chalk.green(`${message}`));
+    static announce(message, ...rest) {
+        console.log(chalk.blueBright(`${message}`), ...rest);
     }
     static none(message) {
         console.log(message);

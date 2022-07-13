@@ -17,16 +17,21 @@ import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import { Settings } from "./types.js";
 import { Application } from "cli-app";
+import chalk from "chalk";
 
 const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
 	let command = opts.positionalArgs[0]!;
+	if(command.includes(" ")){
+		Log.err(`Commands cannot contain spaces.`);
+		return 1;
+	}
 	if(!commands[command]){
-		console.error(`Unknown command ${command}`);
+		Log.err(`Unknown command "${command}"`);
 		return 1;
 	} else {
-		console.log(
-`${command}
+		Log.none(chalk.white(
+`Info for command "${command}"
 Usage:
 
 ${commands[command].map(
@@ -34,7 +39,7 @@ commandDefinition => command + " " + commandDefinition.args
 	.map(arg => arg.toString())
 	.join(" ") + "\n" + commandDefinition.description
 ).join("\n\n")}
-`
+`)
 		);//todo clean this up ^^
 		return 0;
 	}
@@ -50,7 +55,7 @@ commandDefinition => command + " " + commandDefinition.args
 
 mlogx.command("init", "Creates a new project", (opts) => {
 	createProject(opts.positionalArgs[0] as string|undefined)
-		.catch(err => console.error(err?.message ?? err));
+		.catch(err => Log.err(err?.message ?? err));
 }, false, {
 	positionalArgs: [
 		{
@@ -64,24 +69,23 @@ mlogx.command("init", "Creates a new project", (opts) => {
 
 mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 	if("init" in opts.namedArgs){
-		console.error(`"${app.name} --init" was moved to "${app.name} init".`); return 1;
+		Log.err(`"${app.name} --init" was moved to "${app.name} init".`); return 1;
 	}
 	if("info" in opts.namedArgs){
-		console.error(`"${app.name} --info" was moved to "${app.name} info".`); return 1;
+		Log.err(`"${app.name} --info" was moved to "${app.name} info".`); return 1;
 	}
 
 	const target = opts.positionalArgs[0] ?? process.cwd();
 
 	if("watch" in opts.namedArgs){
 		let lastCompiledTime = Date.now();
-		console.log(opts.positionalArgs);
 		compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
 		fs.watch(target, {
 			recursive: true
 		}, (type, filename) => {
 			if(filename?.toString().endsWith(".mlogx")){
 				if(Date.now() - lastCompiledTime > 1000){//WINDOWSSSSSSS
-					console.log(`\nFile changes detected! ${filename.toString()}`);
+					Log.announce(`\nFile changes detected! ${filename.toString()}`);
 
 					let parentdirs = filename.toString().split(path.sep).slice(0, -1);
 					let dirToCompile:string;
@@ -99,7 +103,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 					} else {
 						dirToCompile = process.cwd();
 					}
-					console.log(`Compiling directory ${dirToCompile}`);
+					Log.announce(`Compiling directory ${dirToCompile}`);
 
 
 					compileDirectory(dirToCompile, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
@@ -110,15 +114,15 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 		return -1;
 	}
 	if(!fs.existsSync(target)){
-		console.error(`Invalid path specified.\nPath ${target} does not exist.`);
+		Log.err(`Invalid path specified.\nPath ${target} does not exist.`);
 		return 1;
 	}
 	if(fs.lstatSync(target).isDirectory()){
-		console.log(`Compiling folder ${target}`);
+		Log.announce(`Compiling folder ${target}`);
 		compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
 		return 0;
 	} else {
-		console.error(`Compiling file ${target}`);
+		Log.announce(`Compiling file ${target}`);
 		compileFile(target, defaultSettings);
 		return 0;
 	}
@@ -139,18 +143,18 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded jumps.", (opts, app) => {
 	const target = opts.positionalArgs[0];
 	if(!fs.existsSync(target)){
-		console.error(`Invalid path specified.\nPath ${target} does not exist.`);
+		Log.err(`Invalid path specified.\nPath ${target} does not exist.`);
 		return 1;
 	}
 	if(fs.lstatSync(target).isDirectory()){
-		console.error(`Invalid path specified.\nPath ${target} is a directory.`);
+		Log.err(`Invalid path specified.\nPath ${target} is a directory.`);
 		return 1;
 	} else {
-		console.log(`This command was made by looking at SByte's python code.`);
-		console.log(`Adding jump labels to file ${target}`);
+		Log.none(chalk.gray(`This command was made by looking at SByte's python code.`));
+		Log.announce(`Adding jump labels to file ${target}`);
 		const data = fs.readFileSync(target, "utf-8").split(/\r?\n/g);
 		const output = addJumpLabels(data);
-		console.log(`Writing to ${opts.namedArgs["output"]!}`);
+		Log.announce(`Writing to ${opts.namedArgs["output"]!}`);
 		fs.writeFileSync(opts.namedArgs["output"]!, output.join("\r\n"));
 		return 0;
 	}
@@ -180,12 +184,12 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 			...JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"))
 		};
 		if((settings as any)["compilerVariables"]){
-			console.warn(`settings.compilerVariables is deprecated, please use settings.compilerConsts instead.`);
+			Log.warn(`settings.compilerVariables is deprecated, please use settings.compilerConsts instead.`);
 			settings.compilerConstants = (settings as any)["compilerVariables"];
 		}
 		//Todo: config file validation
 	} catch(err){
-		console.log("No config.json found, using default settings.");
+		Log.debug("No valid config.json found, using default settings.");
 	}
 	
 	const icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
@@ -193,7 +197,7 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 	let srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
 
 	if(!srcDirectoryExists && settings.compilerOptions.mode == "project"){
-		console.error(`Compiler mode set to "project" but no src directory found.`);
+		Log.warn(`Compiler mode set to "project" but no src directory found.`);
 		settings.compilerOptions.mode = "single";
 	}
 	if(srcDirectoryExists){
@@ -214,7 +218,7 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 	/**List of filenames ending in .mlog in the src directory. */
 	let filelist_mlog:string[] = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlog$/));
 	let filelist_stdlib:string[] = fs.readdirSync(stdlibDirectory).filter(filename => filename.match(/\.mlog/));
-	console.log("Files to compile: ", filelist_mlogx);
+	Log.announce("Files to compile: ", filelist_mlogx);
 
 	let compiledData: {
 		[index: string]: string[];
@@ -233,7 +237,7 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 	for(let filename of filelist_mlogx){
 		//For each filename in the file list
 
-		console.log(`Compiling file ${filename}`);
+		Log.announce(`Compiling file ${filename}`);
 		let data:string[] = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split(/\r?\n/g);
 		//Load the data
 		
@@ -251,11 +255,11 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 				...settings.compilerConstants,
 			});
 		} catch(err){
-			console.error(`Failed to compile file ${filename}!`);
+			Log.err(`Failed to compile file ${filename}!`);
 			if(err instanceof CompilerError)
-				console.error(err.message);
-			else 
-				console.error(err);
+				Log.err(err.message);
+			else
+				Log.dump(err);
 			return;
 		}
 		if(settings.compilerOptions.mode == "single"){
@@ -268,7 +272,7 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 					}, data);
 				} catch(err){
 					if(err instanceof CompilerError)
-						console.error((err as any).message);
+						Log.err(err.message);
 					else
 						throw err;
 				}
@@ -302,8 +306,8 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 				mainData = fs.readFileSync(`src/${filename}`, 'utf-8').split(/\r?\n/g);
 			}
 		}
-		console.log("Compiled all files successfully.");
-		console.log("Assembling output:");
+		Log.announce("Compiled all files successfully.");
+		Log.announce("Assembling output:");
 
 		let outputData:string[] = [
 			...mainData, "end", "",
@@ -329,7 +333,7 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 				});
 			} catch(err){
 				if(err instanceof CompilerError)
-					console.error((err as any).message);
+					Log.err(err.message);
 				else
 					throw err;
 			}
@@ -341,7 +345,7 @@ function compileDirectory(directory:string, stdlibPath:string, settings:Settings
 			outputData.join("\r\n")
 		);
 	}
-	console.log("Done!");
+	Log.announce("Done!");
 }
 
 function compileFile(name:string, settings:Settings){
@@ -362,11 +366,13 @@ function compileFile(name:string, settings:Settings){
 			...settings.compilerConstants,
 		});
 	} catch(err){
-		console.error(`Failed to compile file ${name}!`);
-			if(err instanceof CompilerError)
-				console.error(err.message);
-			else 
-				console.error(err);
+		Log.err(`Failed to compile file ${name}!`);
+			if(err instanceof CompilerError){
+				Log.err(err.message);
+			} else {
+				Log.err("Unhandled error:")
+				Log.dump(err);
+			}
 			return;
 	}
 
@@ -378,7 +384,7 @@ function compileFile(name:string, settings:Settings){
 			});
 		} catch(err){
 			if(err instanceof CompilerError)
-				console.error((err as any).message);
+				Log.err(err.message);
 			else
 				throw err;
 		}
@@ -409,7 +415,7 @@ async function createProject(name:string|undefined){
 			mode: "project"
 		}
 	}, null, "\t"), "utf-8");
-	console.log(`Successfully created a new project in ${path.join(process.cwd(), name)}`);
+	Log.announce(`Successfully created a new project in ${path.join(process.cwd(), name)}`);
 	return true;
 }
 

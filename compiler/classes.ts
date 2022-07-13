@@ -46,11 +46,11 @@ export class Log {
 	}
 	/**For general info. */
 	static info(message:string){
-		console.log(chalk.white(` [INFO]\t${message}`));
+		console.log(chalk.white(`[INFO]\t${message}`));
 	}
 	/**Warnings */
 	static warn(message:string){
-		console.warn(chalk.yellow(` [WARN]\t${message}`));
+		console.warn(chalk.yellow(`[WARN]\t${message}`));
 	}
 	/**Errors */
 	static err(message:string){
@@ -61,8 +61,8 @@ export class Log {
 		console.error(`[FATAL]\t${chalk.bgRed.white(message)}`);
 	}
 	/**Used by the program to announce what it is doing. */
-	static announce(message:string){
-		console.log(chalk.green(`${message}`));
+	static announce(message:string, ...rest:any[]){
+		console.log(chalk.blueBright(`${message}`), ...rest);
 	}
 	/**Just prints a message without any formatting */
 	static none(message:string){
