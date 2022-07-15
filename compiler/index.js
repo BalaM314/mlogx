@@ -8,6 +8,7 @@ import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import { Application } from "cli-app";
 import chalk from "chalk";
+import deepmerge from "deepmerge";
 const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
     let command = opts.positionalArgs[0];
@@ -59,6 +60,10 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
         return 1;
     }
     const target = opts.positionalArgs[0] ?? process.cwd();
+    if ("verbose" in opts.namedArgs) {
+        Log.announce("Using verbose mode");
+        defaultSettings.compilerOptions.verbose = true;
+    }
     if ("watch" in opts.namedArgs) {
         let lastCompiledTime = Date.now();
         compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
@@ -118,6 +123,10 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
         watch: {
             description: "Whether to watch for and compile on file changes instead of exiting immediately.",
             needsValue: false
+        },
+        verbose: {
+            description: "Whether to be verbose and output error messages for all overloads.",
+            needsValue: false
         }
     }
 }, ["build"]);
@@ -156,13 +165,11 @@ mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded j
 function main(argv) {
     mlogx.run(argv);
 }
-function compileDirectory(directory, stdlibPath, settings) {
+function compileDirectory(directory, stdlibPath, defaultSettings) {
+    let settings = defaultSettings;
     try {
         fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
-        settings = {
-            ...settings,
-            ...JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"))
-        };
+        settings = deepmerge(defaultSettings, JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8")));
         if (settings["compilerVariables"]) {
             Log.warn(`settings.compilerVariables is deprecated, please use settings.compilerConsts instead.`);
             settings.compilerConstants = settings["compilerVariables"];

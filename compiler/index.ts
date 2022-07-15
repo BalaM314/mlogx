@@ -18,6 +18,7 @@ import { CompilerError, Log } from "./classes.js";
 import { Settings } from "./types.js";
 import { Application } from "cli-app";
 import chalk from "chalk";
+import deepmerge from "deepmerge";
 
 const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
@@ -76,6 +77,10 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 	}
 
 	const target = opts.positionalArgs[0] ?? process.cwd();
+	if("verbose" in opts.namedArgs){
+		Log.announce("Using verbose mode");
+		defaultSettings.compilerOptions.verbose = true;
+	}
 
 	if("watch" in opts.namedArgs){
 		let lastCompiledTime = Date.now();
@@ -136,6 +141,10 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 		watch: {
 			description: "Whether to watch for and compile on file changes instead of exiting immediately.",
 			needsValue: false
+		},
+		verbose: {
+			description: "Whether to be verbose and output error messages for all overloads.",
+			needsValue: false
 		}
 	}
 }, ["build"]);
@@ -176,13 +185,14 @@ function main(argv: string[]){
 	mlogx.run(argv);
 }
 
-function compileDirectory(directory:string, stdlibPath:string, settings:Settings){
+function compileDirectory(directory:string, stdlibPath:string, defaultSettings:Settings){
+	let settings = defaultSettings;
 	try {
 		fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
-		settings = {
-			...settings,
-			...JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"))
-		};
+		settings = deepmerge(
+			defaultSettings,
+			JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"))
+		);
 		if((settings as any)["compilerVariables"]){
 			Log.warn(`settings.compilerVariables is deprecated, please use settings.compilerConsts instead.`);
 			settings.compilerConstants = (settings as any)["compilerVariables"];

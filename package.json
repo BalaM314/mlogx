@@ -39,6 +39,7 @@
   "dependencies": {
     "chalk": "^5.0.1",
     "cli-app": "github:BalaM314/cli-app",
+    "deepmerge": "^4.2.2",
     "jasmine": "^4.2.0"
   }
 }

@@ -17,6 +17,7 @@ export const defaultSettings:Settings = {
 	authors: [],
 	compilerOptions: {
 		include: [],
+		verbose: false,
 		removeComments: true,
 		compileWithErrors: true,
 		mode: "single",

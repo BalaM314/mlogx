@@ -172,12 +172,16 @@ export function compileLine(
 
 			//Find the right error message
 			const typeErrors = errors.filter(error => error.type == CommandErrorType.type);
-			if(typeErrors.length != 0){
-				//one of the errors was a type error
-				throw new CompilerError(typeErrors[0].message + `\nErrors for other overloads not displayed.`);
+			if(settings.compilerOptions.verbose){
+				throw new CompilerError(`Line did not match any overloads for command ${args[0]}:\n` + errors.map(err => "\t" + err.message).join("\n"));
 			} else {
-				//Otherwise there's nothing that can be done and we have to say "no overloads matched"
-				throw new CompilerError(`Line did not match any overloads for command ${args[0]}`);
+				if(typeErrors.length != 0){
+					//one of the errors was a type error
+					throw new CompilerError(typeErrors[0].message + `\nErrors for other overloads not displayed.`);
+				} else {
+					//Otherwise there's nothing that can be done and we have to say "no overloads matched"
+					throw new CompilerError(`Line did not match any overloads for command ${args[0]}`);
+				}
 			}
 		}
 	}

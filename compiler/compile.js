@@ -122,11 +122,16 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
         }
         else {
             const typeErrors = errors.filter(error => error.type == CommandErrorType.type);
-            if (typeErrors.length != 0) {
-                throw new CompilerError(typeErrors[0].message + `\nErrors for other overloads not displayed.`);
+            if (settings.compilerOptions.verbose) {
+                throw new CompilerError(`Line did not match any overloads for command ${args[0]}:\n` + errors.map(err => "\t" + err.message).join("\n"));
             }
             else {
-                throw new CompilerError(`Line did not match any overloads for command ${args[0]}`);
+                if (typeErrors.length != 0) {
+                    throw new CompilerError(typeErrors[0].message + `\nErrors for other overloads not displayed.`);
+                }
+                else {
+                    throw new CompilerError(`Line did not match any overloads for command ${args[0]}`);
+                }
             }
         }
     }

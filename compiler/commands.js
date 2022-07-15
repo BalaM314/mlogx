@@ -184,6 +184,16 @@ export const commands = processCommands({
             description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
         },
         {
+            args: "operand:operandDouble output:*number arg1:number",
+            description: "Performs an operation on (arg1) and (output), storing the result in (output).",
+            replace: ["op %1 %2 %2 %3"]
+        },
+        {
+            args: "operand:operandDouble output:*any arg1:valid",
+            description: "Performs an operation on (arg1) and (output), storing the result in (output).",
+            replace: ["op %1 %2 %2 %3"]
+        },
+        {
             args: "operand:operandSingle arg1:*number",
             description: "Performs an operation on arg1, mutating it. Example: \`op abs xDiff\`",
             replace: ["op %1 %2 %2 0"]
