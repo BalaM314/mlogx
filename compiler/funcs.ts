@@ -136,19 +136,23 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 				"equal", "notEqual", "strictEqual", "greaterThan",
 				"lessThan", "greaterThanEq", "lessThanEq", "always"
 			].includes(argToCheck);
-		case GAT.operand:
+		case GAT.operandSingle:
+			return [
+				"not", "max", "abs", "log", "log10",
+				"floor", "ceil", "sqrt", "rand", "sin",
+				"cos", "tan", "asin", "acos", "atan"
+			].includes(argToCheck);
+		case GAT.operandDouble:
 			if(["atan2", "dst"].includes(argToCheck)){
 				Log.warn(`${argToCheck} is deprecated.`);
 				return true;
 			}
 			return [
 				"add", "sub", "mul", "div", "idiv", "mod", "pow",
-				"equal", "notEqual", "land", "lessThan", "lessThanEq",
-				"greaterThan", "greaterThanEq", "strictEqual",
-				"shl", "shr", "or", "and", "xor", "not", "max",
-				"min", "angle", "len", "noise", "abs", "log",
-				"log10", "floor", "ceil", "sqrt", "rand", "sin",
-				"cos", "tan", "asin", "acos", "atan"
+				"equal", "notEqual", "land", "lessThan",
+				"lessThanEq", "greaterThan", "greaterThanEq",
+				"strictEqual", "shl", "shr", "or", "and",
+				"xor", "min", "angle", "len", "noise",
 			].includes(argToCheck);
 		case GAT.lookupType:
 			return ["building", "unit", "fluid", "item"].includes(argToCheck);

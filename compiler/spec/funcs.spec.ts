@@ -44,6 +44,8 @@ describe("isArgOfType", () => {
 			[`"amogus"`, GAT.string],
 			["sussyFlarogus", GAT.unit],
 			[`:number`, GAT.ctype],
+			[`add`, GAT.operandDouble],
+			[`cos`, GAT.operandSingle]
 		];
 		const wrongTypes: [arg:string, expectedType:ArgType][] = [
 			["@unit", GAT.building],
