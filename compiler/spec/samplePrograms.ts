@@ -1,3 +1,5 @@
+import { StackElement } from "../types";
+
 export const allMlogCommands:string[] =`\
 read result cell1 0
 write result cell1 0
@@ -59,16 +61,27 @@ export const allMlogxCommands =
 `call amogus
 return
 throw "Error"
-uflag @flare
-radar player distance foreshadow1 1 player
-
-
-`
+uflag @flare`
 .split('\n');
 
 export const allShorthandCommands: [input:string, output:string][] = [
 	[`radar enemy distance scatter1 0 unit`, `radar enemy any any distance scatter1 0 unit`],
+	[`uradar enemy distance 0 unit`, `uradar enemy any any distance 0 0 unit`],
 	[`sensor arc1.shootX`, `sensor arc1.shootX arc1 @shootX`],
 	[`sensor unit.x`, `sensor unit.x @unit @x`],
+	[`op abs xDiff`, `op abs xDiff xDiff 0`],
+	[`ulocate ore @copper ore.x ore.y ore.found`, `ulocate ore core _ @copper ore.x ore.y ore.found _`],
+	[`ulocate spawn spawn.x spawn.y spawn.found`, `ulocate spawn core _ _ spawn.x spawn.y spawn.found _`],
+	[`ulocate damaged damaged.x damaged.y damaged.found damaged`, `ulocate damaged core _ _ damaged.x damaged.y damaged.found damaged`],
+	[`ulocate building core true core.x core.y core.exists core`, `ulocate building core true _ core.x core.y core.exists core`]
+	
+];
+
+export const startNamespace = `namespace testname {`;
+
+export const namespaceTests: [input:string, stack:StackElement[], output:string][] = [
+	[`set x 5`, [{type: "namespace", name: "nametest"}], `set _nametest_x 5`],
+	[`radar enemy distance scatter1 0 unit`, [{type: "namespace", name: "nametest"}], `radar enemy any any distance scatter1 0 _nametest_unit`],
+	[`radar enemy distance scatter1 0 unit`, [{type: "namespace", name: "nametest"}, {type: "namespace", name: "othername"}], `radar enemy any any distance scatter1 0 _nametest_othername_unit`],
 	
 ];
