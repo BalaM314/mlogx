@@ -101,14 +101,22 @@ describe("cleanLine", () => {
 describe("replaceCompilerConstants", () => {
 	const sampleVars = {
 		mog: "amogus",
-		e: "building core true"
+		e: "building core true",
+		err: "thingy",
+		"memcellpos.mode": "5"
 	};
 	it("should not modify lines without compiler constants", () => {
 		expect(replaceCompilerConstants(`print "x + 5 is $amogus"`, sampleVars)).toBe(`print "x + 5 is $amogus"`);
 	});
 	it("should replace compiler constants", () => {
 		expect(replaceCompilerConstants(`print "$mog"`, sampleVars)).toBe(`print "amogus"`);
+		expect(replaceCompilerConstants(`write x cell1 $memcellpos.mode`, sampleVars)).toBe(`write x cell1 5`);
+		expect(replaceCompilerConstants(`print "$err"`, sampleVars)).toBe(`print "building core truerr"`);
 		//todo add more
+	});
+	it("should replace compiler constants when parentheses are used", () => {
+		expect(replaceCompilerConstants(`print "$(mog)"`, sampleVars)).toBe(`print "amogus"`);
+		expect(replaceCompilerConstants(`print "$(err)"`, sampleVars)).toBe(`print "thingy"`);
 	});
 })
 

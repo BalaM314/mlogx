@@ -181,7 +181,7 @@ export function removeTrailingSpaces(line:string):string {
 
 export function replaceCompilerConstants(line:string, variables: {[index: string]: string;}):string {
 	for(let [key, value] of Object.entries(variables)){
-		line = line.replaceAll(`$${key}`, value);
+		line = line.replace(new RegExp(`(\\$\\(${key}\\))|(\\$${key})`, "g"), value);
 	}
 	return line;
 }
