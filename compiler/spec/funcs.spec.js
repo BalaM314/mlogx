@@ -4,10 +4,10 @@ import { addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, get
 import { getVariablesDefined } from "../funcs.js";
 import { cleanLine } from "../funcs.js";
 import { isGenericArg, typeofArg } from "../funcs.js";
-import { GenericArgType } from "../types.js";
+import { GAT } from "../types.js";
 describe("isGenericArg", () => {
     it("should determine if an arg is generic", () => {
-        for (let genericArg of Object.values(GenericArgType)) {
+        for (let genericArg of Object.values(GAT)) {
             expect(isGenericArg(genericArg)).toBe(true);
         }
     });
@@ -15,13 +15,13 @@ describe("isGenericArg", () => {
 describe("typeofArg", () => {
     it("should determine the type of an arg", () => {
         const args = [
-            ["@unit", GenericArgType.unit],
-            ["@thisx", GenericArgType.number],
-            ["@this", GenericArgType.building],
-            ["greaterThanEq", GenericArgType.operandTest],
-            ["-50.2", GenericArgType.number],
-            [`"amogus"`, GenericArgType.string],
-            [`:number`, GenericArgType.ctype],
+            ["@unit", GAT.unit],
+            ["@thisx", GAT.number],
+            ["@this", GAT.building],
+            ["greaterThanEq", GAT.operandTest],
+            ["-50.2", GAT.number],
+            [`"amogus"`, GAT.string],
+            [`:number`, GAT.ctype],
         ];
         for (let [arg, expectedOutput] of args) {
             expect(typeofArg(arg)).toBe(expectedOutput);
@@ -31,23 +31,23 @@ describe("typeofArg", () => {
 describe("isArgOfType", () => {
     it("should determine if an arg is of specified type", () => {
         const correctTypes = [
-            ["@unit", GenericArgType.unit],
-            ["@thisx", GenericArgType.number],
-            ["@this", GenericArgType.building],
-            ["greaterThanEq", GenericArgType.operandTest],
-            ["-50.2", GenericArgType.number],
-            [`"amogus"`, GenericArgType.string],
-            ["sussyFlarogus", GenericArgType.unit],
-            [`:number`, GenericArgType.ctype],
+            ["@unit", GAT.unit],
+            ["@thisx", GAT.number],
+            ["@this", GAT.building],
+            ["greaterThanEq", GAT.operandTest],
+            ["-50.2", GAT.number],
+            [`"amogus"`, GAT.string],
+            ["sussyFlarogus", GAT.unit],
+            [`:number`, GAT.ctype],
         ];
         const wrongTypes = [
-            ["@unit", GenericArgType.building],
-            ["@thisx", GenericArgType.operandTest],
-            ["@this", GenericArgType.string],
-            ["greaterThanEq", GenericArgType.buildingGroup],
-            ["-50.2", GenericArgType.unit],
-            [`"amogus"`, GenericArgType.number],
-            [`:number`, GenericArgType.variable],
+            ["@unit", GAT.building],
+            ["@thisx", GAT.operandTest],
+            ["@this", GAT.string],
+            ["greaterThanEq", GAT.buildingGroup],
+            ["-50.2", GAT.unit],
+            [`"amogus"`, GAT.number],
+            [`:number`, GAT.variable],
         ];
         for (let [arg, expectedType] of correctTypes) {
             expect(isArgOfType(arg, new Arg(expectedType))).toBe(true);

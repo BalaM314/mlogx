@@ -1,4 +1,4 @@
-import { GenericArgType, CommandErrorType } from "./types.js";
+import { GAT, CommandErrorType } from "./types.js";
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
@@ -204,9 +204,9 @@ export function checkTypes(compiledProgram, settings, uncompiledProgram) {
     for (let [name, definitions] of Object.entries(variablesDefined)) {
         let types = [
             ...new Set(definitions.map(el => el.variableType))
-        ].filter(el => el != GenericArgType.valid && el != GenericArgType.any &&
-            el != GenericArgType.variable && el != GenericArgType.valid &&
-            el != GenericArgType.null).map(el => el == "boolean" ? "number" : el);
+        ].filter(el => el != GAT.valid && el != GAT.any &&
+            el != GAT.variable && el != GAT.valid &&
+            el != GAT.null).map(el => el == "boolean" ? "number" : el);
         if (types.length > 1) {
             Log.warn(`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
 	First definition:

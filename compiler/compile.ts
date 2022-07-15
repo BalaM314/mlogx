@@ -7,7 +7,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { Settings, ArgType, GenericArgType, CommandDefinition, CommandErrorType, StackElement, Line } from "./types.js";
+import { Settings, ArgType, GAT, CommandDefinition, CommandErrorType, StackElement, Line } from "./types.js";
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLine, formatLineWithPrefix,  } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
@@ -296,9 +296,9 @@ export function checkTypes(compiledProgram:string[], settings:Settings & {filena
 		let types = [
 			...new Set(definitions.map(el => el.variableType))
 		].filter(el => 
-			el != GenericArgType.valid && el != GenericArgType.any &&
-			el != GenericArgType.variable && el != GenericArgType.valid &&
-			el != GenericArgType.null
+			el != GAT.valid && el != GAT.any &&
+			el != GAT.variable && el != GAT.valid &&
+			el != GAT.null
 		).map(el => el == "boolean" ? "number" : el);
 		//TODO do this properly
 		if(types.length > 1){

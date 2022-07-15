@@ -1,4 +1,4 @@
-import { GenericArgType } from "./types.js";
+import { GAT } from "./types.js";
 export const compilerMark = [`print "Made with mlogx"`,
     `print "github.com/BalaM314/mlogx/"`];
 export const defaultSettings = {
@@ -22,7 +22,7 @@ export const requiredVarCode = {
 };
 export const processorVariables = {
     "@counter": [{
-            variableType: GenericArgType.number,
+            variableType: GAT.number,
             line: {
                 text: "[processor variable]",
                 lineNumber: 0

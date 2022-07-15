@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { Arg, Log } from "./classes.js";
 import commands from "./commands.js";
-import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GenericArgType, Line, NamespaceStackElement, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
+import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -65,78 +65,78 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 }
 
 /**Returns if an argument is generic or not. */
-export function isGenericArg(val:string): val is GenericArgType {
-	return GenericArgType[val as GenericArgType] != undefined;
+export function isGenericArg(val:string): val is GAT {
+	return GAT[val as GAT] != undefined;
 }
 
 /**Estimates the type of an argument. May not be right.*/
-export function typeofArg(arg:string):GenericArgType {
-	if(arg == "") return GenericArgType.invalid;
-	if(arg == undefined) return GenericArgType.invalid;
+export function typeofArg(arg:string):GAT {
+	if(arg == "") return GAT.invalid;
+	if(arg == undefined) return GAT.invalid;
 	if(arg.match(/@[a-z\-]+/i)){
-		if(arg == "@unit") return GenericArgType.unit;
-		if(arg == "@thisx") return GenericArgType.number;
-		if(arg == "@thisy") return GenericArgType.number;
-		if(arg == "@this") return GenericArgType.building;
-		if(arg == "@ipt") return GenericArgType.number;
-		if(arg == "@links") return GenericArgType.number;
-		if(arg == "@time") return GenericArgType.number;
-		if(arg == "@tick") return GenericArgType.number;
-		if(arg == "@mapw") return GenericArgType.number;
-		if(arg == "@maph") return GenericArgType.number;
-		if(arg == "@counter") return GenericArgType.variable;
-		return GenericArgType.type;
+		if(arg == "@unit") return GAT.unit;
+		if(arg == "@thisx") return GAT.number;
+		if(arg == "@thisy") return GAT.number;
+		if(arg == "@this") return GAT.building;
+		if(arg == "@ipt") return GAT.number;
+		if(arg == "@links") return GAT.number;
+		if(arg == "@time") return GAT.number;
+		if(arg == "@tick") return GAT.number;
+		if(arg == "@mapw") return GAT.number;
+		if(arg == "@maph") return GAT.number;
+		if(arg == "@counter") return GAT.variable;
+		return GAT.type;
 	}
-	if(arg.match(/:\w+/i)) return GenericArgType.ctype;
-	if(["null"].includes(arg)) return GenericArgType.null;
-	if(["equal", "notEqual", "strictEqual", "greaterThan", "lessThan", "greaterThanEq", "lessThanEq", "always"].includes(arg)) return GenericArgType.operandTest;
+	if(arg.match(/:\w+/i)) return GAT.ctype;
+	if(["null"].includes(arg)) return GAT.null;
+	if(["equal", "notEqual", "strictEqual", "greaterThan", "lessThan", "greaterThanEq", "lessThanEq", "always"].includes(arg)) return GAT.operandTest;
 	// if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
 	// if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;
-	if(["true", "false"].includes(arg)) return GenericArgType.boolean;
-	if(arg.match(/^-?\d+(\.\d+)?$/)) return GenericArgType.number;
-	if(arg.match(/^"[^"]*"$/gi)) return GenericArgType.string;
-	if(arg.match(buildingNameRegex)) return GenericArgType.building;
-	if(arg.match(/^[^"]+$/i)) return GenericArgType.variable;
-	return GenericArgType.invalid;
+	if(["true", "false"].includes(arg)) return GAT.boolean;
+	if(arg.match(/^-?\d+(\.\d+)?$/)) return GAT.number;
+	if(arg.match(/^"[^"]*"$/gi)) return GAT.string;
+	if(arg.match(buildingNameRegex)) return GAT.building;
+	if(arg.match(/^[^"]+$/i)) return GAT.variable;
+	return GAT.invalid;
 }
 
 /**Returns if an arg is of a specified type. */
 export function isArgOfType(argToCheck:string, arg:Arg):boolean {
-	if(arg.type === GenericArgType.any) return true;
-	if(arg.type === GenericArgType.valid) return true;
+	if(arg.type === GAT.any) return true;
+	if(arg.type === GAT.valid) return true;
 	if(argToCheck == "") return false;
 	if(argToCheck == undefined) return false;
 	if(!isGenericArg(arg.type)){
 		return argToCheck === arg.type;
 	}
-	let knownType:GenericArgType = typeofArg(argToCheck);
-	if(arg.isVariable) return knownType == GenericArgType.variable;
+	let knownType:GAT = typeofArg(argToCheck);
+	if(arg.isVariable) return knownType == GAT.variable;
 	if(knownType == arg.type) return true;
 	switch(arg.type){
-		case GenericArgType.ctype:
+		case GAT.ctype:
 			return /:\w+/.test(argToCheck);
-		case GenericArgType.number:
-			return knownType == GenericArgType.boolean || knownType == GenericArgType.variable;
-		case GenericArgType.jumpAddress:
-			return knownType == GenericArgType.number || knownType == GenericArgType.variable;
-		case GenericArgType.boolean:
-			return knownType == GenericArgType.number || knownType == GenericArgType.variable;
-		case GenericArgType.type:
-		case GenericArgType.string:
-		case GenericArgType.building:
-		case GenericArgType.unit:
-		case GenericArgType.function:
-			return knownType == GenericArgType.variable;
-		case GenericArgType.targetClass:
+		case GAT.number:
+			return knownType == GAT.boolean || knownType == GAT.variable;
+		case GAT.jumpAddress:
+			return knownType == GAT.number || knownType == GAT.variable;
+		case GAT.boolean:
+			return knownType == GAT.number || knownType == GAT.variable;
+		case GAT.type:
+		case GAT.string:
+		case GAT.building:
+		case GAT.unit:
+		case GAT.function:
+			return knownType == GAT.variable;
+		case GAT.targetClass:
 			return ["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(argToCheck);
-		case GenericArgType.buildingGroup:
+		case GAT.buildingGroup:
 			return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(argToCheck)
-		case GenericArgType.operandTest:
+		case GAT.operandTest:
 			return [
 				"equal", "notEqual", "strictEqual", "greaterThan",
 				"lessThan", "greaterThanEq", "lessThanEq", "always"
 			].includes(argToCheck);
-		case GenericArgType.operand:
+		case GAT.operand:
 			if(["atan2", "dst"].includes(argToCheck)){
 				Log.warn(`${argToCheck} is deprecated.`);
 				return true;
@@ -150,16 +150,16 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 				"log10", "floor", "ceil", "sqrt", "rand", "sin",
 				"cos", "tan", "asin", "acos", "atan"
 			].includes(argToCheck);
-		case GenericArgType.lookupType:
+		case GAT.lookupType:
 			return ["building", "unit", "fluid", "item"].includes(argToCheck);
-		case GenericArgType.targetClass:
+		case GAT.targetClass:
 			return [
 				"any", "enemy", "ally", "player", "attacker",
 				"flying", "boss", "ground"
 			].includes(argToCheck);
-		case GenericArgType.unitSortCriteria:
+		case GAT.unitSortCriteria:
 			return ["distance", "health", "shield", "armor", "maxHealth"].includes(argToCheck);
-		case GenericArgType.valid:
+		case GAT.valid:
 			return true;//todo this needs intellijence
 	}
 	return false;
@@ -232,7 +232,7 @@ export function addJumpLabels(code:string[]):string[] {
 					//Replace arguments
 					(arg:string, carg:Arg) => jumps[arg] ?? (() => {throw new Error(`Unknown jump label ${arg}`)})(),
 					//But only if the argument is a jump address
-					(arg:string, carg:Arg) => carg.isGeneric && carg.type == GenericArgType.jumpAddress
+					(arg:string, carg:Arg) => carg.isGeneric && carg.type == GAT.jumpAddress
 				).join(" ")
 			);
 		} else {
@@ -349,7 +349,7 @@ export function transformVariables(args:string[], commandDefinition:CommandDefin
 	return transformCommand(args, commandDefinition, transformFunction, 
 		(arg:string, commandArg:Arg|undefined) => (
 			commandArg?.isVariable || (acceptsVariable(commandArg)
-			&& isArgOfType(arg, new Arg(GenericArgType.variable)))
+			&& isArgOfType(arg, new Arg(GAT.variable)))
 		) && arg !== "_"
 	);
 }
@@ -436,7 +436,7 @@ export function getVariablesUsed(args:string[], commandDefinition:CommandDefinit
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
 		.filter(([arg, commandArg]) => 
-			typeofArg(arg) == GenericArgType.variable && acceptsVariable(commandArg) && arg != "_"
+			typeofArg(arg) == GAT.variable && acceptsVariable(commandArg) && arg != "_"
 		).map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 
@@ -457,13 +457,13 @@ export function areAnyOfInputsCompatibleWithType(inputs:ArgType[], output:ArgTyp
 /**Checks if two types are compatible. */
 export function typesAreCompatible(input:ArgType, output:ArgType):boolean {
 	if(input == output) return true;
-	if(output == GenericArgType.any) return true;
-	if(output == GenericArgType.valid) return true;
-	if(output == GenericArgType.null) return true;//TODO make sure this doesn't cause issues
+	if(output == GAT.any) return true;
+	if(output == GAT.valid) return true;
+	if(output == GAT.null) return true;//TODO make sure this doesn't cause issues
 	switch(input){
-		case GenericArgType.any: return true;
-		case GenericArgType.number: return output == GenericArgType.boolean;
-		case GenericArgType.boolean: return output == GenericArgType.number;
+		case GAT.any: return true;
+		case GAT.number: return output == GAT.boolean;
+		case GAT.boolean: return output == GAT.number;
 		default: return false;
 	}
 }
@@ -474,11 +474,11 @@ export function acceptsVariable(arg: Arg|undefined):boolean {
 	if(arg.isVariable) return false;
 	if(arg.isGeneric)
 		return [
-			GenericArgType.boolean, GenericArgType.building,
-			GenericArgType.number, GenericArgType.string,
-			GenericArgType.type, GenericArgType.unit,
-			GenericArgType.valid
-		].includes(arg.type as GenericArgType);
+			GAT.boolean, GAT.building,
+			GAT.number, GAT.string,
+			GAT.type, GAT.unit,
+			GAT.valid
+		].includes(arg.type as GAT);
 	else
 		return false;
 }

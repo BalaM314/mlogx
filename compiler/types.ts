@@ -24,7 +24,8 @@ export interface Settings {
 	}
 }
 
-export enum GenericArgType {
+/**Generic Arg Type */
+export enum GAT {
 	variable="variable",
 	number="number",
 	string="string",
@@ -46,6 +47,7 @@ export enum GenericArgType {
 	invalid="invalid",
 	ctype="ctype"
 }
+export const GenericArgType = GAT;
 
 export enum CommandErrorType {
 	argumentCount,
@@ -82,7 +84,7 @@ export interface PreprocessedCommandDefinitions {
 	[index: string]: PreprocessedCommand[]
 }
 
-export type ArgType = GenericArgType | string;
+export type ArgType = GAT | string;
 
 export interface NamespaceStackElement {
 	type: "namespace";

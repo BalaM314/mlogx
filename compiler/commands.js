@@ -1,6 +1,6 @@
 import { CompilerError } from "./classes.js";
 import { processCommands, typeofArg } from "./funcs.js";
-import { GenericArgType } from "./types.js";
+import { GAT } from "./types.js";
 export const commands = processCommands({
     call: [{
             args: "function:function",
@@ -155,7 +155,7 @@ export const commands = processCommands({
         {
             args: "variable:*any value:valid",
             description: "Sets the value of (variable) to (value).",
-            getVariablesDefined: (args) => [[args[0], typeofArg(args[1]) == GenericArgType.variable ? GenericArgType.any : typeofArg(args[1])]]
+            getVariablesDefined: (args) => [[args[0], typeofArg(args[1]) == GAT.variable ? GAT.any : typeofArg(args[1])]]
         },
         {
             args: "variable:*any type:ctype value:valid",
