@@ -177,12 +177,12 @@ export const commands: CommandDefinitions = processCommands({
 	],
 	op: [
 		{
-			args: "operand:operandSingle output:*number arg1:number zero?:0",
+			args: "operand:operandSingle output:*number arg1:number zero:0?",
 			description: "Performs an operation on (arg1), storing the result in (output).",
 			replace: [ "op %1 %2 %3 0" ]
 		},
 		{
-			args: "operand:operandSingle output:*any arg1:valid zero?:0",
+			args: "operand:operandSingle output:*any arg1:valid zero:0?",
 			description: "Performs an operation on (arg1), storing the result in (output).",
 			replace: [ "op %1 %2 %3 0" ]
 		},
