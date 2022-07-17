@@ -4,13 +4,14 @@ import { ForStackElement, Settings, StackElement } from "../types.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace } from "./samplePrograms.js";
 
 
-function settingsForFilename(name:string): Settings & {filename: string} {
+function settingsForFilename(name:string, checkTypes:boolean = false): Settings & {filename: string} {
 	return {
 		...defaultSettings,
 		filename: name,
 		compilerOptions: {
 			...defaultSettings.compilerOptions,
-			compileWithErrors: false
+			compileWithErrors: false,
+			checkTypes
 		}
 	};
 }

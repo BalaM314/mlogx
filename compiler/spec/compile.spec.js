@@ -1,13 +1,14 @@
 import { compileLine, compileMlogxToMlog } from "../compile.js";
 import { defaultSettings } from "../consts.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace } from "./samplePrograms.js";
-function settingsForFilename(name) {
+function settingsForFilename(name, checkTypes = false) {
     return {
         ...defaultSettings,
         filename: name,
         compilerOptions: {
             ...defaultSettings.compilerOptions,
-            compileWithErrors: false
+            compileWithErrors: false,
+            checkTypes
         }
     };
 }
