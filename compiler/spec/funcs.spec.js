@@ -42,6 +42,11 @@ describe("isArgOfType", () => {
             [`add`, GAT.operandDouble],
             [`cos`, GAT.operandSingle]
         ];
+        for (const [arg, expectedType] of correctTypes) {
+            expect(isArgOfType(arg, new Arg(expectedType))).toBe(true);
+        }
+    });
+    it("should determine if an arg is not of specified type", () => {
         const wrongTypes = [
             ["@unit", GAT.building],
             ["@thisx", GAT.operandTest],
@@ -51,9 +56,6 @@ describe("isArgOfType", () => {
             [`"amogus"`, GAT.number],
             [`:number`, GAT.variable],
         ];
-        for (const [arg, expectedType] of correctTypes) {
-            expect(isArgOfType(arg, new Arg(expectedType))).toBe(true);
-        }
         for (const [arg, unexpectedType] of wrongTypes) {
             expect(isArgOfType(arg, new Arg(unexpectedType))).toBe(false);
         }
@@ -114,6 +116,8 @@ describe("getParameters", () => {
     it("should get function parameters from a program", () => {
         expect(getParameters(["#function move_unit_precise(dest.x:number, u:unit)"]))
             .toEqual([["dest.x", "number"], ["u", "unit"]]);
+        expect(getParameters(["#sussy amogus"]))
+            .toEqual([]);
     });
 });
 describe("splitLineIntoArguments", () => {
@@ -157,6 +161,11 @@ describe("getVariablesDefined", () => {
         expect(getVariablesDefined(["thing", "null"], commands["set"][0], ["thing", ":building", "null"], commands["set"][1])).toEqual([["thing", "building"]]);
         expect(getVariablesDefined(["amogus", `otherVar`], commands["set"][0], ["amogus", ":number", `otherVar`], commands["set"][1])).toEqual([["amogus", "number"]]);
     });
+    it("should fail on invalid set statement type hints", () => {
+        expect(() => {
+            getVariablesDefined(["amogus", `otherVar`], commands["set"][0], ["amogus", ":sus", `otherVar`], commands["set"][1]);
+        }).toThrow();
+    });
 });
 describe("getVariablesUsed", () => {
     it("should get variables used by a statement", () => {
@@ -168,15 +177,18 @@ describe("getVariablesUsed", () => {
 describe("getAllPossibleVariablesUsed", () => {
     it("should get variables used by a statement", () => {
         expect(getAllPossibleVariablesUsed("read x cell1 y")).toEqual([["y", ["number"]]]);
-        expect(getAllPossibleVariablesUsed("ucontrol within x y 10 close")).toEqual([["x", ["number"]], ["y", ["number"]]]);
+        expect(getAllPossibleVariablesUsed("ucontrol within x y 10 close"))
+            .toEqual([["x", ["number"]], ["y", ["number"]]]);
         expect(getAllPossibleVariablesUsed("ulocate building core true outX outY found building"))
             .toEqual([]);
     });
     it("should return multiple possible types for certain commands", () => {
-        expect(getAllPossibleVariablesUsed("sensor x thing @x")).toEqual([["thing", ["building", "unit"]]]);
+        expect(getAllPossibleVariablesUsed("sensor x thing @x"))
+            .toEqual([["thing", ["building", "unit"]]]);
     });
     it("should work for commands that replace", () => {
-        expect(getAllPossibleVariablesUsed("sensor building.x building @x", "sensor building.x")).toEqual([["building", ["building", "unit"]]]);
+        expect(getAllPossibleVariablesUsed("sensor building.x building @x", "sensor building.x"))
+            .toEqual([["building", ["building", "unit"]]]);
     });
 });
 describe("getJumpLabelUsed", () => {
