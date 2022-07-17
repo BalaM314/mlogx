@@ -79,10 +79,11 @@ export function typeCheckLine(compiledCode, uncompiledLine) {
         variableDefinitions: {},
         variableUsages: {}
     };
-    const cleanedLine = cleanLine(compiledCode);
-    if (cleanedLine == "")
+    const cleanedCompiledLine = cleanLine(compiledCode);
+    const cleanedUncompiledLine = cleanLine(uncompiledLine.text);
+    if (cleanedCompiledLine == "")
         return outputData;
-    const labelName = getLabel(cleanedLine);
+    const labelName = getLabel(cleanedCompiledLine);
     if (labelName) {
         outputData.jumpLabelsDefined[labelName] ??= [];
         outputData.jumpLabelsDefined[labelName].push({
@@ -90,14 +91,17 @@ export function typeCheckLine(compiledCode, uncompiledLine) {
         });
         return outputData;
     }
-    const compiledCommandArgs = splitLineIntoArguments(cleanedLine).slice(1);
-    const compiledCommandDefinitions = getCommandDefinitions(cleanedLine);
-    const uncompiledCommandArgs = splitLineIntoArguments(uncompiledLine.text).slice(1);
-    const uncompiledCommandDefinitions = getCommandDefinitions(uncompiledLine.text);
+    const compiledCommandArgs = splitLineIntoArguments(cleanedCompiledLine).slice(1);
+    const compiledCommandDefinitions = getCommandDefinitions(cleanedCompiledLine);
+    const uncompiledCommandArgs = splitLineIntoArguments(cleanedUncompiledLine).slice(1);
+    const uncompiledCommandDefinitions = getCommandDefinitions(cleanedUncompiledLine);
     if (compiledCommandDefinitions.length == 0) {
         throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
     }
-    const jumpLabelUsed = getJumpLabelUsed(cleanedLine);
+    if (uncompiledCommandDefinitions.length == 0) {
+        throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
+    }
+    const jumpLabelUsed = getJumpLabelUsed(cleanedCompiledLine);
     if (jumpLabelUsed) {
         outputData.jumpLabelsUsed[jumpLabelUsed] ??= [];
         outputData.jumpLabelsUsed[jumpLabelUsed].push({
@@ -113,7 +117,7 @@ export function typeCheckLine(compiledCode, uncompiledLine) {
             });
         });
     }
-    getAllPossibleVariablesUsed(cleanedLine, uncompiledLine.text).forEach(([variableName, variableTypes]) => {
+    getAllPossibleVariablesUsed(cleanedCompiledLine, uncompiledLine.text).forEach(([variableName, variableTypes]) => {
         outputData.variableUsages[variableName] ??= [];
         outputData.variableUsages[variableName].push({
             variableTypes,
