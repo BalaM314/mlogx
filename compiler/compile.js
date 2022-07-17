@@ -2,32 +2,58 @@ import { GAT, CommandErrorType } from "./types.js";
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
-export function compileMlogxToMlog(program, settings, compilerConstants) {
-    let [programType, requiredVars, author] = parsePreprocessorDirectives(program);
+import deepmerge from "deepmerge";
+export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
+    let [programType, requiredVars, author] = parsePreprocessorDirectives(mlogxProgram);
     let isMain = programType == "main" || settings.compilerOptions.mode == "single";
-    let outputData = [];
+    let compiledProgram = [];
     let stack = [];
+    let typeCheckingData = {
+        jumpLabelsDefined: {},
+        jumpLabelsUsed: {},
+        variableDefinitions: {
+            ...processorVariables,
+            ...(mlogxProgram ? getParameters(mlogxProgram).reduce((accumulator, [name, type]) => {
+                accumulator[name] ??= [];
+                accumulator[name].push({ variableType: type, line: {
+                        text: "[function parameter]",
+                        lineNumber: 1
+                    } });
+                return accumulator;
+            }, {}) : {})
+        },
+        variableUsages: {}
+    };
     for (let requiredVar of requiredVars) {
         if (requiredVarCode[requiredVar])
-            outputData.push(...requiredVarCode[requiredVar]);
+            compiledProgram.push(...requiredVarCode[requiredVar]);
         else
             Log.warn("Unknown require " + requiredVar);
     }
-    for (let line in program) {
+    for (let line in mlogxProgram) {
         try {
-            let compiledOutput = compileLine(program[line], compilerConstants, settings, +line, isMain, stack);
+            const { compiledCode, modifiedStack } = compileLine(mlogxProgram[line], compilerConstants, settings, +line, isMain, stack);
+            if (modifiedStack)
+                stack = modifiedStack;
+            for (let compiledLine of compiledCode) {
+                const newTypeData = typeCheckLine(compiledLine, {
+                    text: mlogxProgram[line],
+                    lineNumber: +line + 1
+                });
+                typeCheckingData = deepmerge(typeCheckingData, newTypeData);
+            }
             if (inForLoop(stack)) {
-                topForLoop(stack).loopBuffer.push(...compiledOutput);
+                topForLoop(stack).loopBuffer.push(...compiledCode);
             }
             else {
-                outputData.push(...compiledOutput);
+                compiledProgram.push(...compiledCode);
             }
         }
         catch (err) {
             if (err instanceof CompilerError) {
                 Log.err(`${err.message}
 ${formatLineWithPrefix({
-                    lineNumber: +line + 1, text: program[line]
+                    lineNumber: +line + 1, text: mlogxProgram[line]
                 }, settings)}`);
             }
             else {
@@ -39,7 +65,102 @@ ${formatLineWithPrefix({
         Log.err(`Some blocks were not closed.`);
         Log.dump(stack);
     }
+    printTypeErrors(typeCheckingData, settings);
+    return compiledProgram;
+}
+export function typeCheckLine(compiledCode, uncompiledLine) {
+    let outputData = {
+        jumpLabelsDefined: {},
+        jumpLabelsUsed: {},
+        variableDefinitions: {},
+        variableUsages: {}
+    };
+    let cleanedLine = cleanLine(compiledCode);
+    if (cleanedLine == "")
+        return outputData;
+    let labelName = getLabel(cleanedLine);
+    if (labelName) {
+        outputData.jumpLabelsDefined[labelName] ??= [];
+        outputData.jumpLabelsDefined[labelName].push({
+            line: uncompiledLine
+        });
+        return outputData;
+    }
+    let args = splitLineIntoArguments(cleanedLine).slice(1);
+    let commandDefinitions = getCommandDefinitions(cleanedLine);
+    if (commandDefinitions.length == 0) {
+        throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
+    }
+    let jumpLabelUsed = getJumpLabelUsed(cleanedLine);
+    if (jumpLabelUsed) {
+        outputData.jumpLabelsUsed[jumpLabelUsed] ??= [];
+        outputData.jumpLabelsUsed[jumpLabelUsed].push({
+            line: uncompiledLine
+        });
+    }
+    for (let commandDefinition of commandDefinitions) {
+        getVariablesDefined(args, commandDefinition).forEach(([variableName, variableType]) => {
+            outputData.variableDefinitions[variableName] ??= [];
+            outputData.variableDefinitions[variableName].push({
+                variableType,
+                line: uncompiledLine
+            });
+        });
+    }
+    getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
+        outputData.variableUsages[variableName] ??= [];
+        outputData.variableUsages[variableName].push({
+            variableTypes,
+            line: uncompiledLine
+        });
+    });
     return outputData;
+}
+export function printTypeErrors({ variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed }, settings) {
+    for (let [name, definitions] of Object.entries(variableDefinitions)) {
+        let types = [
+            ...new Set(definitions.map(el => el.variableType))
+        ].filter(el => el != GAT.valid && el != GAT.any &&
+            el != GAT.variable && el != GAT.valid &&
+            el != GAT.null).map(el => el == "boolean" ? "number" : el);
+        if (types.length > 1) {
+            Log.warn(`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
+	First definition:
+${formatLineWithPrefix(definitions[0].line, settings, "\t\t")}
+	First conflicting definition:
+${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].line, settings, "\t\t")}`);
+        }
+    }
+    ;
+    for (let [name, thisVariableUsages] of Object.entries(variableUsages)) {
+        if (name == "_")
+            continue;
+        for (let variableUsage of thisVariableUsages) {
+            if (!(name in variableDefinitions)) {
+                Log.warn(`Variable "${name}" seems to be undefined.
+${formatLineWithPrefix(variableUsage.line, settings)}`);
+            }
+            else if (!areAnyOfInputsCompatibleWithType(variableUsage.variableTypes, variableDefinitions[name][0].variableType)) {
+                Log.warn(`Variable "${name}" is of type "${variableDefinitions[name][0].variableType}", \
+but the command requires it to be of type ${variableUsage.variableTypes.map(t => `"${t}"`).join(" or ")}
+${formatLineWithPrefix(variableUsage.line, settings)}
+	First definition: 
+${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`);
+            }
+        }
+    }
+    for (let [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)) {
+        if (definitions.length > 1) {
+            Log.warn(`Jump label "${jumpLabel}" was defined ${definitions.length} times.`);
+            definitions.forEach(definition => Log.none(formatLineWithPrefix(definition.line, settings)));
+        }
+    }
+    for (let [jumpLabel, usages] of Object.entries(jumpLabelsUsed)) {
+        if (!jumpLabelsDefined[jumpLabel]) {
+            Log.warn(`Jump label "${jumpLabel}" is missing.`);
+            usages.forEach(usage => Log.none(formatLineWithPrefix(usage.line, settings)));
+        }
+    }
 }
 export function compileLine(line, compilerConstants, settings, lineNumber, isMain, stack) {
     if (line.includes("\u{F4321}")) {
@@ -48,15 +169,23 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
     let cleanedLine = cleanLine(line);
     if (cleanedLine == "") {
         if (settings.compilerOptions.removeComments) {
-            return [];
+            return {
+                compiledCode: []
+            };
         }
         else {
-            return [line];
+            return {
+                compiledCode: [line]
+            };
         }
     }
     cleanedLine = replaceCompilerConstants(cleanedLine, compilerConstants);
     if (getLabel(cleanedLine)) {
-        return inNamespace(stack) ? [`${addNamespaces(getLabel(cleanedLine), stack)}:`] : [settings.compilerOptions.removeComments ? cleanedLine : line];
+        return {
+            compiledCode: inNamespace(stack) ?
+                [`${addNamespaces(getLabel(cleanedLine), stack)}:`] :
+                [settings.compilerOptions.removeComments ? cleanedLine : line]
+        };
     }
     let args = splitLineIntoArguments(cleanedLine)
         .map(arg => prependFilenameToArg(arg, isMain, settings.filename));
@@ -65,11 +194,13 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
         if (!(name?.length > 0)) {
             throw new CompilerError("No name specified for namespace");
         }
-        stack.push({
-            name,
-            type: "namespace"
-        });
-        return [];
+        return {
+            modifiedStack: stack.concat({
+                name,
+                type: "namespace"
+            }),
+            compiledCode: []
+        };
     }
     if (args[0] == "&for") {
         const variableName = args[1];
@@ -83,34 +214,43 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
             throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
         if ((upperBound - lowerBound) > 200)
             throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
-        stack.push({
-            type: "&for",
-            lowerBound,
-            upperBound,
-            variableName,
-            loopBuffer: []
-        });
-        return [];
+        return {
+            modifiedStack: stack.concat({
+                type: "&for",
+                lowerBound,
+                upperBound,
+                variableName,
+                loopBuffer: []
+            }),
+            compiledCode: []
+        };
     }
     if (args[0] == "}") {
         if (stack.length == 0) {
             throw new CompilerError("No block to end");
         }
         else {
-            const endedBlock = stack.pop();
+            const modifiedStack = stack.slice();
+            const endedBlock = modifiedStack.pop();
             if (endedBlock?.type == "&for") {
-                let output = [];
+                let compiledCode = [];
                 for (let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i++) {
-                    output.push(...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line, {
+                    compiledCode.push(...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line, {
                         [endedBlock.variableName]: i.toString()
                     })));
                 }
-                return output;
+                return {
+                    compiledCode,
+                    modifiedStack
+                };
             }
             else if (endedBlock?.type == "namespace") {
             }
+            return {
+                modifiedStack,
+                compiledCode: []
+            };
         }
-        return [];
     }
     let [commandList, errors] = getCommandDefinitions(cleanedLine, true);
     if (commandList.length == 0) {
@@ -135,121 +275,11 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
             }
         }
     }
-    return getOutputForCommand(args, commandList[0], stack);
-}
-export function checkTypes(compiledProgram, settings, uncompiledProgram) {
-    let variablesUsed = {};
-    let variablesDefined = {
-        ...processorVariables,
-        ...(uncompiledProgram ? getParameters(uncompiledProgram).reduce((accumulator, [name, type]) => {
-            accumulator[name] ??= [];
-            accumulator[name].push({ variableType: type, line: {
-                    text: "[function parameter]",
-                    lineNumber: 1
-                } });
-            return accumulator;
-        }, {}) : {})
+    return {
+        compiledCode: getOutputForCommand(args, commandList[0], stack)
     };
-    let jumpLabelsUsed = {};
-    let jumpLabelsDefined = {};
-    toNextLine: for (let lineNumber in compiledProgram) {
-        const line = compiledProgram[lineNumber];
-        let cleanedLine = cleanLine(line);
-        if (cleanedLine == "")
-            continue toNextLine;
-        let labelName = getLabel(cleanedLine);
-        if (labelName) {
-            jumpLabelsDefined[labelName] ??= [];
-            jumpLabelsDefined[labelName].push({
-                line: {
-                    text: line,
-                    lineNumber: +lineNumber + 1
-                }
-            });
-            continue toNextLine;
-        }
-        let args = splitLineIntoArguments(line).slice(1);
-        let commandDefinitions = getCommandDefinitions(cleanedLine);
-        if (commandDefinitions.length == 0) {
-            throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
-        }
-        let jumpLabelUsed = getJumpLabelUsed(cleanedLine);
-        if (jumpLabelUsed) {
-            jumpLabelsUsed[jumpLabelUsed] ??= [];
-            jumpLabelsUsed[jumpLabelUsed].push({
-                line: {
-                    text: line,
-                    lineNumber: +lineNumber + 1
-                }
-            });
-        }
-        for (let commandDefinition of commandDefinitions) {
-            getVariablesDefined(args, commandDefinition).forEach(([variableName, variableType]) => {
-                variablesDefined[variableName] ??= [];
-                variablesDefined[variableName].push({
-                    variableType,
-                    line: {
-                        text: line,
-                        lineNumber: +lineNumber + 1
-                    }
-                });
-            });
-        }
-        getAllPossibleVariablesUsed(cleanedLine).forEach(([variableName, variableTypes]) => {
-            variablesUsed[variableName] ??= [];
-            variablesUsed[variableName].push({
-                variableTypes,
-                line: {
-                    text: line,
-                    lineNumber: +lineNumber + 1
-                }
-            });
-        });
-    }
-    for (let [name, definitions] of Object.entries(variablesDefined)) {
-        let types = [
-            ...new Set(definitions.map(el => el.variableType))
-        ].filter(el => el != GAT.valid && el != GAT.any &&
-            el != GAT.variable && el != GAT.valid &&
-            el != GAT.null).map(el => el == "boolean" ? "number" : el);
-        if (types.length > 1) {
-            Log.warn(`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
-	First definition:
-${formatLineWithPrefix(definitions[0].line, settings, "\t\t")}
-	First conflicting definition:
-${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].line, settings, "\t\t")}`);
-        }
-    }
-    ;
-    for (let [name, variableUsages] of Object.entries(variablesUsed)) {
-        if (name == "_")
-            continue;
-        for (let variableUsage of variableUsages) {
-            if (!(name in variablesDefined)) {
-                Log.warn(`Variable "${name}" seems to be undefined.
-${formatLineWithPrefix(variableUsage.line, settings)}`);
-            }
-            else if (!areAnyOfInputsCompatibleWithType(variableUsage.variableTypes, variablesDefined[name][0].variableType)) {
-                Log.warn(`Variable "${name}" is of type "${variablesDefined[name][0].variableType}", \
-but the command requires it to be of type ${variableUsage.variableTypes.map(t => `"${t}"`).join(" or ")}
-${formatLineWithPrefix(variableUsage.line, settings)}
-	First definition: 
-${formatLineWithPrefix(variablesDefined[name][0].line, settings, "\t\t")}`);
-            }
-        }
-    }
-    for (let [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)) {
-        if (definitions.length > 1) {
-            Log.warn(`Jump label "${jumpLabel}" was defined ${definitions.length} times.`);
-            definitions.forEach(definition => Log.none(formatLineWithPrefix(definition.line, settings)));
-        }
-    }
-    for (let [jumpLabel, usages] of Object.entries(jumpLabelsUsed)) {
-        if (!jumpLabelsDefined[jumpLabel]) {
-            Log.warn(`Jump label "${jumpLabel}" is missing.`);
-            usages.forEach(usage => Log.none(formatLineWithPrefix(usage.line, settings)));
-        }
-    }
+}
+export function checkTypes(compiledProgram, settings, mlogProgram) {
 }
 export function getOutputForCommand(args, command, stack) {
     if (command.replace) {

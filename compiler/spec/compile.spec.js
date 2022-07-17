@@ -14,68 +14,59 @@ function settingsForFilename(name) {
 describe("compileLine", () => {
     it("should not change any mlog commands", () => {
         for (const line of allMlogCommands) {
-            expect(compileLine(line, {}, settingsForFilename("sample1.mlogx"), 1, false, [])).toEqual([line]);
+            expect(compileLine(line, {}, settingsForFilename("sample1.mlogx"), 1, false, []).compiledCode).toEqual([line]);
         }
     });
     it("should mark all mlogx commands as valid", () => {
         for (const line of allMlogxCommands) {
-            expect(() => compileLine(line, {}, settingsForFilename("sample1.mlogx"), 1, false, [])).not.toThrow();
+            expect(() => compileLine(line, {}, settingsForFilename("sample1.mlogx"), 1, false, []).compiledCode).not.toThrow();
         }
     });
     it("should process all shorthands", () => {
         for (const [input, output] of allShorthandCommands) {
-            expect(compileLine(input, {}, settingsForFilename("sample1.mlogx"), 1, false, [])).toEqual([output]);
+            expect(compileLine(input, {}, settingsForFilename("sample1.mlogx"), 1, false, []).compiledCode).toEqual([output]);
         }
     });
     it("should detect the start of a namespace", () => {
-        let stack = [];
-        compileLine(startNamespace, {}, settingsForFilename("sample.mlogx"), 1, false, stack);
-        expect(stack).toEqual([{
+        expect(compileLine(startNamespace, {}, settingsForFilename("sample.mlogx"), 1, false, []).modifiedStack).toEqual([{
                 type: "namespace",
                 name: "testname"
             }]);
     });
     it("should detect the end of a namespace", () => {
-        let stack = [{
+        expect(compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, [{
                 type: "namespace",
                 name: "testname"
-            }];
-        compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, stack);
-        expect(stack).toEqual([]);
+            }]).modifiedStack).toEqual([]);
     });
     it("should prepend namespaces", () => {
         for (const [input, stack, output] of namespaceTests) {
-            expect(compileLine(input, {}, settingsForFilename("sample1.mlogx"), 1, false, stack)).toEqual([output]);
+            expect(compileLine(input, {}, settingsForFilename("sample1.mlogx"), 1, false, stack).compiledCode).toEqual([output]);
         }
     });
     it("should detect the start of an &for loop", () => {
-        let stack = [];
-        compileLine(startNamespace, {}, settingsForFilename("sample.mlogx"), 1, false, stack);
-        expect(stack).toEqual([{
+        expect(compileLine(startNamespace, {}, settingsForFilename("sample.mlogx"), 1, false, []).modifiedStack).toEqual([{
                 type: "namespace",
                 name: "testname"
             }]);
     });
     it("should detect the end of an &for loop", () => {
-        let stack = [{
+        expect(compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, [{
                 type: "&for",
                 lowerBound: 1,
                 upperBound: 3,
                 variableName: "n",
                 loopBuffer: [`set x 5`, `print "n is $n"`]
-            }];
-        compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, stack);
-        expect(stack).toEqual([]);
+            }]).modifiedStack).toEqual([]);
     });
     it("should unroll an &for loop", () => {
-        let stack = [{
+        expect(compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, [{
                 type: "&for",
                 lowerBound: 1,
                 upperBound: 3,
                 variableName: "n",
                 loopBuffer: [`set x 5`, `print "n is $n"`]
-            }];
-        expect(compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, stack)).toEqual([`set x 5`, `print "n is 1"`, `set x 5`, `print "n is 2"`, `set x 5`, `print "n is 3"`]);
+            }]).compiledCode).toEqual([`set x 5`, `print "n is 1"`, `set x 5`, `print "n is 2"`, `set x 5`, `print "n is 3"`]);
     });
     it("should unroll nested &for loops", () => {
         let stack = [
@@ -95,10 +86,11 @@ describe("compileLine", () => {
             }
         ];
         const compiledOutput = compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, stack);
-        stack.at(-1)?.loopBuffer.push(...compiledOutput);
-        expect(compiledOutput)
+        stack = compiledOutput.modifiedStack ?? stack;
+        stack.at(-1)?.loopBuffer.push(...compiledOutput.compiledCode);
+        expect(compiledOutput.compiledCode)
             .toEqual([`set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]);
-        expect(stack).toEqual([{
+        expect(compiledOutput.modifiedStack).toEqual([{
                 type: "&for",
                 lowerBound: 1,
                 upperBound: 3,
@@ -106,14 +98,14 @@ describe("compileLine", () => {
                 loopBuffer: [`loop_$I`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]
             }]);
         const secondOutput = compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, stack);
-        expect(secondOutput)
+        expect(secondOutput.compiledCode)
             .toEqual([
             `loop_1`, `set x 5`, `print "j is 5"`, `set x 5`,
             `print "j is 6"`, `loop_2`, `set x 5`, `print "j is 5"`,
             `set x 5`, `print "j is 6"`, `loop_3`, `set x 5`,
             `print "j is 5"`, `set x 5`, `print "j is 6"`
         ]);
-        expect(stack).toEqual([]);
+        expect(secondOutput.modifiedStack).toEqual([]);
     });
 });
 describe("compileMlogxToMlog", () => {

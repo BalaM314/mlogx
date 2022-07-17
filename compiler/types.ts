@@ -106,3 +106,35 @@ export interface Line {
 	text: string;
 	lineNumber: number;
 }
+
+export namespace TData {
+	export interface variableUsages {
+		[name: string]: {
+			variableTypes: ArgType[];
+			line: Line;
+		}[]
+	}
+	export interface variableDefinitions {
+		[name: string]: {
+			variableType: ArgType;
+			line: Line;
+		}[]
+	}
+	export interface jumpLabelsUsed {
+		[name: string]: {
+			line: Line;
+		}[]
+	}
+	export interface jumpLabelsDefined {
+		[name: string]: {
+			line: Line;
+		}[]
+	}
+}
+export interface TypeCheckingData {
+	//I do wish keyof worked on namespaces...
+	variableUsages: TData.variableUsages;
+	variableDefinitions: TData.variableDefinitions;
+	jumpLabelsUsed: TData.jumpLabelsUsed;
+	jumpLabelsDefined: TData.jumpLabelsDefined;
+}
