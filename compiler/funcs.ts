@@ -98,6 +98,7 @@ export function typeofArg(arg:string):GAT {
 	if(["true", "false"].includes(arg)) return GAT.boolean;
 	if(arg.match(/^-?\d+(\.\d+)?$/)) return GAT.number;
 	if(arg.match(/^"[^"]*"$/gi)) return GAT.string;
+	//TODO this will fail on strings with escaped quotes
 	if(arg.match(buildingNameRegex)) return GAT.building;
 	if(arg.match(/^[^"]+$/i)) return GAT.variable;
 	return GAT.invalid;
@@ -450,7 +451,7 @@ export function getVariablesUsed(args:string[], commandDefinition:CommandDefinit
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
 		.filter(([arg, commandArg]) => 
-			typeofArg(arg) == GAT.variable && acceptsVariable(commandArg) && arg != "_"
+			isArgOfType(arg, new Arg(GAT.variable)) && acceptsVariable(commandArg) && arg != "_"
 		).map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 

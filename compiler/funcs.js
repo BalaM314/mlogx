@@ -386,7 +386,7 @@ export function getAllPossibleVariablesUsed(command, uncompiledLine = command) {
 export function getVariablesUsed(args, commandDefinition) {
     return args
         .map((arg, index) => [arg, commandDefinition.args[index]])
-        .filter(([arg, commandArg]) => typeofArg(arg) == GAT.variable && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
+        .filter(([arg, commandArg]) => isArgOfType(arg, new Arg(GAT.variable)) && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 export function getJumpLabelUsed(line) {
     const args = splitLineIntoArguments(line);
