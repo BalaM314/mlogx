@@ -30,4 +30,3 @@ export var CommandErrorType;
     CommandErrorType[CommandErrorType["noCommand"] = 2] = "noCommand";
     CommandErrorType[CommandErrorType["badStructure"] = 3] = "badStructure";
 })(CommandErrorType || (CommandErrorType = {}));
-;

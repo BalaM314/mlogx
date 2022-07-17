@@ -98,7 +98,7 @@ export interface ForStackElement {
 	lowerBound: number;
 	variableName: string;
 	loopBuffer: string[];
-};
+}
 
 export type StackElement = NamespaceStackElement | ForStackElement;
 

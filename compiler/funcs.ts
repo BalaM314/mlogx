@@ -18,34 +18,36 @@ import chalk from "chalk";
 /**Processes commands(adds in what would otherwise be boilerplate). */
 export function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):CommandDefinitions {
 
-	function arg(str:`${string}:${"*"|""}${string}${"?"|""}`){
+	type PreprocessedArg = `${string}:${"*"|""}${string}${"?"|""}`;
+	function arg(str:PreprocessedArg){
 		if(!str.includes(":")){
 			return new Arg(str, str, false, false, false);
 		}
-		let [name, type] = str.split(":");
+		const [name, type] = str.split(":");
+		let modifiedType = type;
 		let isVariable = false;
 		let isOptional = false;
 		if(type.startsWith("*")){
 			isVariable = true;
-			type = type.substring(1);
+			modifiedType = type.substring(1);
 		}
 		if(type.endsWith("?")){
 			isOptional = true;
-			type = type.substring(0, type.length - 1);
+			modifiedType = type.substring(0, type.length - 1);
 		}
-		return new Arg(type, name, isOptional, true, isVariable);
+		return new Arg(modifiedType, name, isOptional, true, isVariable);
 	}
 
-	let out:CommandDefinitions = {};
-	for(let [name, commands] of Object.entries(preprocessedCommands)){
+	const out:CommandDefinitions = {};
+	for(const [name, commands] of Object.entries(preprocessedCommands)){
 		out[name] = [];
-		for(let command of commands){
-			let processedCommand:CommandDefinition = {
+		for(const command of commands){
+			const processedCommand:CommandDefinition = {
 				description: command.description,
 				name,
-				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as any)) : [],
+				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as PreprocessedArg)) : [],
 				getVariablesDefined: command.getVariablesDefined
-			}
+			};
 			if(command.replace instanceof Array){
 				processedCommand.replace = function(args:string[]){
 					return (command.replace as string[]).map(replaceLine => {
@@ -73,7 +75,7 @@ export function isGenericArg(val:string): val is GAT {
 export function typeofArg(arg:string):GAT {
 	if(arg == "") return GAT.invalid;
 	if(arg == undefined) return GAT.invalid;
-	if(arg.match(/@[a-z\-]+/i)){
+	if(arg.match(/@[a-z-]+/i)){
 		if(arg == "@unit") return GAT.unit;
 		if(arg == "@thisx") return GAT.number;
 		if(arg == "@thisy") return GAT.number;
@@ -109,7 +111,7 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 	if(!isGenericArg(arg.type)){
 		return argToCheck === arg.type;
 	}
-	let knownType:GAT = typeofArg(argToCheck);
+	const knownType:GAT = typeofArg(argToCheck);
 	if(arg.isVariable) return knownType == GAT.variable;
 	if(knownType == arg.type) return true;
 	switch(arg.type){
@@ -127,10 +129,8 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 		case GAT.unit:
 		case GAT.function:
 			return knownType == GAT.variable;
-		case GAT.targetClass:
-			return ["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(argToCheck);
 		case GAT.buildingGroup:
-			return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(argToCheck)
+			return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(argToCheck);
 		case GAT.operandTest:
 			return [
 				"equal", "notEqual", "strictEqual", "greaterThan",
@@ -180,17 +180,17 @@ export function removeTrailingSpaces(line:string):string {
 }
 
 export function replaceCompilerConstants(line:string, variables: {[index: string]: string;}):string {
-	for(let [key, value] of Object.entries(variables)){
+	for(const [key, value] of Object.entries(variables)){
 		line = line.replace(new RegExp(`(\\$\\(${key}\\))|(\\$${key})`, "g"), value);
 	}
 	return line;
 }
 
 export function parseIcons(data:string[]): {[index: string]: string;} {
-	let icons: {
+	const icons: {
 		[index: string]: string;
 	} = {};
-	for(let line of data){
+	for(const line of data){
 		try {
 			icons["_" + line.split("=")[1].split("|")[0]] = String.fromCodePoint(parseInt(line.split("=")[0]));
 		} catch(err){
@@ -203,38 +203,38 @@ export function parseIcons(data:string[]): {[index: string]: string;} {
 /**Adds jump labels to vanilla MLOG code that uses jump indexes. */
 export function addJumpLabels(code:string[]):string[] {
 	let lastJumpNameIndex = 0;
-	let jumps: {
+	const jumps: {
 		[index: string]: string;
 	} = {};
-	let transformedCode:string[] = [];
-	let outputCode:string[] = [];
+	const transformedCode:string[] = [];
+	const outputCode:string[] = [];
 
-	let cleanedCode = code.map(line => cleanLine(line)).filter(line => line);
+	const cleanedCode = code.map(line => cleanLine(line)).filter(line => line);
 
 	//Identify all jump addresses
-	for(let line of cleanedCode){
-		let label = getJumpLabelUsed(line);
+	for(const line of cleanedCode){
+		const label = getJumpLabelUsed(line);
 		if(label){
 			if(label == "0"){
-				jumps[label] = "0"
+				jumps[label] = "0";
 			} else if(!isNaN(parseInt(label))){
-				jumps[label] = `jump_${lastJumpNameIndex}_`
-				lastJumpNameIndex += 1
+				jumps[label] = `jump_${lastJumpNameIndex}_`;
+				lastJumpNameIndex += 1;
 			}
 		}
 	}
 
 	//Replace jump addresses with jump labels
-	for(let line of cleanedCode){
+	for(const line of cleanedCode){
 		if(getCommandDefinition(line) == commands.jump[0]){
-			let label = getJumpLabelUsed(line);
+			const label = getJumpLabelUsed(line);
 			if(label == undefined) throw new Error("invalid jump statement");
 			transformedCode.push(
 				transformCommand(
 					splitLineIntoArguments(line),
 					commands.jump[0],
 					//Replace arguments
-					(arg:string, carg:Arg) => jumps[arg] ?? (() => {throw new Error(`Unknown jump label ${arg}`)})(),
+					(arg:string) => jumps[arg] ?? (() => {throw new Error(`Unknown jump label ${arg}`);})(),
 					//But only if the argument is a jump address
 					(arg:string, carg:Arg) => carg.isGeneric && carg.type == GAT.jumpAddress
 				).join(" ")
@@ -245,7 +245,7 @@ export function addJumpLabels(code:string[]):string[] {
 	}
 
 	//Add jump labels
-	for(let lineNumber in transformedCode){
+	for(const lineNumber in transformedCode){
 		const jumpLabel = jumps[(+lineNumber).toString()];
 		if(jumpLabel){
 			outputCode.push(`${jumpLabel}: #AUTOGENERATED`);
@@ -259,17 +259,17 @@ export function addJumpLabels(code:string[]):string[] {
 
 //The entirety of the code of "bettermlog". Nice that it ended up being useful.
 export function removeComments(line:string):string {
-	let charsplitInput = line.split("");
-	let parsedChars = [];
+	const charsplitInput = line.split("");
+	const parsedChars = [];
 
 	let lastChar = "";
-	let state = {
+	const state = {
 		inSComment: false,
 		inMComment: false,
 		inDString: false
 	};
-	for(let _char in charsplitInput){
-		let char = charsplitInput[_char];
+	for(const _char in charsplitInput){
+		const char = charsplitInput[_char];
 		if(typeof char !== "string") continue;
 		if(state.inSComment){
 			if(char === "\n"){
@@ -316,7 +316,7 @@ export function removeComments(line:string):string {
 }
 
 export function getParameters(program:string[]):[name:string, type:string][]{
-	let functionLine = program.filter(line => line.startsWith("#function "))[0];
+	const functionLine = program.filter(line => line.startsWith("#function "))[0];
 	return functionLine
 		?.match(/(?<=#function .*?\().*?(?=\))/)
 		?.[0]
@@ -329,9 +329,9 @@ export function getParameters(program:string[]):[name:string, type:string][]{
 export function splitLineIntoArguments(line:string):string[] {
 	if(line.includes(`"`)){
 		//aaaaaaaaaaaaaaaaa
-		let replacementLine = [];
+		const replacementLine = [];
 		let isInString = false;
-		for(let char of line){
+		for(const char of line){
 			if(char == `"`){
 				isInString = !isInString;
 			}
@@ -360,11 +360,11 @@ export function transformVariables(args:string[], commandDefinition:CommandDefin
 
 export function transformCommand(args:string[], commandDefinition:CommandDefinition, transformFunction: (arg:string, commandArg:Arg) => string, filterFunction:(arg:string, commandArg:Arg) => boolean){
 	return args
-	.map((arg, index) => [arg, commandDefinition.args[index - 1]] as [name:string, arg:Arg|undefined])
-	.map(([arg, commandArg]) => 
-		(commandArg && filterFunction(arg, commandArg))
-		? transformFunction(arg, commandArg) : arg
-	);
+		.map((arg, index) => [arg, commandDefinition.args[index - 1]] as [name:string, arg:Arg|undefined])
+		.map(([arg, commandArg]) => 
+			(commandArg && filterFunction(arg, commandArg))
+				? transformFunction(arg, commandArg) : arg
+		);
 }
 
 export function addNamespaces(variable:string, stack:StackElement[]):string {
@@ -418,19 +418,19 @@ export function inNamespace(stack:StackElement[]):boolean {
  * foo is either being used as a unit or a building.
  */
 export function getAllPossibleVariablesUsed(command:string): [name:string, types:ArgType[]][]{
-	let args = splitLineIntoArguments(command).slice(1);
-	let variablesUsed_s = [];
-	for(let commandDefinition of getCommandDefinitions(command)){
+	const args = splitLineIntoArguments(command).slice(1);
+	const variablesUsed_s = [];
+	for(const commandDefinition of getCommandDefinitions(command)){
 		variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
-	};
-	let variablesToReturn: {
+	}
+	const variablesToReturn: {
 		[index:string]: ArgType[]
 	} = {};
-	for(let variablesUsed of variablesUsed_s){
-		 for(let [variableName, variableType] of variablesUsed){
-			 if(!variablesToReturn[variableName]) variablesToReturn[variableName] = [variableType];
-			 if(!variablesToReturn[variableName].includes(variableType)) variablesToReturn[variableName].push(variableType);
-		 }
+	for(const variablesUsed of variablesUsed_s){
+		for(const [variableName, variableType] of variablesUsed){
+			if(!variablesToReturn[variableName]) variablesToReturn[variableName] = [variableType];
+			if(!variablesToReturn[variableName].includes(variableType)) variablesToReturn[variableName].push(variableType);
+		}
 	}
 	return Object.entries(variablesToReturn);
 }
@@ -445,14 +445,14 @@ export function getVariablesUsed(args:string[], commandDefinition:CommandDefinit
 }
 
 export function getJumpLabelUsed(line:string): string | null {
-	let args = splitLineIntoArguments(line);
+	const args = splitLineIntoArguments(line);
 	if(args[0] == "jump") return args[1];
 	return null;
 }
 
 /**Checks if any of the inputs are compatible with the output type.*/
 export function areAnyOfInputsCompatibleWithType(inputs:ArgType[], output:ArgType):boolean{
-	for(let input of inputs){
+	for(const input of inputs){
 		if(typesAreCompatible(input, output) || typesAreCompatible(output, input)) return true;
 	}
 	return false;
@@ -492,8 +492,8 @@ export function getLabel(cleanedLine:string):string|undefined {
 }
 
 export function isCommand(line:string, command:CommandDefinition): [valid:false, error:CommandError] | [valid:true, error:null] {
-	let args = splitLineIntoArguments(line);
-	let commandArguments = args.slice(1);
+	const args = splitLineIntoArguments(line);
+	const commandArguments = args.slice(1);
 	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
 		return [false, {
 			type: CommandErrorType.argumentCount,
@@ -502,7 +502,7 @@ export function isCommand(line:string, command:CommandDefinition): [valid:false,
 		}];
 	}
 
-	for(let arg in commandArguments){
+	for(const arg in commandArguments){
 		if(!isArgOfType(commandArguments[+arg], command.args[+arg])){
 			if(command.args[+arg].isGeneric)
 				return [false, {
@@ -542,11 +542,11 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:true): [C
 /**Gets all valid command definitions for a command. */
 export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean = false): 
 	CommandDefinition[] | [CommandDefinition[], CommandError[]] {
-	let args = splitLineIntoArguments(cleanedLine);
+	const args = splitLineIntoArguments(cleanedLine);
 
-	let commandList = commands[args[0]];
-	let possibleCommands = [];
-	let errors = [];
+	const commandList = commands[args[0]];
+	const possibleCommands = [];
+	const errors = [];
 
 	if(commandList == undefined){
 		return returnErrors ? [[], [{
@@ -555,10 +555,10 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean =
 		}]] : [];
 	}
 
-	for(let possibleCommand of commandList){
+	for(const possibleCommand of commandList){
 		const result = isCommand(cleanedLine, possibleCommand);
 		if(result[0]){
-			possibleCommands.push(possibleCommand)
+			possibleCommands.push(possibleCommand);
 		} else {
 			errors.push(result[1]);
 		}
@@ -573,14 +573,14 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean =
 /**Parses preprocessor directives from a program. */
 export function parsePreprocessorDirectives(data:string[]): [string, string[], string] {
 	let program_type:string = "unknown";
-	let required_vars:string[] = [];
+	const required_vars:string[] = [];
 	let author = "unknown";
-	for(let line of data){
+	for(const line of data){
 		if(line.startsWith("#require ")){
 			required_vars.push(...line.split("#require ")[1].split(",").map(el => el.replaceAll(" ", "")).filter(el => el != ""));
 		}
 		if(line.startsWith("#program_type ")){
-			let type = line.split("#program_type ")[1];
+			const type = line.split("#program_type ")[1];
 			if(type == "never" || type == "main" || type == "function"){
 				program_type = type;
 			}
@@ -609,6 +609,6 @@ export function askQuestion(query:string): Promise<string> {
 	return new Promise(resolve => rl.question(query, ans => {
 		rl.close();
 		resolve(ans);
-	}))
+	}));
 }
 

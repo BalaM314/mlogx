@@ -7,7 +7,7 @@ import { isGenericArg, typeofArg } from "../funcs.js";
 import { GAT } from "../types.js";
 describe("isGenericArg", () => {
     it("should determine if an arg is generic", () => {
-        for (let genericArg of Object.values(GAT)) {
+        for (const genericArg of Object.values(GAT)) {
             expect(isGenericArg(genericArg)).toBe(true);
         }
     });
@@ -23,7 +23,7 @@ describe("typeofArg", () => {
             [`"amogus"`, GAT.string],
             [`:number`, GAT.ctype],
         ];
-        for (let [arg, expectedOutput] of args) {
+        for (const [arg, expectedOutput] of args) {
             expect(typeofArg(arg)).toBe(expectedOutput);
         }
     });
@@ -51,10 +51,10 @@ describe("isArgOfType", () => {
             [`"amogus"`, GAT.number],
             [`:number`, GAT.variable],
         ];
-        for (let [arg, expectedType] of correctTypes) {
+        for (const [arg, expectedType] of correctTypes) {
             expect(isArgOfType(arg, new Arg(expectedType))).toBe(true);
         }
-        for (let [arg, unexpectedType] of wrongTypes) {
+        for (const [arg, unexpectedType] of wrongTypes) {
             expect(isArgOfType(arg, new Arg(unexpectedType))).toBe(false);
         }
     });

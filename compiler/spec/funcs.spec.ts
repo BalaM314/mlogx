@@ -10,7 +10,7 @@ import { ArgType, GAT } from "../types.js";
 
 describe("isGenericArg", () => {
 	it("should determine if an arg is generic", () => {
-		for(let genericArg of Object.values(GAT)){
+		for(const genericArg of Object.values(GAT)){
 			expect(isGenericArg(genericArg)).toBe(true);
 		}
 	});
@@ -27,7 +27,7 @@ describe("typeofArg", () => {
 			[`"amogus"`, GAT.string],
 			[`:number`, GAT.ctype],
 		];
-		for(let [arg, expectedOutput] of args){
+		for(const [arg, expectedOutput] of args){
 			expect(typeofArg(arg)).toBe(expectedOutput);
 		}
 	});
@@ -56,10 +56,10 @@ describe("isArgOfType", () => {
 			[`"amogus"`, GAT.number],
 			[`:number`, GAT.variable],
 		];
-		for(let [arg, expectedType] of correctTypes){
+		for(const [arg, expectedType] of correctTypes){
 			expect(isArgOfType(arg, new Arg(expectedType))).toBe(true);
 		}
-		for(let [arg, unexpectedType] of wrongTypes){
+		for(const [arg, unexpectedType] of wrongTypes){
 			expect(isArgOfType(arg, new Arg(unexpectedType))).toBe(false);
 		}
 	});
@@ -118,14 +118,14 @@ describe("replaceCompilerConstants", () => {
 		expect(replaceCompilerConstants(`print "$(mog)"`, sampleVars)).toBe(`print "amogus"`);
 		expect(replaceCompilerConstants(`print "$(err)"`, sampleVars)).toBe(`print "thingy"`);
 	});
-})
+});
 
 describe("getParameters", () => {
 	it("should get function parameters from a program", () => {
 		expect(getParameters(["#function move_unit_precise(dest.x:number, u:unit)"]))
 			.toEqual([["dest.x", "number"], ["u", "unit"]]);
 		//TODO add more
-	})
+	});
 });
 
 describe("splitLineIntoArguments", () => {
@@ -181,7 +181,7 @@ describe("getVariablesDefined", () => {
 	it("should get variables defined in statements", () => {
 		expect(getVariablesDefined(["x", "cell1", "4"], commands["read"][0])).toEqual([["x", "number"]]);
 		expect(getVariablesDefined(["building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3]))
-			.toEqual([["outX", "number"], ["outY", "number"], ["found", "boolean"], ["building", "building"]])
+			.toEqual([["outX", "number"], ["outY", "number"], ["found", "boolean"], ["building", "building"]]);
 	});
 	it("should infer type in a set statement", () => {
 		expect(getVariablesDefined(["core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);

@@ -29,8 +29,8 @@ export class Arg {
 }
 
 export class CompilerError extends Error {
-	constructor(message?: string){
-		super(...arguments);
+	constructor(message:string){
+		super(message);
 		this.name = "CompilerError";
 	}
 }
@@ -41,7 +41,7 @@ export class Log {
 		console.log(chalk.gray(`[DEBUG]\t${message}`));
 	}
 	/**Dumps objects */
-	static dump(...objects:any[]){
+	static dump(...objects:unknown[]){
 		console.log(`[DEBUG]`, objects);
 	}
 	/**For general info. */
@@ -61,7 +61,7 @@ export class Log {
 		console.error(`[FATAL]\t${chalk.bgRed.white(message)}`);
 	}
 	/**Used by the program to announce what it is doing. */
-	static announce(message:string, ...rest:any[]){
+	static announce(message:string, ...rest:unknown[]){
 		console.log(chalk.blueBright(`${message}`), ...rest);
 	}
 	/**Just prints a message without any formatting */

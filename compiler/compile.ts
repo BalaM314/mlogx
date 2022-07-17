@@ -7,8 +7,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { Settings, ArgType, GAT, CommandDefinition, CommandErrorType, StackElement, Line, TData, TypeCheckingData } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLine, formatLineWithPrefix,  } from "./funcs.js";
+import { Settings, GAT, CommandDefinition, CommandErrorType, StackElement, Line, TData, TypeCheckingData } from "./types.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix,  } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import deepmerge from "deepmerge";
@@ -19,11 +19,11 @@ export function compileMlogxToMlog(
 	compilerConstants:{[index: string]: string}
 ):string[] {
 
-	let [programType, requiredVars, author] = parsePreprocessorDirectives(mlogxProgram);
+	const [programType, requiredVars] = parsePreprocessorDirectives(mlogxProgram);
 
-	let isMain = programType == "main" || settings.compilerOptions.mode == "single";
+	const isMain = programType == "main" || settings.compilerOptions.mode == "single";
 	
-	let compiledProgram:string[] = [];
+	const compiledProgram:string[] = [];
 	let stack:StackElement[] = [];
 
 	let typeCheckingData:TypeCheckingData = {
@@ -36,7 +36,7 @@ export function compileMlogxToMlog(
 				accumulator[name].push({variableType: type, line: {
 					text: "[function parameter]",
 					lineNumber: 1
-				}})
+				}});
 				return accumulator;
 			}, {}) : {})
 		},
@@ -45,7 +45,7 @@ export function compileMlogxToMlog(
 
 
 
-	for(let requiredVar of requiredVars){
+	for(const requiredVar of requiredVars){
 		if(requiredVarCode[requiredVar])
 			compiledProgram.push(...requiredVarCode[requiredVar]);
 		else
@@ -53,11 +53,11 @@ export function compileMlogxToMlog(
 	}
 	
 	//Loop through each line and compile it
-	for(let line in mlogxProgram){
+	for(const line in mlogxProgram){
 		try {
 			const { compiledCode, modifiedStack } = compileLine(mlogxProgram[line], compilerConstants, settings, +line, isMain, stack);
 			if(modifiedStack) stack = modifiedStack;
-			for(let compiledLine of compiledCode){
+			for(const compiledLine of compiledCode){
 				const newTypeData = typeCheckLine(compiledLine, {
 					text: mlogxProgram[line],
 					lineNumber: +line + 1
@@ -65,7 +65,7 @@ export function compileMlogxToMlog(
 				typeCheckingData = deepmerge(typeCheckingData, newTypeData);
 			}
 			if(inForLoop(stack)){
-				topForLoop(stack)!.loopBuffer.push(...compiledCode);
+				topForLoop(stack)?.loopBuffer.push(...compiledCode);
 			} else {
 				compiledProgram.push(...compiledCode);
 			}
@@ -74,8 +74,8 @@ export function compileMlogxToMlog(
 				Log.err(
 `${err.message}
 ${formatLineWithPrefix({
-		lineNumber:+line+1, text:mlogxProgram[line]
-	}, settings)}`
+	lineNumber:+line+1, text:mlogxProgram[line]
+}, settings)}`
 				);
 			} else {
 				throw err;
@@ -96,17 +96,17 @@ ${formatLineWithPrefix({
 }
 
 export function typeCheckLine(compiledCode:string, uncompiledLine:Line):TypeCheckingData {
-	let outputData:TypeCheckingData = {
+	const outputData:TypeCheckingData = {
 		jumpLabelsDefined: {},
 		jumpLabelsUsed: {},
 		variableDefinitions: {},
 		variableUsages: {}
 	};
-	let cleanedLine = cleanLine(compiledCode);
+	const cleanedLine = cleanLine(compiledCode);
 	if(cleanedLine == "") return outputData;
 
 
-	let labelName = getLabel(cleanedLine);
+	const labelName = getLabel(cleanedLine);
 	if(labelName){
 		outputData.jumpLabelsDefined[labelName] ??= [];
 		outputData.jumpLabelsDefined[labelName].push({
@@ -115,15 +115,15 @@ export function typeCheckLine(compiledCode:string, uncompiledLine:Line):TypeChec
 		return outputData;
 	}
 
-	let args = splitLineIntoArguments(cleanedLine).slice(1);
-	let commandDefinitions = getCommandDefinitions(cleanedLine);
+	const args = splitLineIntoArguments(cleanedLine).slice(1);
+	const commandDefinitions = getCommandDefinitions(cleanedLine);
 	if(commandDefinitions.length == 0){
 		throw new CompilerError(
 `Type checking aborted because the program contains invalid commands.`
 		);
 	}
 
-	let jumpLabelUsed:string | null = getJumpLabelUsed(cleanedLine);
+	const jumpLabelUsed:string | null = getJumpLabelUsed(cleanedLine);
 	if(jumpLabelUsed){
 		outputData.jumpLabelsUsed[jumpLabelUsed] ??= [];
 		outputData.jumpLabelsUsed[jumpLabelUsed].push({
@@ -131,7 +131,7 @@ export function typeCheckLine(compiledCode:string, uncompiledLine:Line):TypeChec
 		});
 	}
 
-	for(let commandDefinition of commandDefinitions){
+	for(const commandDefinition of commandDefinitions){
 		getVariablesDefined(args, commandDefinition).forEach(([variableName, variableType]) => {
 			outputData.variableDefinitions[variableName] ??= [];
 			outputData.variableDefinitions[variableName].push({
@@ -154,10 +154,10 @@ export function typeCheckLine(compiledCode:string, uncompiledLine:Line):TypeChec
 
 export function printTypeErrors({variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed}: TypeCheckingData, settings:Settings & {filename: string}){
 	//Check for conflicting definitions
-	for(let [name, definitions] of Object.entries(variableDefinitions)){
+	for(const [name, definitions] of Object.entries(variableDefinitions)){
 		//Create a list of each definition's type and remove duplicates.
 		//If this list has more than one element there are definitions of conflicting types.
-		let types = [
+		const types = [
 			...new Set(definitions.map(el => el.variableType))
 		].filter(el => 
 			el != GAT.valid && el != GAT.any &&
@@ -174,13 +174,13 @@ ${formatLineWithPrefix(definitions[0].line, settings, "\t\t")}
 ${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].line, settings, "\t\t")}`
 			);
 		}
-	};
+	}
 
 	
 	//Check for variable usage of wrong type
-	for(let [name, thisVariableUsages] of Object.entries(variableUsages)){
+	for(const [name, thisVariableUsages] of Object.entries(variableUsages)){
 		if(name == "_") continue;
-		for(let variableUsage of thisVariableUsages){
+		for(const variableUsage of thisVariableUsages){
 			if(!(name in variableDefinitions)){
 				//If the variable has never been defined
 				Log.warn(
@@ -201,19 +201,19 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 	}
 
 	//Check for redefined jump labels
-	for(let [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)){
+	for(const [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)){
 		if(definitions.length > 1){
 			Log.warn(`Jump label "${jumpLabel}" was defined ${definitions.length} times.`);
 			definitions.forEach(definition => 
 				Log.none(
-formatLineWithPrefix(definition.line, settings)
+					formatLineWithPrefix(definition.line, settings)
 				)
 			);
 		}
 	}
 
 	//Check for undefined jump labels
-	for(let [jumpLabel, usages] of Object.entries(jumpLabelsUsed)){
+	for(const [jumpLabel, usages] of Object.entries(jumpLabelsUsed)){
 		if(!jumpLabelsDefined[jumpLabel]){
 			Log.warn(`Jump label "${jumpLabel}" is missing.`);
 			usages.forEach(usage => 
@@ -263,17 +263,17 @@ export function compileLine(
 			compiledCode: inNamespace(stack) ? 
 				[`${addNamespaces(getLabel(cleanedLine)!, stack)}:`] :
 				[settings.compilerOptions.removeComments ? cleanedLine : line]
-		}
+		};
 		//TODO fix the way comments are handled
 	}
 
-	let args = splitLineIntoArguments(cleanedLine)
+	const args = splitLineIntoArguments(cleanedLine)
 		.map(arg => prependFilenameToArg(arg, isMain, settings.filename));
 	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 	//if it's a namespace: special handling
 	if(args[0] == "namespace"){
-		let name:string|undefined = args[1];
+		const name:string|undefined = args[1];
 		if(!(name?.length > 0)){
 			throw new CompilerError("No name specified for namespace");
 		}
@@ -319,7 +319,7 @@ export function compileLine(
 			const modifiedStack = stack.slice();
 			const endedBlock = modifiedStack.pop();
 			if(endedBlock?.type == "&for"){
-				let compiledCode = [];
+				const compiledCode = [];
 				for(let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i ++){
 					compiledCode.push(
 						...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line, {
@@ -341,7 +341,7 @@ export function compileLine(
 		}
 	}
 
-	let [ commandList, errors ] = getCommandDefinitions(cleanedLine, true);
+	const [ commandList, errors ] = getCommandDefinitions(cleanedLine, true);
 
 	if(commandList.length == 0){
 		//No commands were valid
@@ -374,11 +374,6 @@ export function compileLine(
 
 }
 
-/**Type checks an mlog program. */
-export function checkTypes(compiledProgram:string[], settings:Settings & {filename: string}, mlogProgram?:string[]){
-
-}
-
 /**Gets the compiled output for a command given a command definition and the stack. */
 export function getOutputForCommand(args:string[], command:CommandDefinition, stack:StackElement[]):string[] {
 	if(command.replace){
@@ -386,9 +381,9 @@ export function getOutputForCommand(args:string[], command:CommandDefinition, st
 		return compiledCommand.map(line => {
 			const compiledCommandDefinition = getCommandDefinition(line);
 			if(!compiledCommandDefinition){
-				Log.dump({args, command, compiledCommand, compiledCommandDefinition})
-				throw new Error("Line compiled to invalid statement. This is an error with MLOGX.")
-			};
+				Log.dump({args, command, compiledCommand, compiledCommandDefinition});
+				throw new Error("Line compiled to invalid statement. This is an error with MLOGX.");
+			}
 			return addNamespacesToLine(splitLineIntoArguments(line), compiledCommandDefinition, stack);
 		});
 	}

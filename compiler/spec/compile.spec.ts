@@ -158,7 +158,7 @@ describe("compileMlogxToMlog", () => {
 			expect(() =>
 				compileMlogxToMlog([line], 
 					settingsForFilename("sample2.mlogx"), {}
-					)
+				)
 			).not.toThrow();
 		}
 	});

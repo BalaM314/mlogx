@@ -149,7 +149,7 @@ export const commands: CommandDefinitions = processCommands({
 			args: "output:*any",
 			replace: (args:string[]) => {
 				if(args[1].match(/^([\w@_$-]+?)\.([\w@_$-]+?)$/i)){
-					let [_, target, property] = args[1].match(/^([\w@_$-]+?)\.([\w@_$-]+?)$/i)!;
+					const [, target, property] = args[1].match(/^([\w@_$-]+?)\.([\w@_$-]+?)$/i)!;
 					if(target == null || property == null) throw new CompilerError("Impossible.");
 					return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];
 				} else {
@@ -206,7 +206,7 @@ export const commands: CommandDefinitions = processCommands({
 		},
 		{
 			args: "operand:operandSingle arg1:*number",
-			description: "Performs an operation on arg1, mutating it. Example: \`op abs xDiff\`",
+			description: "Performs an operation on arg1, mutating it. Example: `op abs xDiff`",
 			replace: [ "op %1 %2 %2 0" ]
 		}
 	],

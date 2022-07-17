@@ -4,9 +4,9 @@ import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import deepmerge from "deepmerge";
 export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
-    let [programType, requiredVars, author] = parsePreprocessorDirectives(mlogxProgram);
-    let isMain = programType == "main" || settings.compilerOptions.mode == "single";
-    let compiledProgram = [];
+    const [programType, requiredVars] = parsePreprocessorDirectives(mlogxProgram);
+    const isMain = programType == "main" || settings.compilerOptions.mode == "single";
+    const compiledProgram = [];
     let stack = [];
     let typeCheckingData = {
         jumpLabelsDefined: {},
@@ -24,18 +24,18 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
         },
         variableUsages: {}
     };
-    for (let requiredVar of requiredVars) {
+    for (const requiredVar of requiredVars) {
         if (requiredVarCode[requiredVar])
             compiledProgram.push(...requiredVarCode[requiredVar]);
         else
             Log.warn("Unknown require " + requiredVar);
     }
-    for (let line in mlogxProgram) {
+    for (const line in mlogxProgram) {
         try {
             const { compiledCode, modifiedStack } = compileLine(mlogxProgram[line], compilerConstants, settings, +line, isMain, stack);
             if (modifiedStack)
                 stack = modifiedStack;
-            for (let compiledLine of compiledCode) {
+            for (const compiledLine of compiledCode) {
                 const newTypeData = typeCheckLine(compiledLine, {
                     text: mlogxProgram[line],
                     lineNumber: +line + 1
@@ -43,7 +43,7 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
                 typeCheckingData = deepmerge(typeCheckingData, newTypeData);
             }
             if (inForLoop(stack)) {
-                topForLoop(stack).loopBuffer.push(...compiledCode);
+                topForLoop(stack)?.loopBuffer.push(...compiledCode);
             }
             else {
                 compiledProgram.push(...compiledCode);
@@ -69,16 +69,16 @@ ${formatLineWithPrefix({
     return compiledProgram;
 }
 export function typeCheckLine(compiledCode, uncompiledLine) {
-    let outputData = {
+    const outputData = {
         jumpLabelsDefined: {},
         jumpLabelsUsed: {},
         variableDefinitions: {},
         variableUsages: {}
     };
-    let cleanedLine = cleanLine(compiledCode);
+    const cleanedLine = cleanLine(compiledCode);
     if (cleanedLine == "")
         return outputData;
-    let labelName = getLabel(cleanedLine);
+    const labelName = getLabel(cleanedLine);
     if (labelName) {
         outputData.jumpLabelsDefined[labelName] ??= [];
         outputData.jumpLabelsDefined[labelName].push({
@@ -86,19 +86,19 @@ export function typeCheckLine(compiledCode, uncompiledLine) {
         });
         return outputData;
     }
-    let args = splitLineIntoArguments(cleanedLine).slice(1);
-    let commandDefinitions = getCommandDefinitions(cleanedLine);
+    const args = splitLineIntoArguments(cleanedLine).slice(1);
+    const commandDefinitions = getCommandDefinitions(cleanedLine);
     if (commandDefinitions.length == 0) {
         throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
     }
-    let jumpLabelUsed = getJumpLabelUsed(cleanedLine);
+    const jumpLabelUsed = getJumpLabelUsed(cleanedLine);
     if (jumpLabelUsed) {
         outputData.jumpLabelsUsed[jumpLabelUsed] ??= [];
         outputData.jumpLabelsUsed[jumpLabelUsed].push({
             line: uncompiledLine
         });
     }
-    for (let commandDefinition of commandDefinitions) {
+    for (const commandDefinition of commandDefinitions) {
         getVariablesDefined(args, commandDefinition).forEach(([variableName, variableType]) => {
             outputData.variableDefinitions[variableName] ??= [];
             outputData.variableDefinitions[variableName].push({
@@ -117,8 +117,8 @@ export function typeCheckLine(compiledCode, uncompiledLine) {
     return outputData;
 }
 export function printTypeErrors({ variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed }, settings) {
-    for (let [name, definitions] of Object.entries(variableDefinitions)) {
-        let types = [
+    for (const [name, definitions] of Object.entries(variableDefinitions)) {
+        const types = [
             ...new Set(definitions.map(el => el.variableType))
         ].filter(el => el != GAT.valid && el != GAT.any &&
             el != GAT.variable && el != GAT.valid &&
@@ -131,11 +131,10 @@ ${formatLineWithPrefix(definitions[0].line, settings, "\t\t")}
 ${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].line, settings, "\t\t")}`);
         }
     }
-    ;
-    for (let [name, thisVariableUsages] of Object.entries(variableUsages)) {
+    for (const [name, thisVariableUsages] of Object.entries(variableUsages)) {
         if (name == "_")
             continue;
-        for (let variableUsage of thisVariableUsages) {
+        for (const variableUsage of thisVariableUsages) {
             if (!(name in variableDefinitions)) {
                 Log.warn(`Variable "${name}" seems to be undefined.
 ${formatLineWithPrefix(variableUsage.line, settings)}`);
@@ -149,13 +148,13 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`);
             }
         }
     }
-    for (let [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)) {
+    for (const [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)) {
         if (definitions.length > 1) {
             Log.warn(`Jump label "${jumpLabel}" was defined ${definitions.length} times.`);
             definitions.forEach(definition => Log.none(formatLineWithPrefix(definition.line, settings)));
         }
     }
-    for (let [jumpLabel, usages] of Object.entries(jumpLabelsUsed)) {
+    for (const [jumpLabel, usages] of Object.entries(jumpLabelsUsed)) {
         if (!jumpLabelsDefined[jumpLabel]) {
             Log.warn(`Jump label "${jumpLabel}" is missing.`);
             usages.forEach(usage => Log.none(formatLineWithPrefix(usage.line, settings)));
@@ -187,10 +186,10 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
                 [settings.compilerOptions.removeComments ? cleanedLine : line]
         };
     }
-    let args = splitLineIntoArguments(cleanedLine)
+    const args = splitLineIntoArguments(cleanedLine)
         .map(arg => prependFilenameToArg(arg, isMain, settings.filename));
     if (args[0] == "namespace") {
-        let name = args[1];
+        const name = args[1];
         if (!(name?.length > 0)) {
             throw new CompilerError("No name specified for namespace");
         }
@@ -233,7 +232,7 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
             const modifiedStack = stack.slice();
             const endedBlock = modifiedStack.pop();
             if (endedBlock?.type == "&for") {
-                let compiledCode = [];
+                const compiledCode = [];
                 for (let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i++) {
                     compiledCode.push(...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line, {
                         [endedBlock.variableName]: i.toString()
@@ -252,7 +251,7 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
             };
         }
     }
-    let [commandList, errors] = getCommandDefinitions(cleanedLine, true);
+    const [commandList, errors] = getCommandDefinitions(cleanedLine, true);
     if (commandList.length == 0) {
         if (errors.length == 0) {
             throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${line}"\nPlease copy this and file an issue on Github.`);
@@ -279,8 +278,6 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
         compiledCode: getOutputForCommand(args, commandList[0], stack)
     };
 }
-export function checkTypes(compiledProgram, settings, mlogProgram) {
-}
 export function getOutputForCommand(args, command, stack) {
     if (command.replace) {
         const compiledCommand = command.replace(args);
@@ -290,7 +287,6 @@ export function getOutputForCommand(args, command, stack) {
                 Log.dump({ args, command, compiledCommand, compiledCommandDefinition });
                 throw new Error("Line compiled to invalid statement. This is an error with MLOGX.");
             }
-            ;
             return addNamespacesToLine(splitLineIntoArguments(line), compiledCommandDefinition, stack);
         });
     }

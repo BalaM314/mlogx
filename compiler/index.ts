@@ -11,7 +11,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 import * as path from "path";
 import * as fs from "fs";
 import { commands } from "./commands.js";
-import { checkTypes, compileMlogxToMlog } from "./compile.js";
+import { compileMlogxToMlog } from "./compile.js";
 import { addJumpLabels, askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
@@ -22,7 +22,7 @@ import deepmerge from "deepmerge";
 
 const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
-	let command = opts.positionalArgs[0]!;
+	const command = opts.positionalArgs[0]!;
 	if(command.includes(" ")){
 		Log.err(`Commands cannot contain spaces.`);
 		return 1;
@@ -36,9 +36,9 @@ mlogx.command("info", "Shows information about a logic command", (opts) => {
 Usage:
 
 ${commands[command].map(
-commandDefinition => command + " " + commandDefinition.args
-	.map(arg => arg.toString())
-	.join(" ") + "\n" + commandDefinition.description
+	commandDefinition => command + " " + commandDefinition.args
+		.map(arg => arg.toString())
+		.join(" ") + "\n" + commandDefinition.description
 ).join("\n\n")}
 `)
 		);//todo clean this up ^^
@@ -92,7 +92,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 				if(Date.now() - lastCompiledTime > 1000){//WINDOWSSSSSSS
 					Log.announce(`\nFile changes detected! ${filename.toString()}`);
 
-					let parentdirs = filename.toString().split(path.sep).slice(0, -1);
+					const parentdirs = filename.toString().split(path.sep).slice(0, -1);
 					let dirToCompile:string;
 
 					if(parentdirs.at(-1) != undefined){
@@ -149,7 +149,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 	}
 }, ["build"]);
 
-mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded jumps.", (opts, app) => {
+mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded jumps.", (opts) => {
 	const target = opts.positionalArgs[0];
 	if(!fs.existsSync(target)){
 		Log.err(`Invalid path specified.\nPath ${target} does not exist.`);
@@ -193,9 +193,9 @@ function compileDirectory(directory:string, stdlibPath:string, defaultSettings:S
 			defaultSettings,
 			JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"))
 		);
-		if((settings as any)["compilerVariables"]){
-			Log.warn(`settings.compilerVariables is deprecated, please use settings.compilerConsts instead.`);
-			settings.compilerConstants = (settings as any)["compilerVariables"];
+		if("compilerVariables" in settings){
+			Log.warn(`settings.compilerVariables is deprecated, please use settings.compilerConstants instead.`);
+			settings.compilerConstants = (settings as Settings & {compilerVariables: typeof settings.compilerConstants})["compilerVariables"];
 		}
 		//Todo: config file validation
 	} catch(err){
@@ -204,7 +204,7 @@ function compileDirectory(directory:string, stdlibPath:string, defaultSettings:S
 	
 	const icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
 
-	let srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
+	const srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
 
 	if(!srcDirectoryExists && settings.compilerOptions.mode == "project"){
 		Log.warn(`Compiler mode set to "project" but no src directory found.`);
@@ -224,31 +224,31 @@ function compileDirectory(directory:string, stdlibPath:string, defaultSettings:S
 	}
 
 	/**List of filenames ending in .mlogx in the src directory. */
-	let filelist_mlogx:string[] = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlogx$/));
+	const filelist_mlogx:string[] = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlogx$/));
 	/**List of filenames ending in .mlog in the src directory. */
-	let filelist_mlog:string[] = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlog$/));
-	let filelist_stdlib:string[] = fs.readdirSync(stdlibDirectory).filter(filename => filename.match(/\.mlog/));
+	const filelist_mlog:string[] = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlog$/));
+	const filelist_stdlib:string[] = fs.readdirSync(stdlibDirectory).filter(filename => filename.match(/\.mlog/));
 	Log.announce("Files to compile: ", filelist_mlogx);
 
-	let compiledData: {
+	const compiledData: {
 		[index: string]: string[];
 	} = {};
 	let mainData: string[] = [];
-	let stdlibData: {
+	const stdlibData: {
 		[index: string]: string[];
 	} = {};
 
-	for(let filename of filelist_stdlib){
+	for(const filename of filelist_stdlib){
 		//For each filename in the stdlib
 		// Load the file into stdlibData
 		stdlibData[filename.split(".")[0]] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8').split(/\r?\n/g);
 	}
 
-	for(let filename of filelist_mlogx){
+	for(const filename of filelist_mlogx){
 		//For each filename in the file list
 
 		Log.announce(`Compiling file ${filename}`);
-		let data:string[] = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split(/\r?\n/g);
+		const data:string[] = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split(/\r?\n/g);
 		//Load the data
 		
 		let outputData: string[];
@@ -274,20 +274,6 @@ function compileDirectory(directory:string, stdlibPath:string, defaultSettings:S
 		}
 		if(settings.compilerOptions.mode == "single"){
 			outputData.push("end", ...compilerMark);
-			if(settings.compilerOptions.checkTypes){
-				try {
-					checkTypes(outputData, {
-						filename,
-						...settings
-					}, data);
-				} catch(err){
-					if(err instanceof CompilerError)
-						Log.err(err.message);
-					else
-						throw err;
-				}
-		
-			}
 		}
 		//Write .mlog files to output
 		fs.writeFileSync(
@@ -307,7 +293,7 @@ function compileDirectory(directory:string, stdlibPath:string, defaultSettings:S
 	}
 
 	if(settings.compilerOptions.mode == "project"){
-		for(let filename of filelist_mlog){
+		for(const filename of filelist_mlog){
 			//For each filename in the other file list
 			//If the filename is not main, add it to the list of compiled data, otherwise, set mainData to it
 			if(filename != "main.mlog"){
@@ -319,36 +305,21 @@ function compileDirectory(directory:string, stdlibPath:string, defaultSettings:S
 		Log.announce("Compiled all files successfully.");
 		Log.announce("Assembling output:");
 
-		let outputData:string[] = [
+		const outputData:string[] = [
 			...mainData, "end", "",
 			"#functions",
 			//bizzare hack to use spread operator twice
 			...([] as string[]).concat(...
-				Object.values(compiledData).map(program => program.concat("end"))
+			Object.values(compiledData).map(program => program.concat("end"))
 			), "",
 			"#stdlib functions",
-			...([] as string[]).concat(...
-				Object.entries(stdlibData).filter(
-					([name, program]) => settings.compilerOptions.include.includes(name)
-				).map(([name, program]) => program.concat("end"))
+			...([] as string[]).concat(
+				...Object.entries(stdlibData).filter(
+					([name]) => settings.compilerOptions.include.includes(name)
+				).map(([, program]) => program.concat("end"))
 			),
 			"", ...compilerMark
 		];
-		
-		if(settings.compilerOptions.checkTypes){
-			try {
-				checkTypes(outputData, {
-					filename: `out.mlog`,
-					...settings
-				});
-			} catch(err){
-				if(err instanceof CompilerError)
-					Log.err(err.message);
-				else
-					throw err;
-			}
-	
-		}
 
 		fs.writeFileSync(
 			path.join(directory, "out.mlog"),
@@ -362,7 +333,7 @@ function compileFile(name:string, settings:Settings){
 
 	const icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
 
-	let data:string[] = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
+	const data:string[] = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
 	let outputData:string[];
 	try {
 		outputData = compileMlogxToMlog(data, {
@@ -377,29 +348,15 @@ function compileFile(name:string, settings:Settings){
 		});
 	} catch(err){
 		Log.err(`Failed to compile file ${name}!`);
-			if(err instanceof CompilerError){
-				Log.err(err.message);
-			} else {
-				Log.err("Unhandled error:")
-				Log.dump(err);
-			}
-			return;
+		if(err instanceof CompilerError){
+			Log.err(err.message);
+		} else {
+			Log.err("Unhandled error:");
+			Log.dump(err);
+		}
+		return;
 	}
 
-	if(settings.compilerOptions.checkTypes){
-		try {
-			checkTypes(outputData, {
-				filename: name,
-				...settings
-			});
-		} catch(err){
-			if(err instanceof CompilerError)
-				Log.err(err.message);
-			else
-				throw err;
-		}
-	}
-	
 	fs.writeFileSync(name.slice(0, -1), outputData.join("\r\n"));
 }
 
@@ -410,7 +367,7 @@ async function createProject(name:string|undefined){
 	if(fs.existsSync(path.join(process.cwd(), name))){
 		throw new Error(`Directory ${name} already exists.`);
 	}
-	if(/[\.\/\\]/.test(name)){
+	if(/[./\\]/.test(name)){
 		throw new Error(`Name ${name} contains invalid characters.`);
 	}
 	const authors:string[] = (await askQuestion("Authors: ")).split(" ");

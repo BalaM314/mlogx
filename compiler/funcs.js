@@ -9,24 +9,25 @@ export function processCommands(preprocessedCommands) {
         if (!str.includes(":")) {
             return new Arg(str, str, false, false, false);
         }
-        let [name, type] = str.split(":");
+        const [name, type] = str.split(":");
+        let modifiedType = type;
         let isVariable = false;
         let isOptional = false;
         if (type.startsWith("*")) {
             isVariable = true;
-            type = type.substring(1);
+            modifiedType = type.substring(1);
         }
         if (type.endsWith("?")) {
             isOptional = true;
-            type = type.substring(0, type.length - 1);
+            modifiedType = type.substring(0, type.length - 1);
         }
-        return new Arg(type, name, isOptional, true, isVariable);
+        return new Arg(modifiedType, name, isOptional, true, isVariable);
     }
-    let out = {};
-    for (let [name, commands] of Object.entries(preprocessedCommands)) {
+    const out = {};
+    for (const [name, commands] of Object.entries(preprocessedCommands)) {
         out[name] = [];
-        for (let command of commands) {
-            let processedCommand = {
+        for (const command of commands) {
+            const processedCommand = {
                 description: command.description,
                 name,
                 args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
@@ -58,7 +59,7 @@ export function typeofArg(arg) {
         return GAT.invalid;
     if (arg == undefined)
         return GAT.invalid;
-    if (arg.match(/@[a-z\-]+/i)) {
+    if (arg.match(/@[a-z-]+/i)) {
         if (arg == "@unit")
             return GAT.unit;
         if (arg == "@thisx")
@@ -113,7 +114,7 @@ export function isArgOfType(argToCheck, arg) {
     if (!isGenericArg(arg.type)) {
         return argToCheck === arg.type;
     }
-    let knownType = typeofArg(argToCheck);
+    const knownType = typeofArg(argToCheck);
     if (arg.isVariable)
         return knownType == GAT.variable;
     if (knownType == arg.type)
@@ -133,8 +134,6 @@ export function isArgOfType(argToCheck, arg) {
         case GAT.unit:
         case GAT.function:
             return knownType == GAT.variable;
-        case GAT.targetClass:
-            return ["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(argToCheck);
         case GAT.buildingGroup:
             return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(argToCheck);
         case GAT.operandTest:
@@ -182,14 +181,14 @@ export function removeTrailingSpaces(line) {
         .replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
 export function replaceCompilerConstants(line, variables) {
-    for (let [key, value] of Object.entries(variables)) {
+    for (const [key, value] of Object.entries(variables)) {
         line = line.replace(new RegExp(`(\\$\\(${key}\\))|(\\$${key})`, "g"), value);
     }
     return line;
 }
 export function parseIcons(data) {
-    let icons = {};
-    for (let line of data) {
+    const icons = {};
+    for (const line of data) {
         try {
             icons["_" + line.split("=")[1].split("|")[0]] = String.fromCodePoint(parseInt(line.split("=")[0]));
         }
@@ -200,12 +199,12 @@ export function parseIcons(data) {
 }
 export function addJumpLabels(code) {
     let lastJumpNameIndex = 0;
-    let jumps = {};
-    let transformedCode = [];
-    let outputCode = [];
-    let cleanedCode = code.map(line => cleanLine(line)).filter(line => line);
-    for (let line of cleanedCode) {
-        let label = getJumpLabelUsed(line);
+    const jumps = {};
+    const transformedCode = [];
+    const outputCode = [];
+    const cleanedCode = code.map(line => cleanLine(line)).filter(line => line);
+    for (const line of cleanedCode) {
+        const label = getJumpLabelUsed(line);
         if (label) {
             if (label == "0") {
                 jumps[label] = "0";
@@ -216,18 +215,18 @@ export function addJumpLabels(code) {
             }
         }
     }
-    for (let line of cleanedCode) {
+    for (const line of cleanedCode) {
         if (getCommandDefinition(line) == commands.jump[0]) {
-            let label = getJumpLabelUsed(line);
+            const label = getJumpLabelUsed(line);
             if (label == undefined)
                 throw new Error("invalid jump statement");
-            transformedCode.push(transformCommand(splitLineIntoArguments(line), commands.jump[0], (arg, carg) => jumps[arg] ?? (() => { throw new Error(`Unknown jump label ${arg}`); })(), (arg, carg) => carg.isGeneric && carg.type == GAT.jumpAddress).join(" "));
+            transformedCode.push(transformCommand(splitLineIntoArguments(line), commands.jump[0], (arg) => jumps[arg] ?? (() => { throw new Error(`Unknown jump label ${arg}`); })(), (arg, carg) => carg.isGeneric && carg.type == GAT.jumpAddress).join(" "));
         }
         else {
             transformedCode.push(line);
         }
     }
-    for (let lineNumber in transformedCode) {
+    for (const lineNumber in transformedCode) {
         const jumpLabel = jumps[(+lineNumber).toString()];
         if (jumpLabel) {
             outputCode.push(`${jumpLabel}: #AUTOGENERATED`);
@@ -237,16 +236,16 @@ export function addJumpLabels(code) {
     return outputCode;
 }
 export function removeComments(line) {
-    let charsplitInput = line.split("");
-    let parsedChars = [];
+    const charsplitInput = line.split("");
+    const parsedChars = [];
     let lastChar = "";
-    let state = {
+    const state = {
         inSComment: false,
         inMComment: false,
         inDString: false
     };
-    for (let _char in charsplitInput) {
-        let char = charsplitInput[_char];
+    for (const _char in charsplitInput) {
+        const char = charsplitInput[_char];
         if (typeof char !== "string")
             continue;
         if (state.inSComment) {
@@ -296,7 +295,7 @@ export function removeComments(line) {
     return parsedChars.join("");
 }
 export function getParameters(program) {
-    let functionLine = program.filter(line => line.startsWith("#function "))[0];
+    const functionLine = program.filter(line => line.startsWith("#function "))[0];
     return functionLine
         ?.match(/(?<=#function .*?\().*?(?=\))/)?.[0]
         ?.split(",")
@@ -305,9 +304,9 @@ export function getParameters(program) {
 }
 export function splitLineIntoArguments(line) {
     if (line.includes(`"`)) {
-        let replacementLine = [];
+        const replacementLine = [];
         let isInString = false;
-        for (let char of line) {
+        for (const char of line) {
             if (char == `"`) {
                 isInString = !isInString;
             }
@@ -364,15 +363,14 @@ export function inNamespace(stack) {
     return stack.filter(el => el.type == "namespace").length != 0;
 }
 export function getAllPossibleVariablesUsed(command) {
-    let args = splitLineIntoArguments(command).slice(1);
-    let variablesUsed_s = [];
-    for (let commandDefinition of getCommandDefinitions(command)) {
+    const args = splitLineIntoArguments(command).slice(1);
+    const variablesUsed_s = [];
+    for (const commandDefinition of getCommandDefinitions(command)) {
         variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
     }
-    ;
-    let variablesToReturn = {};
-    for (let variablesUsed of variablesUsed_s) {
-        for (let [variableName, variableType] of variablesUsed) {
+    const variablesToReturn = {};
+    for (const variablesUsed of variablesUsed_s) {
+        for (const [variableName, variableType] of variablesUsed) {
             if (!variablesToReturn[variableName])
                 variablesToReturn[variableName] = [variableType];
             if (!variablesToReturn[variableName].includes(variableType))
@@ -387,13 +385,13 @@ export function getVariablesUsed(args, commandDefinition) {
         .filter(([arg, commandArg]) => typeofArg(arg) == GAT.variable && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 export function getJumpLabelUsed(line) {
-    let args = splitLineIntoArguments(line);
+    const args = splitLineIntoArguments(line);
     if (args[0] == "jump")
         return args[1];
     return null;
 }
 export function areAnyOfInputsCompatibleWithType(inputs, output) {
-    for (let input of inputs) {
+    for (const input of inputs) {
         if (typesAreCompatible(input, output) || typesAreCompatible(output, input))
             return true;
     }
@@ -434,15 +432,15 @@ export function getLabel(cleanedLine) {
     return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0];
 }
 export function isCommand(line, command) {
-    let args = splitLineIntoArguments(line);
-    let commandArguments = args.slice(1);
+    const args = splitLineIntoArguments(line);
+    const commandArguments = args.slice(1);
     if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length) {
         return [false, {
                 type: CommandErrorType.argumentCount,
                 message: `Incorrect number of arguments for command "${args[0]}", see \`mlogx info ${args[0]}\``
             }];
     }
-    for (let arg in commandArguments) {
+    for (const arg in commandArguments) {
         if (!isArgOfType(commandArguments[+arg], command.args[+arg])) {
             if (command.args[+arg].isGeneric)
                 return [false, {
@@ -468,17 +466,17 @@ export function getCommandDefinition(cleanedLine) {
     return getCommandDefinitions(cleanedLine)[0];
 }
 export function getCommandDefinitions(cleanedLine, returnErrors = false) {
-    let args = splitLineIntoArguments(cleanedLine);
-    let commandList = commands[args[0]];
-    let possibleCommands = [];
-    let errors = [];
+    const args = splitLineIntoArguments(cleanedLine);
+    const commandList = commands[args[0]];
+    const possibleCommands = [];
+    const errors = [];
     if (commandList == undefined) {
         return returnErrors ? [[], [{
                     type: CommandErrorType.noCommand,
                     message: `Command ${args[0]} does not exist.`
                 }]] : [];
     }
-    for (let possibleCommand of commandList) {
+    for (const possibleCommand of commandList) {
         const result = isCommand(cleanedLine, possibleCommand);
         if (result[0]) {
             possibleCommands.push(possibleCommand);
@@ -494,14 +492,14 @@ export function getCommandDefinitions(cleanedLine, returnErrors = false) {
 }
 export function parsePreprocessorDirectives(data) {
     let program_type = "unknown";
-    let required_vars = [];
+    const required_vars = [];
     let author = "unknown";
-    for (let line of data) {
+    for (const line of data) {
         if (line.startsWith("#require ")) {
             required_vars.push(...line.split("#require ")[1].split(",").map(el => el.replaceAll(" ", "")).filter(el => el != ""));
         }
         if (line.startsWith("#program_type ")) {
-            let type = line.split("#program_type ")[1];
+            const type = line.split("#program_type ")[1];
             if (type == "never" || type == "main" || type == "function") {
                 program_type = type;
             }

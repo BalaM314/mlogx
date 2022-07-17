@@ -55,14 +55,14 @@ ulocate building generator false _ outX outY found building
 ulocate ore turret true @copper outX outY found building
 ulocate damaged repair true @copper outX outY found building
 ulocate spawn factory false @copper outX outY found building`
-.split("\n");
+	.split("\n");
 
 export const allMlogxCommands =
 `call amogus
 return
 throw "Error"
 uflag @flare`
-.split('\n');
+	.split('\n');
 
 export const allShorthandCommands: [input:string, output:string][] = [
 	[`radar enemy distance scatter1 0 unit`, `radar enemy any any distance scatter1 0 unit`],

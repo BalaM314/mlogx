@@ -18,7 +18,7 @@ export class Arg {
 }
 export class CompilerError extends Error {
     constructor(message) {
-        super(...arguments);
+        super(message);
         this.name = "CompilerError";
     }
 }
