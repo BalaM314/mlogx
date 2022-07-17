@@ -387,12 +387,20 @@ export function addNamespacesToLine(args:string[], commandDefinition:CommandDefi
 }
 
 /**Gets the variables defined by a command, given a list of arguments and a command definition. */
-export function getVariablesDefined(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
-	if(commandDefinition.getVariablesDefined){
-		return commandDefinition.getVariablesDefined(args);
+export function getVariablesDefined(
+	compiledCommandArgs:string[], compiledCommandDefinition:CommandDefinition,
+	uncompiledCommandArgs:string[] = compiledCommandArgs, uncompiledCommandDefinition:CommandDefinition = compiledCommandDefinition
+): [name:string, type:ArgType][]{
+	if(uncompiledCommandDefinition.getVariablesDefined){
+		//TODO check for edge cases.
+		return uncompiledCommandDefinition.getVariablesDefined(uncompiledCommandArgs);
 	}
-	return args
-		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg|undefined])
+	if(compiledCommandDefinition.getVariablesDefined){
+		//TODO check for edge cases.
+		return compiledCommandDefinition.getVariablesDefined(compiledCommandArgs);
+	}
+	return compiledCommandArgs
+		.map((arg, index) => [arg, compiledCommandDefinition.args[index]] as [name:string, arg:Arg|undefined])
 		.filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
 		.map(([arg, commandArg]) => [arg, commandArg!.type]);
 }
@@ -417,7 +425,8 @@ export function inNamespace(stack:StackElement[]):boolean {
  * Needed because, for example, the `sensor` command accepts either a building or a unit, so if you have `sensor foo.x foo @x`
  * foo is either being used as a unit or a building.
  */
-export function getAllPossibleVariablesUsed(command:string): [name:string, types:ArgType[]][]{
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function getAllPossibleVariablesUsed(command:string, uncompiledLine:string = command): [name:string, types:ArgType[]][]{
 	const args = splitLineIntoArguments(command).slice(1);
 	const variablesUsed_s = [];
 	for(const commandDefinition of getCommandDefinitions(command)){

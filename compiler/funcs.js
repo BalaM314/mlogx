@@ -344,12 +344,15 @@ export function addNamespacesToLine(args, commandDefinition, stack) {
         return args.join(" ");
     return transformVariables(args, commandDefinition, (variable) => addNamespaces(variable, stack)).join(" ");
 }
-export function getVariablesDefined(args, commandDefinition) {
-    if (commandDefinition.getVariablesDefined) {
-        return commandDefinition.getVariablesDefined(args);
+export function getVariablesDefined(compiledCommandArgs, compiledCommandDefinition, uncompiledCommandArgs = compiledCommandArgs, uncompiledCommandDefinition = compiledCommandDefinition) {
+    if (uncompiledCommandDefinition.getVariablesDefined) {
+        return uncompiledCommandDefinition.getVariablesDefined(uncompiledCommandArgs);
     }
-    return args
-        .map((arg, index) => [arg, commandDefinition.args[index]])
+    if (compiledCommandDefinition.getVariablesDefined) {
+        return compiledCommandDefinition.getVariablesDefined(compiledCommandArgs);
+    }
+    return compiledCommandArgs
+        .map((arg, index) => [arg, compiledCommandDefinition.args[index]])
         .filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
         .map(([arg, commandArg]) => [arg, commandArg.type]);
 }
@@ -362,7 +365,7 @@ export function topForLoop(stack) {
 export function inNamespace(stack) {
     return stack.filter(el => el.type == "namespace").length != 0;
 }
-export function getAllPossibleVariablesUsed(command) {
+export function getAllPossibleVariablesUsed(command, uncompiledLine = command) {
     const args = splitLineIntoArguments(command).slice(1);
     const variablesUsed_s = [];
     for (const commandDefinition of getCommandDefinitions(command)) {

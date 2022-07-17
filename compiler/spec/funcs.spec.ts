@@ -187,6 +187,10 @@ describe("getVariablesDefined", () => {
 		expect(getVariablesDefined(["core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);
 		expect(getVariablesDefined(["amogus", `"sus"`], commands["set"][0])).toEqual([["amogus", "string"]]);
 	});
+	it("should accept type hints in a set statement", () => {
+		expect(getVariablesDefined(["thing", ":building", "null"], commands["set"][1])).toEqual([["thing", "building"]]);
+		expect(getVariablesDefined(["amogus", ":number", `otherVar`], commands["set"][1])).toEqual([["amogus", "number"]]);
+	});
 });
 
 describe("getVariablesUsed", () => {
@@ -203,8 +207,7 @@ describe("getAllPossibleVariablesUsed", () => {
 		expect(getAllPossibleVariablesUsed("ucontrol within x y 10 close")).toEqual([["x", ["number"]], ["y", ["number"]]]);
 		expect(getAllPossibleVariablesUsed("ulocate building core true outX outY found building"))
 			.toEqual([]);
-		// expect(getAllPossibleVariablesUsed("sensor building.x")).toEqual([["building", ["building", "unit"]]]);
-		//TODO fix
+		expect(getAllPossibleVariablesUsed("sensor building.x")).toEqual([["building", ["building", "unit"]]]);
 	});
 	it("should return multiple possible types for certain commands", () => {
 		expect(getAllPossibleVariablesUsed("sensor x thing @x")).toEqual([["thing", ["building", "unit"]]]);
