@@ -1,6 +1,6 @@
 import { Arg } from "../classes.js";
 import commands from "../commands.js";
-import { addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables } from "../funcs.js";
+import { addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables } from "../funcs.js";
 import { getVariablesDefined } from "../funcs.js";
 import { cleanLine } from "../funcs.js";
 import { isGenericArg, typeofArg } from "../funcs.js";
@@ -243,5 +243,35 @@ describe("getJumpLabelUsed", () => {
 	});
 	it("should return null if no jump label exists", () => {
 		expect(getJumpLabelUsed("set label \"greaterThan\"")).toEqual(null);
+	});
+});
+
+describe("removeUnusedJumps", () => {
+	it("should not remove used jumps", () => {
+		expect(removeUnusedJumps([
+			"label5:",
+			"jump label5 always"
+		], {
+			label5: [{
+				line: {text: "jump label5 always", lineNumber: 2}
+			}]
+		})).toEqual([
+			"label5:",
+			"jump label5 always"
+		]);
+	});
+	it("should remove unused jumps", () => {
+		expect(removeUnusedJumps([
+			"label5:",
+			"jump label5 always",
+			"label6:"
+		], {
+			label5: [{
+				line: {text: "jump label5 always", lineNumber: 2}
+			}]
+		})).toEqual([
+			"label5:",
+			"jump label5 always"
+		]);
 	});
 });

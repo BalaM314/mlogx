@@ -357,6 +357,9 @@ export function getVariablesDefined(compiledCommandArgs, compiledCommandDefiniti
         .filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
         .map(([arg, commandArg]) => [arg, commandArg.type]);
 }
+export function removeUnusedJumps(compiledProgram, jumpLabelUsages) {
+    return compiledProgram.filter(line => !getLabel(line) || getLabel(line) in jumpLabelUsages);
+}
 export function inForLoop(stack) {
     return stack.filter(el => el.type == "&for").length != 0;
 }

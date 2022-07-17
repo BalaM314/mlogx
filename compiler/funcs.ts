@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { Arg, Log } from "./classes.js";
 import commands from "./commands.js";
-import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions, Settings, StackElement } from "./types.js";
+import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions, Settings, StackElement, TData } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -405,6 +405,14 @@ export function getVariablesDefined(
 		.map((arg, index) => [arg, compiledCommandDefinition.args[index]] as [name:string, arg:Arg|undefined])
 		.filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
 		.map(([arg, commandArg]) => [arg, commandArg!.type]);
+}
+
+export function removeUnusedJumps(compiledProgram:string[], jumpLabelUsages:TData.jumpLabelsUsed):string[] {
+	return compiledProgram.filter(line =>
+		//this is actually quite dumb
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		!getLabel(line) || (getLabel(line) as any) in jumpLabelUsages
+	);
 }
 
 /**Returns if the stack contains a for loop. */

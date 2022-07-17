@@ -1,5 +1,5 @@
 import { GAT, CommandErrorType } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import deepmerge from "deepmerge";
@@ -67,7 +67,10 @@ ${formatLineWithPrefix({
     }
     if (settings.compilerOptions.checkTypes)
         printTypeErrors(typeCheckingData, settings);
-    return compiledProgram;
+    if (settings.compilerOptions.removeUnusedJumpLabels)
+        return removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed);
+    else
+        return compiledProgram;
 }
 export function typeCheckLine(compiledCode, uncompiledLine) {
     const outputData = {

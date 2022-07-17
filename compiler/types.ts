@@ -19,6 +19,7 @@ export interface Settings {
 		prependFileName: boolean;
 		checkTypes: boolean;
 		verbose: boolean;
+		removeUnusedJumpLabels: boolean;
 	};
 	compilerConstants: {
 		[index: string]: string;
