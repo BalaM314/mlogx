@@ -65,7 +65,8 @@ ${formatLineWithPrefix({
         Log.err(`Some blocks were not closed.`);
         Log.dump(stack);
     }
-    printTypeErrors(typeCheckingData, settings);
+    if (settings.compilerOptions.checkTypes)
+        printTypeErrors(typeCheckingData, settings);
     return compiledProgram;
 }
 export function typeCheckLine(compiledCode, uncompiledLine) {

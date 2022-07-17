@@ -90,7 +90,8 @@ ${formatLineWithPrefix({
 		//TODO better
 	}
 
-	printTypeErrors(typeCheckingData, settings);
+	if(settings.compilerOptions.checkTypes)
+		printTypeErrors(typeCheckingData, settings);
 
 	return compiledProgram;
 }
