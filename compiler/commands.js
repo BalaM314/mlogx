@@ -146,10 +146,7 @@ export const commands = processCommands({
                 }
             },
             description: "sensor turret.x instead of sensor turret.x turret @x"
-        }, {
-            args: "output:*any",
-            description: "sensor unit.x instead of sensor unit.x @unit @x"
-        },
+        }
     ],
     set: [
         {
