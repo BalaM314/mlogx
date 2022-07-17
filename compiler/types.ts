@@ -69,6 +69,7 @@ export interface CommandDefinition {
 	description: string;
 	name: string;
 	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][]
+	getVariablesUsed?: (args:string[]) => [name:string, types:ArgType[]][]
 }
 
 export interface PreprocessedCommand {
@@ -76,6 +77,7 @@ export interface PreprocessedCommand {
 	replace?: string[] | ((args:string[]) => string[]);
 	description: string;
 	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][]
+	getVariablesUsed?: (args:string[]) => [name:string, types:ArgType[]][]
 }
 
 export interface CommandDefinitions {

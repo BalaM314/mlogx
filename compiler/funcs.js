@@ -31,7 +31,8 @@ export function processCommands(preprocessedCommands) {
                 description: command.description,
                 name,
                 args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
-                getVariablesDefined: command.getVariablesDefined
+                getVariablesDefined: command.getVariablesDefined,
+                getVariablesUsed: command.getVariablesUsed
             };
             if (command.replace instanceof Array) {
                 processedCommand.replace = function (args) {
