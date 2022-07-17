@@ -428,10 +428,10 @@ export function inNamespace(stack:StackElement[]):boolean {
  * foo is either being used as a unit or a building.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function getAllPossibleVariablesUsed(command:string, uncompiledLine:string = command): [name:string, types:ArgType[]][]{
-	const args = splitLineIntoArguments(command).slice(1);
+export function getAllPossibleVariablesUsed(compiledLine:string, uncompiledLine:string = compiledLine): [name:string, types:ArgType[]][]{
+	const args = splitLineIntoArguments(compiledLine).slice(1);
 	const variablesUsed_s = [];
-	for(const commandDefinition of getCommandDefinitions(command)){
+	for(const commandDefinition of getCommandDefinitions(compiledLine)){
 		variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
 	}
 	const variablesToReturn: {

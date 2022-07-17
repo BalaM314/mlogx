@@ -366,10 +366,10 @@ export function topForLoop(stack) {
 export function inNamespace(stack) {
     return stack.filter(el => el.type == "namespace").length != 0;
 }
-export function getAllPossibleVariablesUsed(command, uncompiledLine = command) {
-    const args = splitLineIntoArguments(command).slice(1);
+export function getAllPossibleVariablesUsed(compiledLine, uncompiledLine = compiledLine) {
+    const args = splitLineIntoArguments(compiledLine).slice(1);
     const variablesUsed_s = [];
-    for (const commandDefinition of getCommandDefinitions(command)) {
+    for (const commandDefinition of getCommandDefinitions(compiledLine)) {
         variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
     }
     const variablesToReturn = {};
