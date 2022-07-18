@@ -1,3 +1,12 @@
+/**
+Copyright © <BalaM314>, 2022.
+This file is part of mlogx.
+The Mindustry Logic Extended Compiler(mlogx) is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
+*/
+
+
 import { StackElement } from "../types";
 
 export const allMlogCommands:string[] =`\
@@ -70,6 +79,7 @@ export const allShorthandCommands: [input:string, output:string][] = [
 	[`sensor arc1.shootX`, `sensor arc1.shootX arc1 @shootX`],
 	[`sensor unit.x`, `sensor unit.x @unit @x`],
 	[`op abs xDiff`, `op abs xDiff xDiff 0`],
+	[`op add x 1`, `op add x x 1`],
 	[`ulocate ore @copper ore.x ore.y ore.found`, `ulocate ore core _ @copper ore.x ore.y ore.found _`],
 	[`ulocate spawn spawn.x spawn.y spawn.found`, `ulocate spawn core _ _ spawn.x spawn.y spawn.found _`],
 	[`ulocate damaged damaged.x damaged.y damaged.found damaged`, `ulocate damaged core _ _ damaged.x damaged.y damaged.found damaged`],
@@ -83,5 +93,96 @@ export const namespaceTests: [input:string, stack:StackElement[], output:string]
 	[`set x 5`, [{type: "namespace", name: "nametest"}], `set _nametest_x 5`],
 	[`radar enemy distance scatter1 0 unit`, [{type: "namespace", name: "nametest"}], `radar enemy any any distance scatter1 0 _nametest_unit`],
 	[`radar enemy distance scatter1 0 unit`, [{type: "namespace", name: "nametest"}, {type: "namespace", name: "othername"}], `radar enemy any any distance scatter1 0 _nametest_othername_unit`],
-	
 ];
+
+export const testPrograms: {
+	[index: string]: {
+		program: string[];
+		expectedOutput: string[];
+	};
+} = {
+	emptyProgram: {
+		program: [],
+		expectedOutput: []
+	},
+	mostlyEmptyProgram: {
+		program: [
+			``,
+			``,
+			` `,
+			`\t \t`
+		],
+		expectedOutput: []
+	},
+	throughputCounter: {
+		program: [
+`#Item ThroughputCounter by BalaM314
+set stdout message1
+set container vault1
+sensor container.maxItems container @itemCapacity
+
+no_items:
+	print "Item throughput counter"
+	print " by [#3141FF]BalaM314[white]\n"
+	print "[red]Waiting for items..."
+	printflush message1
+	sensor container.items container @totalItems
+	jump no_items equal container.items 0
+start_timer:
+	set timer @time
+count_items:
+	sensor items container @totalItems
+	print "[blue]Items received:"
+	print items
+	printflush stdout
+	jump count_items notEqual items container.maxItems
+calculate_time:
+	op sub timePassed @time timer
+	op div timePassed timePassed 1000
+	op div fillSpeed container.maxItems timePassed
+	print "[green]"
+	print fillSpeed
+	print " items/second\nWaiting for reset:"
+	printflush stdout
+wait_for_reset:
+	sensor container.items container @totalItems
+	jump wait_for_reset notEqual items 0
+end`.split("\n")
+		],
+		expectedOutput: [
+`set stdout message1
+set container vault1
+sensor container.maxItems container @itemCapacity
+no_items:
+print "Item throughput counter"
+print " by [#3141FF]BalaM314[white]\n"
+print "[red]Waiting for items..."
+printflush message1
+sensor container.items container @totalItems
+jump no_items equal container.items 0
+start_timer:
+set timer @time
+count_items:
+sensor items container @totalItems
+print "[blue]Items received:"
+print items
+printflush stdout
+jump count_items notEqual items container.maxItems
+calculate_time:
+op sub timePassed @time timer
+op div timePassed timePassed 1000
+op div fillSpeed container.maxItems timePassed
+print "[green]"
+print fillSpeed
+print " items/second\nWaiting for reset:"
+printflush stdout
+wait_for_reset:
+sensor container.items container @totalItems
+jump wait_for_reset notEqual items 0
+end
+end
+print "Made with mlogx"
+print "github.com/BalaM314/mlogx/"`.split("\n")
+		]
+	}
+};
