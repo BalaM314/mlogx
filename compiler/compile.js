@@ -30,17 +30,34 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
         else
             Log.warn("Unknown require " + requiredVar);
     }
+    let hasInvalidStatements = false;
     for (const line in mlogxProgram) {
         try {
-            const { compiledCode, modifiedStack } = compileLine(mlogxProgram[line], compilerConstants, settings, +line, isMain, stack);
+            const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(mlogxProgram[line], compilerConstants, settings, +line, isMain, stack);
             if (modifiedStack)
                 stack = modifiedStack;
-            for (const compiledLine of compiledCode) {
-                const newTypeData = typeCheckLine(compiledLine, {
-                    text: mlogxProgram[line],
-                    lineNumber: +line + 1
-                });
-                typeCheckingData = deepmerge(typeCheckingData, newTypeData);
+            if (!hasInvalidStatements && !skipTypeChecks && !inForLoop(stack)) {
+                try {
+                    for (const compiledLine of compiledCode) {
+                        const newTypeData = typeCheckLine(compiledLine, {
+                            text: mlogxProgram[line],
+                            lineNumber: +line + 1
+                        });
+                        typeCheckingData = deepmerge(typeCheckingData, newTypeData);
+                    }
+                }
+                catch (err) {
+                    if (err instanceof CompilerError) {
+                        Log.err(`${err.message}
+${formatLineWithPrefix({
+                            lineNumber: +line + 1, text: mlogxProgram[line]
+                        }, settings)}`);
+                        hasInvalidStatements = true;
+                    }
+                    else {
+                        throw err;
+                    }
+                }
             }
             if (inForLoop(stack)) {
                 topForLoop(stack)?.loopBuffer.push(...compiledCode);
@@ -65,7 +82,7 @@ ${formatLineWithPrefix({
         Log.err(`Some blocks were not closed.`);
         Log.dump(stack);
     }
-    if (settings.compilerOptions.checkTypes)
+    if (settings.compilerOptions.checkTypes && !hasInvalidStatements)
         printTypeErrors(typeCheckingData, settings);
     if (settings.compilerOptions.removeUnusedJumpLabels)
         return removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed);
@@ -99,7 +116,7 @@ export function typeCheckLine(compiledCode, uncompiledLine) {
         throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
     }
     if (uncompiledCommandDefinitions.length == 0) {
-        throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
+        return outputData;
     }
     const jumpLabelUsed = getJumpLabelUsed(cleanedCompiledLine);
     if (jumpLabelUsed) {

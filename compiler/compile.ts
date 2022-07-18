@@ -52,17 +52,34 @@ export function compileMlogxToMlog(
 	}
 
 
+	let hasInvalidStatements = false;
 	//Loop through each line and compile it
 	for(const line in mlogxProgram){
 		try {
-			const { compiledCode, modifiedStack } = compileLine(mlogxProgram[line], compilerConstants, settings, +line, isMain, stack);
-			if(modifiedStack) stack = modifiedStack;
-			for(const compiledLine of compiledCode){
-				const newTypeData = typeCheckLine(compiledLine, {
-					text: mlogxProgram[line],
-					lineNumber: +line + 1
-				});
-				typeCheckingData = deepmerge(typeCheckingData, newTypeData);
+			const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(mlogxProgram[line], compilerConstants, settings, +line, isMain, stack);
+			if(modifiedStack) stack = modifiedStack; //ew mutable data
+			if(!hasInvalidStatements && !skipTypeChecks && !inForLoop(stack)){
+				try {
+					for(const compiledLine of compiledCode){
+						const newTypeData = typeCheckLine(compiledLine, {
+							text: mlogxProgram[line],
+							lineNumber: +line + 1
+						});
+						typeCheckingData = deepmerge(typeCheckingData, newTypeData);
+					}
+				} catch(err){
+					if(err instanceof CompilerError){
+						Log.err(
+`${err.message}
+${formatLineWithPrefix({
+	lineNumber:+line+1, text:mlogxProgram[line]
+}, settings)}`
+						);
+						hasInvalidStatements = true;
+					} else {
+						throw err;
+					}
+				}
 			}
 			if(inForLoop(stack)){
 				topForLoop(stack)?.loopBuffer.push(...compiledCode);
@@ -91,7 +108,7 @@ ${formatLineWithPrefix({
 	}
 
 	
-	if(settings.compilerOptions.checkTypes)
+	if(settings.compilerOptions.checkTypes && !hasInvalidStatements)
 		printTypeErrors(typeCheckingData, settings);
 	
 	//Remove unused jump labels
@@ -132,9 +149,8 @@ export function typeCheckLine(compiledCode:string, uncompiledLine:Line):TypeChec
 		);
 	}
 	if(uncompiledCommandDefinitions.length == 0){
-		throw new CompilerError(
-`Type checking aborted because the program contains invalid commands.`
-		);
+		//TODO remove this check once namespaces and &for loops are in an ast
+		return outputData;
 	}
 
 	const jumpLabelUsed:string | null = getJumpLabelUsed(cleanedCompiledLine);
@@ -249,6 +265,7 @@ export function compileLine(
 ): {
 	compiledCode:string[];
 	modifiedStack?:StackElement[];
+	skipTypeChecks?:boolean;
 } {
 
 	
