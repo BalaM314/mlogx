@@ -347,10 +347,10 @@ export function addNamespacesToLine(args, commandDefinition, stack) {
 }
 export function getVariablesDefined(compiledCommandArgs, compiledCommandDefinition, uncompiledCommandArgs = compiledCommandArgs, uncompiledCommandDefinition = compiledCommandDefinition) {
     if (uncompiledCommandDefinition.getVariablesDefined) {
-        return uncompiledCommandDefinition.getVariablesDefined(uncompiledCommandArgs);
+        return uncompiledCommandDefinition.getVariablesDefined([uncompiledCommandDefinition.name, ...uncompiledCommandArgs]);
     }
     if (compiledCommandDefinition.getVariablesDefined) {
-        return compiledCommandDefinition.getVariablesDefined(compiledCommandArgs);
+        return compiledCommandDefinition.getVariablesDefined([compiledCommandDefinition.name, ...compiledCommandArgs]);
     }
     return compiledCommandArgs
         .map((arg, index) => [arg, compiledCommandDefinition.args[index]])

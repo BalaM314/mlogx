@@ -395,11 +395,11 @@ export function getVariablesDefined(
 ): [name:string, type:ArgType][]{
 	if(uncompiledCommandDefinition.getVariablesDefined){
 		//TODO check for edge cases.
-		return uncompiledCommandDefinition.getVariablesDefined(uncompiledCommandArgs);
+		return uncompiledCommandDefinition.getVariablesDefined([uncompiledCommandDefinition.name, ...uncompiledCommandArgs]);
 	}
 	if(compiledCommandDefinition.getVariablesDefined){
 		//TODO check for edge cases.
-		return compiledCommandDefinition.getVariablesDefined(compiledCommandArgs);
+		return compiledCommandDefinition.getVariablesDefined([compiledCommandDefinition.name, ...compiledCommandArgs]);
 	}
 	return compiledCommandArgs
 		.map((arg, index) => [arg, compiledCommandDefinition.args[index]] as [name:string, arg:Arg|undefined])

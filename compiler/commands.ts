@@ -169,17 +169,17 @@ export const commands: CommandDefinitions = processCommands({
 			args: "variable:*any type:ctype value:valid",
 			description: "Sets the value of (variable) to (value), and the type of (variable) to (type).",
 			replace: (args:string[]) => {
-				if(args[1].slice(1) in GAT){
+				if(args[2].slice(1) in GAT){
 					return [`set ${args[1]} ${args[3]}`];
 				} else {
-					throw new CompilerError(`Invalid type ${args[1].slice(1)}, valid types are ${Object.keys(GAT)}`);
+					throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GAT).join(", ")}`);
 				}
 			},
 			getVariablesDefined: (args) => {
-				if(args[1].slice(1) in GAT){
-					return [[args[0], args[1].slice(1)]];
+				if(args[2].slice(1) in GAT){
+					return [[args[1], args[2].slice(1)]];
 				} else {
-					throw new CompilerError(`Invalid type ${args[1].slice(1)}, valid types are ${Object.keys(GAT)}`);
+					throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GAT).join(", ")}`);
 				}
 			}
 		},
