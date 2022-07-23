@@ -182,6 +182,8 @@ export function removeTrailingSpaces(line) {
         .replace(/(^[ \t]+)|([ \t]+$)/g, "");
 }
 export function replaceCompilerConstants(line, variables) {
+    if (!line.includes("$"))
+        return line;
     for (const [key, value] of Object.entries(variables)) {
         line = line.replace(new RegExp(`(\\$\\(${key}\\))|(\\$${key})`, "g"), value);
     }
