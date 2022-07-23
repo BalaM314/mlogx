@@ -2,7 +2,6 @@ import { GAT, CommandErrorType } from "./types.js";
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
-import deepmerge from "deepmerge";
 export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
     const [programType, requiredVars] = parsePreprocessorDirectives(mlogxProgram);
     const isMain = programType == "main" || settings.compilerOptions.mode == "single";
@@ -39,11 +38,10 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
             if (!hasInvalidStatements && !skipTypeChecks && !inForLoop(stack)) {
                 try {
                     for (const compiledLine of compiledCode) {
-                        const newTypeData = typeCheckLine(compiledLine, {
+                        typeCheckLine(compiledLine, {
                             text: mlogxProgram[line],
                             lineNumber: +line + 1
-                        });
-                        typeCheckingData = deepmerge(typeCheckingData, newTypeData);
+                        }, typeCheckingData);
                     }
                 }
                 catch (err) {
@@ -89,24 +87,18 @@ ${formatLineWithPrefix({
     else
         return compiledProgram;
 }
-export function typeCheckLine(compiledCode, uncompiledLine) {
-    const outputData = {
-        jumpLabelsDefined: {},
-        jumpLabelsUsed: {},
-        variableDefinitions: {},
-        variableUsages: {}
-    };
+export function typeCheckLine(compiledCode, uncompiledLine, typeCheckingData) {
     const cleanedCompiledLine = cleanLine(compiledCode);
     const cleanedUncompiledLine = cleanLine(uncompiledLine.text);
     if (cleanedCompiledLine == "")
-        return outputData;
+        return;
     const labelName = getLabel(cleanedCompiledLine);
     if (labelName) {
-        outputData.jumpLabelsDefined[labelName] ??= [];
-        outputData.jumpLabelsDefined[labelName].push({
+        typeCheckingData.jumpLabelsDefined[labelName] ??= [];
+        typeCheckingData.jumpLabelsDefined[labelName].push({
             line: uncompiledLine
         });
-        return outputData;
+        return;
     }
     const compiledCommandArgs = splitLineIntoArguments(cleanedCompiledLine).slice(1);
     const compiledCommandDefinitions = getCommandDefinitions(cleanedCompiledLine);
@@ -120,28 +112,28 @@ export function typeCheckLine(compiledCode, uncompiledLine) {
     }
     const jumpLabelUsed = getJumpLabelUsed(cleanedCompiledLine);
     if (jumpLabelUsed) {
-        outputData.jumpLabelsUsed[jumpLabelUsed] ??= [];
-        outputData.jumpLabelsUsed[jumpLabelUsed].push({
+        typeCheckingData.jumpLabelsUsed[jumpLabelUsed] ??= [];
+        typeCheckingData.jumpLabelsUsed[jumpLabelUsed].push({
             line: uncompiledLine
         });
     }
     for (const commandDefinition of compiledCommandDefinitions) {
         getVariablesDefined(compiledCommandArgs, commandDefinition, uncompiledCommandArgs, uncompiledCommandDefinitions[0]).forEach(([variableName, variableType]) => {
-            outputData.variableDefinitions[variableName] ??= [];
-            outputData.variableDefinitions[variableName].push({
+            typeCheckingData.variableDefinitions[variableName] ??= [];
+            typeCheckingData.variableDefinitions[variableName].push({
                 variableType,
                 line: uncompiledLine
             });
         });
     }
     getAllPossibleVariablesUsed(cleanedCompiledLine, uncompiledLine.text).forEach(([variableName, variableTypes]) => {
-        outputData.variableUsages[variableName] ??= [];
-        outputData.variableUsages[variableName].push({
+        typeCheckingData.variableUsages[variableName] ??= [];
+        typeCheckingData.variableUsages[variableName].push({
             variableTypes,
             line: uncompiledLine
         });
     });
-    return outputData;
+    return;
 }
 export function printTypeErrors({ variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed }, settings) {
     for (const [name, definitions] of Object.entries(variableDefinitions)) {

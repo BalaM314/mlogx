@@ -11,7 +11,6 @@ import { Settings, GAT, CommandDefinition, CommandErrorType, StackElement, Line,
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps,  } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
-import deepmerge from "deepmerge";
 
 export function compileMlogxToMlog(
 	mlogxProgram:string[],
@@ -26,6 +25,8 @@ export function compileMlogxToMlog(
 	const compiledProgram:string[] = [];
 	let stack:StackElement[] = [];
 
+	
+	// eslint-disable-next-line prefer-const
 	let typeCheckingData:TypeCheckingData = {
 		jumpLabelsDefined: {},
 		jumpLabelsUsed: {},
@@ -61,11 +62,10 @@ export function compileMlogxToMlog(
 			if(!hasInvalidStatements && !skipTypeChecks && !inForLoop(stack)){
 				try {
 					for(const compiledLine of compiledCode){
-						const newTypeData = typeCheckLine(compiledLine, {
+						typeCheckLine(compiledLine, {
 							text: mlogxProgram[line],
 							lineNumber: +line + 1
-						});
-						typeCheckingData = deepmerge(typeCheckingData, newTypeData);
+						}, typeCheckingData);
 					}
 				} catch(err){
 					if(err instanceof CompilerError){
@@ -118,25 +118,20 @@ ${formatLineWithPrefix({
 		return compiledProgram;
 }
 
-export function typeCheckLine(compiledCode:string, uncompiledLine:Line):TypeCheckingData {
-	const outputData:TypeCheckingData = {
-		jumpLabelsDefined: {},
-		jumpLabelsUsed: {},
-		variableDefinitions: {},
-		variableUsages: {}
-	};
+export function typeCheckLine(compiledCode:string, uncompiledLine:Line, typeCheckingData:TypeCheckingData){
+	
 	const cleanedCompiledLine = cleanLine(compiledCode);
 	const cleanedUncompiledLine = cleanLine(uncompiledLine.text);
-	if(cleanedCompiledLine == "") return outputData;
+	if(cleanedCompiledLine == "") return;
 
 
 	const labelName = getLabel(cleanedCompiledLine);
 	if(labelName){
-		outputData.jumpLabelsDefined[labelName] ??= [];
-		outputData.jumpLabelsDefined[labelName].push({
+		typeCheckingData.jumpLabelsDefined[labelName] ??= [];
+		typeCheckingData.jumpLabelsDefined[labelName].push({
 			line: uncompiledLine
 		});
-		return outputData;
+		return;
 	}
 
 	const compiledCommandArgs = splitLineIntoArguments(cleanedCompiledLine).slice(1);
@@ -154,16 +149,16 @@ export function typeCheckLine(compiledCode:string, uncompiledLine:Line):TypeChec
 
 	const jumpLabelUsed:string | null = getJumpLabelUsed(cleanedCompiledLine);
 	if(jumpLabelUsed){
-		outputData.jumpLabelsUsed[jumpLabelUsed] ??= [];
-		outputData.jumpLabelsUsed[jumpLabelUsed].push({
+		typeCheckingData.jumpLabelsUsed[jumpLabelUsed] ??= [];
+		typeCheckingData.jumpLabelsUsed[jumpLabelUsed].push({
 			line: uncompiledLine
 		});
 	}
 
 	for(const commandDefinition of compiledCommandDefinitions){
 		getVariablesDefined(compiledCommandArgs, commandDefinition, uncompiledCommandArgs, uncompiledCommandDefinitions[0]).forEach(([variableName, variableType]) => {
-			outputData.variableDefinitions[variableName] ??= [];
-			outputData.variableDefinitions[variableName].push({
+			typeCheckingData.variableDefinitions[variableName] ??= [];
+			typeCheckingData.variableDefinitions[variableName].push({
 				variableType,
 				line: uncompiledLine
 			});
@@ -171,14 +166,14 @@ export function typeCheckLine(compiledCode:string, uncompiledLine:Line):TypeChec
 	}
 
 	getAllPossibleVariablesUsed(cleanedCompiledLine, uncompiledLine.text).forEach(([variableName, variableTypes]) => {
-		outputData.variableUsages[variableName] ??= [];
-		outputData.variableUsages[variableName].push({
+		typeCheckingData.variableUsages[variableName] ??= [];
+		typeCheckingData.variableUsages[variableName].push({
 			variableTypes,
 			line: uncompiledLine
 		});
 	});
 
-	return outputData;
+	return;
 }
 
 export function printTypeErrors({variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed}: TypeCheckingData, settings:Settings & {filename: string}){
