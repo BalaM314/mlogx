@@ -1,6 +1,6 @@
 import { compileLine, compileMlogxToMlog } from "../compile.js";
 import { defaultSettings } from "../consts.js";
-import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace } from "./samplePrograms.js";
+import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
 function settingsForFilename(name, checkTypes = false) {
     return {
         ...defaultSettings,
@@ -8,7 +8,8 @@ function settingsForFilename(name, checkTypes = false) {
         compilerOptions: {
             ...defaultSettings.compilerOptions,
             compileWithErrors: false,
-            checkTypes
+            checkTypes,
+            removeUnusedJumpLabels: true
         }
     };
 }
@@ -125,4 +126,11 @@ describe("compileMlogxToMlog", () => {
             expect(compileMlogxToMlog([input], settingsForFilename("sample3.mlogx"), {})).toEqual([output]);
         }
     });
+});
+describe("compilation", () => {
+    for (const [name, program] of Object.entries(testPrograms)) {
+        it(`should compile ${name} with expected output`, () => {
+            expect(compileMlogxToMlog(program.program, settingsForFilename("sample3.mlogx"), program.compilerConsts)).toEqual(program.expectedOutput);
+        });
+    }
 });

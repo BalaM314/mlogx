@@ -20,7 +20,8 @@ function settingsForFilename(name:string, checkTypes:boolean = false): Settings 
 		compilerOptions: {
 			...defaultSettings.compilerOptions,
 			compileWithErrors: false,
-			checkTypes
+			checkTypes,
+			removeUnusedJumpLabels: true
 		}
 	};
 }
@@ -186,10 +187,10 @@ describe("compileMlogxToMlog", () => {
 
 // This is a catch-all to make sure everything works.
 describe("compilation", () => {
-	for(let [name, program] of Object.entries(testPrograms)){
+	for(const [name, program] of Object.entries(testPrograms)){
 		it(`should compile ${name} with expected output`, () => {
 			expect(
-				compileMlogxToMlog([program.program], settingsForFilename("sample3.mlogx"), {})
+				compileMlogxToMlog(program.program, settingsForFilename("sample3.mlogx"), program.compilerConsts)
 			).toEqual(program.expectedOutput);
 		});
 	}
