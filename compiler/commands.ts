@@ -163,7 +163,7 @@ export const commands: CommandDefinitions = processCommands({
 		{
 			args: "variable:*any value:valid",
 			description: "Sets the value of (variable) to (value).",
-			getVariablesDefined: (args) => [[args[0], typeofArg(args[1]) == GAT.variable ? GAT.any : typeofArg(args[1])]]
+			getVariablesDefined: (args) => [[args[1], typeofArg(args[2]) == GAT.variable ? GAT.any : typeofArg(args[2])]]
 		},
 		{
 			args: "variable:*any type:ctype value:valid",
