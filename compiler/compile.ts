@@ -149,8 +149,7 @@ export function typeCheckLine(compiledCode:string, uncompiledLine:Line):TypeChec
 		);
 	}
 	if(uncompiledCommandDefinitions.length == 0){
-		//TODO remove this check once namespaces and &for loops are in an ast
-		return outputData;
+		Log.warn("Tried to type check a line with an invalid uncompiled command definition. This has most likely occured as the result of a bodge. This may cause issues with type checking.");
 	}
 
 	const jumpLabelUsed:string | null = getJumpLabelUsed(cleanedCompiledLine);

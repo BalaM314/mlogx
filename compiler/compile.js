@@ -116,7 +116,7 @@ export function typeCheckLine(compiledCode, uncompiledLine) {
         throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
     }
     if (uncompiledCommandDefinitions.length == 0) {
-        return outputData;
+        Log.warn("Tried to type check a line with an invalid uncompiled command definition. This has most likely occured as the result of a bodge. This may cause issues with type checking.");
     }
     const jumpLabelUsed = getJumpLabelUsed(cleanedCompiledLine);
     if (jumpLabelUsed) {
