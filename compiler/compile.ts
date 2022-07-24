@@ -56,24 +56,23 @@ export function compileMlogxToMlog(
 	let hasInvalidStatements = false;
 	//Loop through each line and compile it
 	for(const line in mlogxProgram){
+		const sourceLine = {
+			lineNumber: +line+1,
+			text: mlogxProgram[line]
+		};
 		try {
 			const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(mlogxProgram[line], compilerConstants, settings, +line, isMain, stack);
 			if(modifiedStack) stack = modifiedStack; //ew mutable data
 			if(!hasInvalidStatements && !skipTypeChecks && !inForLoop(stack)){
 				try {
 					for(const compiledLine of compiledCode){
-						typeCheckLine(compiledLine, {
-							text: mlogxProgram[line],
-							lineNumber: +line + 1
-						}, typeCheckingData);
+						typeCheckLine(compiledLine, sourceLine, typeCheckingData);
 					}
 				} catch(err){
 					if(err instanceof CompilerError){
 						Log.err(
 `${err.message}
-${formatLineWithPrefix({
-	lineNumber:+line+1, text:mlogxProgram[line]
-}, settings)}`
+${formatLineWithPrefix(sourceLine, settings)}`
 						);
 						hasInvalidStatements = true;
 					} else {
@@ -82,7 +81,9 @@ ${formatLineWithPrefix({
 				}
 			}
 			if(inForLoop(stack)){
-				topForLoop(stack)?.loopBuffer.push(...compiledCode);
+				topForLoop(stack)?.loopBuffer.push(
+					...(compiledCode.map(compiledLine => [compiledLine, sourceLine] as [compiledCode:string, source:Line]))
+				);
 			} else {
 				compiledProgram.push(...compiledCode);
 			}
@@ -344,10 +345,10 @@ export function compileLine(
 			const modifiedStack = stack.slice();
 			const endedBlock = modifiedStack.pop();
 			if(endedBlock?.type == "&for"){
-				const compiledCode = [];
+				const compiledCode:string[] = [];
 				for(let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i ++){
 					compiledCode.push(
-						...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line, {
+						...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line[0], {
 							[endedBlock.variableName]: i.toString()
 						}))
 					);

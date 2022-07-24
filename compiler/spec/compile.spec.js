@@ -13,6 +13,9 @@ function settingsForFilename(name, checkTypes = false) {
         }
     };
 }
+function addSourcesToCode(code, sourceLine = { text: `not provided`, lineNumber: 2 }) {
+    return code.map(compiledLine => [compiledLine, sourceLine]);
+}
 describe("compileLine", () => {
     it("should not change any mlog commands", () => {
         for (const line of allMlogCommands) {
@@ -58,7 +61,7 @@ describe("compileLine", () => {
                 lowerBound: 1,
                 upperBound: 3,
                 variableName: "n",
-                loopBuffer: [`set x 5`, `print "n is $n"`]
+                loopBuffer: addSourcesToCode([`set x 5`, `print "n is $n"`])
             }]).modifiedStack).toEqual([]);
     });
     it("should unroll an &for loop", () => {
@@ -67,7 +70,7 @@ describe("compileLine", () => {
                 lowerBound: 1,
                 upperBound: 3,
                 variableName: "n",
-                loopBuffer: [`set x 5`, `print "n is $n"`]
+                loopBuffer: addSourcesToCode([`set x 5`, `print "n is $n"`])
             }]).compiledCode).toEqual([`set x 5`, `print "n is 1"`, `set x 5`, `print "n is 2"`, `set x 5`, `print "n is 3"`]);
     });
     it("should unroll nested &for loops", () => {
@@ -77,19 +80,19 @@ describe("compileLine", () => {
                 lowerBound: 1,
                 upperBound: 3,
                 variableName: "I",
-                loopBuffer: [`loop_$I`]
+                loopBuffer: addSourcesToCode([`loop_$I:`])
             },
             {
                 type: "&for",
                 lowerBound: 5,
                 upperBound: 6,
                 variableName: "J",
-                loopBuffer: [`set x 5`, `print "j is $J"`]
+                loopBuffer: addSourcesToCode([`set x 5`, `print "j is $J"`])
             }
         ];
         const compiledOutput = compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, stack);
         stack = compiledOutput.modifiedStack ?? stack;
-        stack.at(-1)?.loopBuffer.push(...compiledOutput.compiledCode);
+        stack.at(-1)?.loopBuffer.push(...(compiledOutput.compiledCode.map(compiledLine => [compiledLine, { text: `not provided`, lineNumber: 2 }])));
         expect(compiledOutput.compiledCode)
             .toEqual([`set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]);
         expect(compiledOutput.modifiedStack).toEqual([{
@@ -97,14 +100,14 @@ describe("compileLine", () => {
                 lowerBound: 1,
                 upperBound: 3,
                 variableName: "I",
-                loopBuffer: [`loop_$I`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]
+                loopBuffer: addSourcesToCode([`loop_$I:`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`])
             }]);
         const secondOutput = compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, stack);
         expect(secondOutput.compiledCode)
             .toEqual([
-            `loop_1`, `set x 5`, `print "j is 5"`, `set x 5`,
-            `print "j is 6"`, `loop_2`, `set x 5`, `print "j is 5"`,
-            `set x 5`, `print "j is 6"`, `loop_3`, `set x 5`,
+            `loop_1:`, `set x 5`, `print "j is 5"`, `set x 5`,
+            `print "j is 6"`, `loop_2:`, `set x 5`, `print "j is 5"`,
+            `set x 5`, `print "j is 6"`, `loop_3:`, `set x 5`,
             `print "j is 5"`, `set x 5`, `print "j is 6"`
         ]);
         expect(secondOutput.modifiedStack).toEqual([]);

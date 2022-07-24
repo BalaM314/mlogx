@@ -100,7 +100,7 @@ export interface ForStackElement {
 	upperBound: number;
 	lowerBound: number;
 	variableName: string;
-	loopBuffer: string[];
+	loopBuffer: [compiledCode:string, source:Line][];
 }
 
 export type StackElement = NamespaceStackElement | ForStackElement;

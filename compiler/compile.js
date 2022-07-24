@@ -31,6 +31,10 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
     }
     let hasInvalidStatements = false;
     for (const line in mlogxProgram) {
+        const sourceLine = {
+            lineNumber: +line + 1,
+            text: mlogxProgram[line]
+        };
         try {
             const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(mlogxProgram[line], compilerConstants, settings, +line, isMain, stack);
             if (modifiedStack)
@@ -38,18 +42,13 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
             if (!hasInvalidStatements && !skipTypeChecks && !inForLoop(stack)) {
                 try {
                     for (const compiledLine of compiledCode) {
-                        typeCheckLine(compiledLine, {
-                            text: mlogxProgram[line],
-                            lineNumber: +line + 1
-                        }, typeCheckingData);
+                        typeCheckLine(compiledLine, sourceLine, typeCheckingData);
                     }
                 }
                 catch (err) {
                     if (err instanceof CompilerError) {
                         Log.err(`${err.message}
-${formatLineWithPrefix({
-                            lineNumber: +line + 1, text: mlogxProgram[line]
-                        }, settings)}`);
+${formatLineWithPrefix(sourceLine, settings)}`);
                         hasInvalidStatements = true;
                     }
                     else {
@@ -58,7 +57,7 @@ ${formatLineWithPrefix({
                 }
             }
             if (inForLoop(stack)) {
-                topForLoop(stack)?.loopBuffer.push(...compiledCode);
+                topForLoop(stack)?.loopBuffer.push(...(compiledCode.map(compiledLine => [compiledLine, sourceLine])));
             }
             else {
                 compiledProgram.push(...compiledCode);
@@ -253,7 +252,7 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
             if (endedBlock?.type == "&for") {
                 const compiledCode = [];
                 for (let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i++) {
-                    compiledCode.push(...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line, {
+                    compiledCode.push(...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line[0], {
                         [endedBlock.variableName]: i.toString()
                     })));
                 }
