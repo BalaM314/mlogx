@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { Arg, Log } from "./classes.js";
 import commands from "./commands.js";
-import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions, Settings, StackElement, TData } from "./types.js";
+import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, CompiledLine, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions, Settings, StackElement, TData } from "./types.js";
 import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -612,6 +612,10 @@ export function parsePreprocessorDirectives(data:string[]): [string, string[], s
 
 	return [program_type, required_vars, author];
 
+}
+
+export function addSourcesToCode(code:string[], sourceLine:Line = {text: `not provided`, lineNumber:2}):[string, Line][]{
+	return code.map(compiledLine => [compiledLine, sourceLine] as CompiledLine);
 }
 
 /**oh no */

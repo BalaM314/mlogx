@@ -185,6 +185,7 @@ jump wait_for_reset notEqual items 0
 end`.split("\n"),
 		compilerConsts: {}
 	},
+	/*
 	multiPayenter: {
 		program:
 `#For when one reconstructor isn't enough.
@@ -400,6 +401,7 @@ print "github.com/BalaM314/mlogx/"`.split("\n"),
 			githubUrl: "https://github.com/BalaM314/mlog/tree/main/single_files/payEnter/"
 		}
 	},
+	*/
 	thing: {
 		program:
 `print "e"`.split("\n"),
@@ -407,4 +409,5 @@ print "github.com/BalaM314/mlogx/"`.split("\n"),
 `print "e"`.split("\n"),
 		compilerConsts: {}
 	},
+	
 };

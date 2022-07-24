@@ -9,7 +9,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { compileLine, compileMlogxToMlog } from "../compile.js";
 import { defaultSettings } from "../consts.js";
-import { ForStackElement, Line, Settings, StackElement } from "../types.js";
+import { addSourcesToCode } from "../funcs.js";
+import { ForStackElement, Settings, StackElement } from "../types.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
 
 
@@ -26,15 +27,11 @@ function settingsForFilename(name:string, checkTypes:boolean = false): Settings 
 	};
 }
 
-function addSourcesToCode(code:string[], sourceLine:Line = {text: `not provided`, lineNumber:2}):[string, Line][]{
-	return code.map(compiledLine => [compiledLine, sourceLine] as [compiledCode:string, source:Line]);
-}
-
 describe("compileLine", () => {
 	it("should not change any mlog commands", () => {
 		for (const line of allMlogCommands) {
 			expect(
-				compileLine(line, {}, settingsForFilename("sample1.mlogx"), 1, false, []).compiledCode
+				compileLine({text: line, lineNumber: 1}, {}, settingsForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
 			).toEqual([line]);
 		}
 	});
@@ -42,7 +39,7 @@ describe("compileLine", () => {
 	it("should mark all mlogx commands as valid", () => {
 		for (const line of allMlogxCommands) {
 			expect(() =>
-				compileLine(line, {}, settingsForFilename("sample1.mlogx"), 1, false, []).compiledCode
+				compileLine({text: line, lineNumber: 1}, {}, settingsForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
 			).not.toThrow();
 		}
 	});
@@ -50,14 +47,14 @@ describe("compileLine", () => {
 	it("should process all shorthands", () => {
 		for(const [input, output] of allShorthandCommands){
 			expect(
-				compileLine(input, {}, settingsForFilename("sample1.mlogx"), 1, false, []).compiledCode
+				compileLine({text: input, lineNumber: 1}, {}, settingsForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
 			).toEqual([output]);
 		}
 	});
 
 	it("should detect the start of a namespace", () => {
 		expect(
-			compileLine(startNamespace, {}, settingsForFilename("sample.mlogx"), 1, false, []).modifiedStack
+			compileLine({text: startNamespace, lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, []).modifiedStack
 		).toEqual([{
 			type: "namespace",
 			name: "testname"
@@ -66,7 +63,7 @@ describe("compileLine", () => {
 
 	it("should detect the end of a namespace", () => {
 		expect(
-			compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, [{
+			compileLine({text: "}", lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, [{
 				type: "namespace",
 				name: "testname"
 			}]).modifiedStack
@@ -76,23 +73,26 @@ describe("compileLine", () => {
 	it("should prepend namespaces", () => {
 		for(const [input, stack, output] of namespaceTests){
 			expect(
-				compileLine(input, {}, settingsForFilename("sample1.mlogx"), 1, false, stack).compiledCode
+				compileLine({text: input, lineNumber: 1}, {}, settingsForFilename("sample1.mlogx"), false, stack).compiledCode.map(line => line[0])
 			).toEqual([output]);
 		}
 	});
 
 	it("should detect the start of an &for loop", () => {
 		expect(
-			compileLine(startNamespace, {}, settingsForFilename("sample.mlogx"), 1, false, []).modifiedStack
+			compileLine({text: `&for i 0 5`, lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, []).modifiedStack
 		).toEqual([{
-			type: "namespace",
-			name: "testname"
+			type: "&for",
+			lowerBound: 0,
+			upperBound: 5,
+			variableName: "i",
+			loopBuffer: []
 		}]);
 	});
 
 	it("should detect the end of an &for loop", () => {
 		expect(
-			compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, [{
+			compileLine({text: "}", lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, [{
 				type: "&for",
 				lowerBound: 1,
 				upperBound: 3,
@@ -104,13 +104,13 @@ describe("compileLine", () => {
 
 	it("should unroll an &for loop", () => {
 		expect(
-			compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, [{
+			compileLine({text: "}", lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, [{
 				type: "&for",
 				lowerBound: 1,
 				upperBound: 3,
 				variableName: "n",
 				loopBuffer: addSourcesToCode([`set x 5`, `print "n is $n"`])
-			}]).compiledCode
+			}]).compiledCode.map(line => line[0])
 		).toEqual([`set x 5`, `print "n is 1"`, `set x 5`, `print "n is 2"`, `set x 5`, `print "n is 3"`]);
 	});
 
@@ -131,12 +131,10 @@ describe("compileLine", () => {
 				loopBuffer: addSourcesToCode([`set x 5`, `print "j is $J"`])
 			}
 		];
-		const compiledOutput = compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, stack);
+		const compiledOutput = compileLine({text: "}", lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, stack);
 		stack = compiledOutput.modifiedStack ?? stack;
-		(stack.at(-1) as ForStackElement)?.loopBuffer.push(
-			...(compiledOutput.compiledCode.map(compiledLine => [compiledLine, {text: `not provided`, lineNumber: 2}] as [compiledCode:string, source:Line]))
-		);
-		expect(compiledOutput.compiledCode)
+		(stack.at(-1) as ForStackElement)?.loopBuffer.push(...compiledOutput.compiledCode);
+		expect(compiledOutput.compiledCode.map(line => line[0]))
 			.toEqual([`set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]);
 		expect(compiledOutput.modifiedStack).toEqual([{
 			type: "&for",
@@ -145,8 +143,8 @@ describe("compileLine", () => {
 			variableName: "I",
 			loopBuffer: addSourcesToCode([`loop_$I:`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`])
 		}]);
-		const secondOutput = compileLine("}", {}, settingsForFilename("sample.mlogx"), 1, false, stack);
-		expect(secondOutput.compiledCode)
+		const secondOutput = compileLine({text: "}", lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, stack);
+		expect(secondOutput.compiledCode.map(line => line[0]))
 			.toEqual([
 				`loop_1:`, `set x 5`, `print "j is 5"`, `set x 5`,
 				`print "j is 6"`, `loop_2:`, `set x 5`, `print "j is 5"`,

@@ -519,6 +519,9 @@ export function parsePreprocessorDirectives(data) {
     }
     return [program_type, required_vars, author];
 }
+export function addSourcesToCode(code, sourceLine = { text: `not provided`, lineNumber: 2 }) {
+    return code.map(compiledLine => [compiledLine, sourceLine]);
+}
 export function exit(message) {
     Log.fatal(message);
     process.exit(1);

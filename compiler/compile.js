@@ -1,5 +1,5 @@
 import { GAT, CommandErrorType } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getLabel, addNamespaces, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, } from "./funcs.js";
 import { processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
@@ -36,13 +36,13 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
             text: mlogxProgram[line]
         };
         try {
-            const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(mlogxProgram[line], compilerConstants, settings, +line, isMain, stack);
+            const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(sourceLine, compilerConstants, settings, isMain, stack);
             if (modifiedStack)
                 stack = modifiedStack;
             if (!hasInvalidStatements && !skipTypeChecks && !inForLoop(stack)) {
                 try {
                     for (const compiledLine of compiledCode) {
-                        typeCheckLine(compiledLine, sourceLine, typeCheckingData);
+                        typeCheckLine(compiledLine, typeCheckingData);
                     }
                 }
                 catch (err) {
@@ -57,10 +57,10 @@ ${formatLineWithPrefix(sourceLine, settings)}`);
                 }
             }
             if (inForLoop(stack)) {
-                topForLoop(stack)?.loopBuffer.push(...(compiledCode.map(compiledLine => [compiledLine, sourceLine])));
+                topForLoop(stack)?.loopBuffer.push(...compiledCode);
             }
             else {
-                compiledProgram.push(...compiledCode);
+                compiledProgram.push(...compiledCode.map(line => line[0]));
             }
         }
         catch (err) {
@@ -86,16 +86,16 @@ ${formatLineWithPrefix({
     else
         return compiledProgram;
 }
-export function typeCheckLine(compiledCode, uncompiledLine, typeCheckingData) {
-    const cleanedCompiledLine = cleanLine(compiledCode);
-    const cleanedUncompiledLine = cleanLine(uncompiledLine.text);
+export function typeCheckLine(compiledLine, typeCheckingData) {
+    const cleanedCompiledLine = cleanLine(compiledLine[0]);
+    const cleanedUncompiledLine = cleanLine(compiledLine[1].text);
     if (cleanedCompiledLine == "")
         return;
     const labelName = getLabel(cleanedCompiledLine);
     if (labelName) {
         typeCheckingData.jumpLabelsDefined[labelName] ??= [];
         typeCheckingData.jumpLabelsDefined[labelName].push({
-            line: uncompiledLine
+            line: compiledLine[1]
         });
         return;
     }
@@ -113,7 +113,7 @@ export function typeCheckLine(compiledCode, uncompiledLine, typeCheckingData) {
     if (jumpLabelUsed) {
         typeCheckingData.jumpLabelsUsed[jumpLabelUsed] ??= [];
         typeCheckingData.jumpLabelsUsed[jumpLabelUsed].push({
-            line: uncompiledLine
+            line: compiledLine[1]
         });
     }
     for (const commandDefinition of compiledCommandDefinitions) {
@@ -121,15 +121,15 @@ export function typeCheckLine(compiledCode, uncompiledLine, typeCheckingData) {
             typeCheckingData.variableDefinitions[variableName] ??= [];
             typeCheckingData.variableDefinitions[variableName].push({
                 variableType,
-                line: uncompiledLine
+                line: compiledLine[1]
             });
         });
     }
-    getAllPossibleVariablesUsed(cleanedCompiledLine, uncompiledLine.text).forEach(([variableName, variableTypes]) => {
+    getAllPossibleVariablesUsed(cleanedCompiledLine, compiledLine[1].text).forEach(([variableName, variableTypes]) => {
         typeCheckingData.variableUsages[variableName] ??= [];
         typeCheckingData.variableUsages[variableName].push({
             variableTypes,
-            line: uncompiledLine
+            line: compiledLine[1]
         });
     });
     return;
@@ -179,11 +179,11 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`);
         }
     }
 }
-export function compileLine(line, compilerConstants, settings, lineNumber, isMain, stack) {
-    if (line.includes("\u{F4321}")) {
-        Log.warn(`Line \`${line}\` includes the character \\uF4321 which may cause issues with argument parsing`);
+export function compileLine(line, compilerConstants, settings, isMain, stack) {
+    if (line.text.includes("\u{F4321}")) {
+        Log.warn(`Line \`${line.text}\` includes the character \\uF4321 which may cause issues with argument parsing`);
     }
-    let cleanedLine = cleanLine(line);
+    let cleanedLine = cleanLine(line.text);
     if (cleanedLine == "") {
         if (settings.compilerOptions.removeComments) {
             return {
@@ -192,16 +192,21 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
         }
         else {
             return {
-                compiledCode: [line]
+                compiledCode: [[line.text, line]]
             };
         }
     }
     cleanedLine = replaceCompilerConstants(cleanedLine, compilerConstants);
     if (getLabel(cleanedLine)) {
         return {
-            compiledCode: inNamespace(stack) ?
-                [`${addNamespaces(getLabel(cleanedLine), stack)}:`] :
-                [settings.compilerOptions.removeComments ? cleanedLine : line]
+            compiledCode: [
+                [
+                    inNamespace(stack) ?
+                        `${addNamespaces(getLabel(cleanedLine), stack)}:` :
+                        settings.compilerOptions.removeComments ? cleanedLine : line.text,
+                    line
+                ]
+            ]
         };
     }
     const args = splitLineIntoArguments(cleanedLine)
@@ -252,9 +257,9 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
             if (endedBlock?.type == "&for") {
                 const compiledCode = [];
                 for (let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i++) {
-                    compiledCode.push(...endedBlock.loopBuffer.map(line => replaceCompilerConstants(line[0], {
-                        [endedBlock.variableName]: i.toString()
-                    })));
+                    compiledCode.push(...endedBlock.loopBuffer.map(line => [replaceCompilerConstants(line[0], {
+                            [endedBlock.variableName]: i.toString()
+                        }), line[1]]));
                 }
                 return {
                     compiledCode,
@@ -272,7 +277,7 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
     const [commandList, errors] = getCommandDefinitions(cleanedLine, true);
     if (commandList.length == 0) {
         if (errors.length == 0) {
-            throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${line}"\nPlease copy this and file an issue on Github.`);
+            throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${line.text}"\nPlease copy this and file an issue on Github.`);
         }
         if (errors.length == 1) {
             throw new CompilerError(errors[0].message);
@@ -293,7 +298,7 @@ export function compileLine(line, compilerConstants, settings, lineNumber, isMai
         }
     }
     return {
-        compiledCode: getOutputForCommand(args, commandList[0], stack)
+        compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), line)
     };
 }
 export function getOutputForCommand(args, command, stack) {
