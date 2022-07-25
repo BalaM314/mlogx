@@ -185,7 +185,6 @@ jump wait_for_reset notEqual items 0
 end`.split("\n"),
 		compilerConsts: {}
 	},
-	/*
 	multiPayenter: {
 		program:
 `#For when one reconstructor isn't enough.
@@ -286,64 +285,79 @@ set unit3 null
 set unit4 null
 set unit5 null
 set unit6 null
+main_loop:
 jump not_switched_off equal offSwitch null
 sensor offSwitch.enabled offSwitch @enabled
 jump main_loop equal offSwitch.enabled false
+not_switched_off:
 sensor unit1.dead unit1 @dead
 sensor unit1.controlled unit1 @controlled
 jump bind_unit1 equal unit1.dead true
 jump bind_unit1 greaterThan unit1.controlled 1
+unit1_ok:
 sensor unit2.dead unit2 @dead
 sensor unit2.controlled unit2 @controlled
 jump bind_unit2 equal unit2.dead true
 jump bind_unit2 greaterThan unit2.controlled 1
+unit2_ok:
 sensor unit3.dead unit3 @dead
 sensor unit3.controlled unit3 @controlled
 jump bind_unit3 equal unit3.dead true
 jump bind_unit3 greaterThan unit3.controlled 1
+unit3_ok:
 sensor unit4.dead unit4 @dead
 sensor unit4.controlled unit4 @controlled
 jump bind_unit4 equal unit4.dead true
 jump bind_unit4 greaterThan unit4.controlled 1
+unit4_ok:
 sensor unit5.dead unit5 @dead
 sensor unit5.controlled unit5 @controlled
 jump bind_unit5 equal unit5.dead true
 jump bind_unit5 greaterThan unit5.controlled 1
+unit5_ok:
 sensor unit6.dead unit6 @dead
 sensor unit6.controlled unit6 @controlled
 jump bind_unit6 equal unit6.dead true
 jump bind_unit6 greaterThan unit6.controlled 1
+unit6_ok:
 ubind unit1
 ucontrol move reconstructor1.x reconstructor1.y
 ucontrol within reconstructor1.x reconstructor1.y 3 unit1.reached
 jump unit1_moved equal unit1.reached false
 ucontrol payEnter
+unit1_moved:
 ubind unit2
 ucontrol move reconstructor2.x reconstructor2.y
 ucontrol within reconstructor2.x reconstructor2.y 3 unit2.reached
 jump unit2_moved equal unit2.reached false
 ucontrol payEnter
+unit2_moved:
 ubind unit3
 ucontrol move reconstructor3.x reconstructor3.y
 ucontrol within reconstructor3.x reconstructor3.y 3 unit3.reached
 jump unit3_moved equal unit3.reached false
 ucontrol payEnter
+unit3_moved:
 ubind unit4
 ucontrol move reconstructor4.x reconstructor4.y
 ucontrol within reconstructor4.x reconstructor4.y 3 unit4.reached
 jump unit4_moved equal unit4.reached false
 ucontrol payEnter
+unit4_moved:
 ubind unit5
 ucontrol move reconstructor5.x reconstructor5.y
 ucontrol within reconstructor5.x reconstructor5.y 3 unit5.reached
 jump unit5_moved equal unit5.reached false
 ucontrol payEnter
+unit5_moved:
 ubind unit6
 ucontrol move reconstructor6.x reconstructor6.y
 ucontrol within reconstructor6.x reconstructor6.y 3 unit6.reached
 jump unit6_moved equal unit6.reached false
 ucontrol payEnter
+unit6_moved:
 jump main_loop always 0 0
+bind_unit1:
 ubind unitType
 sensor unit.flag @unit @flag
 sensor unit.controlled @unit @controlled
@@ -352,6 +366,7 @@ jump bind_unit1 greaterThan unit.controlled 1
 ucontrol flag cookie
 set unit1 @unit
 jump unit1_ok always 0 0
+bind_unit2:
 ubind unitType
 sensor unit.flag @unit @flag
 sensor unit.controlled @unit @controlled
@@ -360,6 +375,7 @@ jump bind_unit2 greaterThan unit.controlled 1
 ucontrol flag cookie
 set unit2 @unit
 jump unit2_ok always 0 0
+bind_unit3:
 ubind unitType
 sensor unit.flag @unit @flag
 sensor unit.controlled @unit @controlled
@@ -368,6 +384,7 @@ jump bind_unit3 greaterThan unit.controlled 1
 ucontrol flag cookie
 set unit3 @unit
 jump unit3_ok always 0 0
+bind_unit4:
 ubind unitType
 sensor unit.flag @unit @flag
 sensor unit.controlled @unit @controlled
@@ -376,6 +393,7 @@ jump bind_unit4 greaterThan unit.controlled 1
 ucontrol flag cookie
 set unit4 @unit
 jump unit4_ok always 0 0
+bind_unit5:
 ubind unitType
 sensor unit.flag @unit @flag
 sensor unit.controlled @unit @controlled
@@ -384,6 +402,7 @@ jump bind_unit5 greaterThan unit.controlled 1
 ucontrol flag cookie
 set unit5 @unit
 jump unit5_ok always 0 0
+bind_unit6:
 ubind unitType
 sensor unit.flag @unit @flag
 sensor unit.controlled @unit @controlled
@@ -391,17 +410,13 @@ jump bind_unit6 notEqual unit.flag 0
 jump bind_unit6 greaterThan unit.controlled 1
 ucontrol flag cookie
 set unit6 @unit
-jump unit6_ok always 0 0
-end
-print "Made with mlogx"
-print "github.com/BalaM314/mlogx/"`.split("\n"),
+jump unit6_ok always 0 0`.split("\n"),
 		compilerConsts: {
 			message: "[orange]Core T4 Payenter[] by [#3141FF]BalaM314[]",
 			numReconstructors: "6",
 			githubUrl: "https://github.com/BalaM314/mlog/tree/main/single_files/payEnter/"
 		}
 	},
-	*/
 	thing: {
 		program:
 `print "e"`.split("\n"),

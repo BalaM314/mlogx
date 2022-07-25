@@ -410,9 +410,7 @@ export function getVariablesDefined(
 
 export function removeUnusedJumps(compiledProgram:string[], jumpLabelUsages:TData.jumpLabelsUsed):string[] {
 	return compiledProgram.filter(line =>
-		//this is actually quite dumb
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		!getLabel(line) || (getLabel(line) as any) in jumpLabelUsages
+		!getLabel(line) || getLabel(line)! in jumpLabelUsages
 	);
 }
 
