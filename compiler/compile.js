@@ -259,7 +259,13 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
                 for (let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i++) {
                     compiledCode.push(...endedBlock.loopBuffer.map(line => [replaceCompilerConstants(line[0], {
                             [endedBlock.variableName]: i.toString()
-                        }), line[1]]));
+                        }), {
+                            text: replaceCompilerConstants(line[1].text, {
+                                ...compilerConstants,
+                                [endedBlock.variableName]: i.toString()
+                            }),
+                            lineNumber: line[1].lineNumber
+                        }]));
                 }
                 return {
                     compiledCode,

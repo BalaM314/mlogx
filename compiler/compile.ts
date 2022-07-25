@@ -352,7 +352,13 @@ export function compileLine(
 					compiledCode.push(
 						...endedBlock.loopBuffer.map(line => [replaceCompilerConstants(line[0], {
 							[endedBlock.variableName]: i.toString()
-						}), line[1]] as CompiledLine)
+						}), {
+							text: replaceCompilerConstants(line[1].text, {
+								...compilerConstants,
+								[endedBlock.variableName]: i.toString()
+							}),
+							lineNumber: line[1].lineNumber
+						}] as CompiledLine)
 					);
 				}
 				return {
