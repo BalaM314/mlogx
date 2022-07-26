@@ -9,9 +9,9 @@ You should have received a copy of the GNU Lesser General Public License along w
 import { Arg, Log } from "./classes.js";
 import commands from "./commands.js";
 import { ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, CompiledLine, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions, Settings, StackElement, TData } from "./types.js";
-import * as readline from "readline";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
+import * as readline from "readline";
 import chalk from "chalk";
 
 
@@ -44,7 +44,7 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 		for(const command of commands){
 			const processedCommand:CommandDefinition = {
 				description: command.description,
-				name,
+				name: name,
 				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as PreprocessedArg)) : [],
 				getVariablesDefined: command.getVariablesDefined,
 				getVariablesUsed: command.getVariablesUsed

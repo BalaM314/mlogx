@@ -9,13 +9,52 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { Arg } from "../classes.js";
 import commands from "../commands.js";
-import { addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables } from "../funcs.js";
-import { getVariablesDefined } from "../funcs.js";
-import { cleanLine } from "../funcs.js";
-import { isGenericArg, typeofArg } from "../funcs.js";
+import {
+	processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed,
+	getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants,
+	splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined,
+	cleanLine, isGenericArg, typeofArg
+} from "../funcs.js";
 import { ArgType, GAT } from "../types.js";
 
 
+
+/*
+describe("processCommands", () => {
+	it("should process the commands ast", () => {
+		
+		expect(processCommands({
+			"amogus": [{
+				args: "sus susLevel:number",
+				description: "Sets the suslevel of the imposter."
+			}],
+			"sus": [
+				{
+					args: "building buildingGroup:buildingGroup enemy:boolean outX:*number outY:*number found:*boolean building:*building",
+					description: "is sus.",
+					replace: ["sus building %2 %3 _ %4 %5 %6 %7"]
+				},
+				{
+					args: "",
+					description: "Does nothing."
+				}
+			],
+		}))
+		.toEqual({
+			"amogus": [{
+
+			}],
+			"sus": [
+				{
+					name: "sus",
+					description: "is sus.",
+
+				}
+			]
+		})
+
+	});
+});*/
 
 describe("isGenericArg", () => {
 	it("should determine if an arg is generic", () => {
