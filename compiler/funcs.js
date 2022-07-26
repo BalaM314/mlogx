@@ -200,11 +200,11 @@ export function replaceCompilerConstants(line, variables) {
     }
     return line;
 }
-export function splitLineIntoArguments(line) {
-    if (line.includes(`"`)) {
+export function splitLineIntoArguments(cleanedLine) {
+    if (cleanedLine.includes(`"`)) {
         const replacementLine = [];
         let isInString = false;
-        for (const char of line) {
+        for (const char of cleanedLine) {
             if (char == `"`) {
                 isInString = !isInString;
             }
@@ -218,14 +218,14 @@ export function splitLineIntoArguments(line) {
         return replacementLine.join("").split(" ").map(arg => arg.replaceAll("\u{F4321}", " "));
     }
     else {
-        return line.split(" ");
+        return cleanedLine.split(" ");
     }
 }
 export function transformVariables(args, commandDefinition, transformFunction) {
     return transformCommand(args, commandDefinition, transformFunction, (arg, commandArg) => (commandArg?.isVariable || (acceptsVariable(commandArg)
         && isArgOfType(arg, new Arg(GAT.variable)))) && arg !== "_");
 }
-export function transformCommand(args, commandDefinition, transformFunction, filterFunction) {
+export function transformCommand(args, commandDefinition, transformFunction, filterFunction = () => true) {
     return args
         .map((arg, index) => [arg, commandDefinition.args[index - 1]])
         .map(([arg, commandArg]) => (commandArg && filterFunction(arg, commandArg))
@@ -377,8 +377,8 @@ export function acceptsVariable(arg) {
     else
         return false;
 }
-export function isCommand(line, command) {
-    const args = splitLineIntoArguments(line);
+export function isCommand(cleanedLine, command) {
+    const args = splitLineIntoArguments(cleanedLine);
     const commandArguments = args.slice(1);
     if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length) {
         return [false, {
@@ -443,14 +443,14 @@ export function exit(message) {
     Log.fatal(message);
     process.exit(1);
 }
-export function askQuestion(query) {
+export function askQuestion(question) {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
     });
-    return new Promise(resolve => rl.question(query, ans => {
+    return new Promise(resolve => rl.question(question, answer => {
         rl.close();
-        resolve(ans);
+        resolve(answer);
     }));
 }
 export function processCommands(preprocessedCommands) {

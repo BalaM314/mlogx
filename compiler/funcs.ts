@@ -130,6 +130,7 @@ export function cleanLine(line:string):string {
 	return removeTrailingSpaces(removeComments(line));
 }
 
+/**Removes trailing/leading whitespaces and tabs from a line. */
 export function removeTrailingSpaces(line:string):string {
 	return line
 		.replace(/(^[ \t]+)|([ \t]+$)/g, "");
@@ -137,6 +138,7 @@ export function removeTrailingSpaces(line:string):string {
 
 
 //The entirety of the code of "bettermlog". Nice that it ended up being useful.
+/**Removes single line and multiline comments from a line. */
 export function removeComments(line:string):string {
 	const charsplitInput = line.split("");
 	const parsedChars = [];
@@ -194,6 +196,7 @@ export function removeComments(line:string):string {
 	return parsedChars.join("");
 }
 
+/**Replaces compiler constants in a line. */
 export function replaceCompilerConstants(line:string, variables: {[index: string]: string;}):string {
 	if(!line.includes("$")) return line;
 	for(const [key, value] of Object.entries(variables)){
@@ -203,12 +206,12 @@ export function replaceCompilerConstants(line:string, variables: {[index: string
 }
 
 /**Splits a line into arguments, taking quotes into account. */
-export function splitLineIntoArguments(line:string):string[] {
-	if(line.includes(`"`)){
+export function splitLineIntoArguments(cleanedLine:string):string[] {
+	if(cleanedLine.includes(`"`)){
 		//aaaaaaaaaaaaaaaaa
 		const replacementLine = [];
 		let isInString = false;
-		for(const char of line){
+		for(const char of cleanedLine){
 			if(char == `"`){
 				isInString = !isInString;
 			}
@@ -221,7 +224,7 @@ export function splitLineIntoArguments(line:string):string[] {
 		return replacementLine.join("").split(" ").map(arg => arg.replaceAll("\u{F4321}", " "));
 		//smort logic so `"amogus sus"` is parsed as one arg
 	} else {
-		return line.split(" ");
+		return cleanedLine.split(" ");
 	}
 }
 
@@ -238,7 +241,8 @@ export function transformVariables(args:string[], commandDefinition:CommandDefin
 	);
 }
 
-export function transformCommand(args:string[], commandDefinition:CommandDefinition, transformFunction: (arg:string, commandArg:Arg) => string, filterFunction:(arg:string, commandArg:Arg) => boolean){
+/**Transforms a command given a list of args, command definition, a transformer function, and a filter function. */
+export function transformCommand(args:string[], commandDefinition:CommandDefinition, transformFunction: (arg:string, commandArg:Arg) => string, filterFunction:(arg:string, commandArg:Arg) => boolean = () => true){
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index - 1]] as [name:string, arg:Arg|undefined])
 		.map(([arg, commandArg]) => 
@@ -247,10 +251,12 @@ export function transformCommand(args:string[], commandDefinition:CommandDefinit
 		);
 }
 
+/**Prepends namespaces on a stack to a variable. */
 export function addNamespacesToVariable(variable:string, stack:StackElement[]):string {
 	return `_${(stack.filter(el => el.type == "namespace") as NamespaceStackElement[]).map(el => el.name).join("_")}_${variable}`;
 }
 
+/**Prepends namespaces on the given stack to all variables in a line. */
 export function addNamespacesToLine(args:string[], commandDefinition:CommandDefinition, stack:StackElement[]):string {
 	if(!inNamespace(stack)) return args.join(" ");
 	// if(args[0] == "jump"){
@@ -262,10 +268,12 @@ export function addNamespacesToLine(args:string[], commandDefinition:CommandDefi
 	return transformVariables(args, commandDefinition, (variable:string) => addNamespacesToVariable(variable, stack)).join(" ");
 }
 
+/**Prepends the filename to an arg if it starts with two underscores. */
 export function prependFilenameToArg(arg:string, isMain:boolean, filename:string){
 	return arg.startsWith("__") ? `__${isMain ? "" : filename.replace(/\.mlogx?/gi, "")}${arg}` : arg;
 }
-	
+
+/**Removes unused jumps from a compiled program. */
 export function removeUnusedJumps(compiledProgram:string[], jumpLabelUsages:TData.jumpLabelsUsed):string[] {
 	return compiledProgram.filter(line =>
 		!getJumpLabel(line) || getJumpLabel(line)! in jumpLabelUsages
@@ -275,6 +283,7 @@ export function removeUnusedJumps(compiledProgram:string[], jumpLabelUsages:TDat
 //#endregion
 //#region parsing
 
+/**Parses icons out of the data in the icons.properties file from the Mindustry source code. */
 export function parseIcons(data:string[]): {[index: string]: string;} {
 	const icons: {
 		[index: string]: string;
@@ -291,6 +300,7 @@ export function parseIcons(data:string[]): {[index: string]: string;} {
 	return icons;
 }
 
+/**Gets function parameters from a program. */
 export function getParameters(program:string[]):[name:string, type:string][]{
 	const functionLine = program.filter(line => line.startsWith("#function "))[0];
 	return functionLine
@@ -380,12 +390,14 @@ export function getVariablesUsed(args:string[], commandDefinition:CommandDefinit
 		).map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 
+/**Gets the jump label used in a statement. */
 export function getJumpLabelUsed(line:string): string | null {
 	const args = splitLineIntoArguments(line);
 	if(args[0] == "jump") return args[1];
 	return null;
 }
 
+/**Gets the jump label defined in a statement. */
 export function getJumpLabel(cleanedLine:string):string | null {
 	return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0] ?? null;
 }
@@ -446,10 +458,13 @@ export function acceptsVariable(arg: Arg|undefined):boolean {
 	else
 		return false;
 }
+
 //#endregion
 //#region commandchecking
-export function isCommand(line:string, command:CommandDefinition): [valid:false, error:CommandError] | [valid:true, error:null] {
-	const args = splitLineIntoArguments(line);
+
+/**Checks if a line is valid for a command definition. */
+export function isCommand(cleanedLine:string, command:CommandDefinition): [valid:false, error:CommandError] | [valid:true, error:null] {
+	const args = splitLineIntoArguments(cleanedLine);
 	const commandArguments = args.slice(1);
 	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
 		return [false, {
@@ -523,11 +538,12 @@ export function formatLine(line:Line, settings:Settings & {filename: string}):st
 	return chalk.gray(`${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
 
-/**Displays a Line with at before it. */
+/**Displays a Line with a prefix before it. */
 export function formatLineWithPrefix(line:Line, settings:Settings & {filename: string}, prefix:string = "\t\tat "):string {
 	return chalk.gray(`${prefix}${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
 
+/**Adds a source line to a multiple lines of code. */
 export function addSourcesToCode(code:string[], sourceLine:Line = {text: `not provided`, lineNumber:2}):CompiledLine[]{
 	return code.map(compiledLine => [compiledLine, sourceLine] as CompiledLine);
 }
@@ -538,15 +554,16 @@ export function exit(message: string):never {
 	process.exit(1);
 }
 
-export function askQuestion(query:string): Promise<string> {
+/**Asks a question through the CLI. */
+export function askQuestion(question:string): Promise<string> {
 	const rl = readline.createInterface({
 		input: process.stdin,
 		output: process.stdout,
 	});
 
-	return new Promise(resolve => rl.question(query, ans => {
+	return new Promise(resolve => rl.question(question, answer => {
 		rl.close();
-		resolve(ans);
+		resolve(answer);
 	}));
 }
 
