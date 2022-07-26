@@ -1,6 +1,6 @@
 import { Arg } from "../classes.js";
 import commands from "../commands.js";
-import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, inForLoop, topForLoop, inNamespace, parsePreprocessorDirectives, getCommandDefinitions, getCommandDefinition, isCommand, areAnyOfInputsCompatibleWithType, typesAreCompatible, acceptsVariable, addSourcesToCode } from "../funcs.js";
+import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, inForLoop, topForLoop, parsePreprocessorDirectives, inNamespace, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode } from "../funcs.js";
 import { GAT } from "../types.js";
 describe("templateFunction", () => {
     it("should ", () => {
