@@ -1,6 +1,6 @@
 import { GAT, CommandErrorType } from "./types.js";
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand, } from "./funcs.js";
-import { processorVariables, requiredVarCode } from "./consts.js";
+import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import commands from "./commands.js";
 export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
@@ -82,10 +82,13 @@ ${formatLineWithPrefix({
     }
     if (settings.compilerOptions.checkTypes && !hasInvalidStatements)
         printTypeErrors(typeCheckingData, settings);
-    if (settings.compilerOptions.removeUnusedJumpLabels)
-        return removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed);
-    else
-        return compiledProgram;
+    const outputProgram = settings.compilerOptions.removeUnusedJumpLabels ?
+        removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed) :
+        compiledProgram;
+    if (outputProgram.length > maxLines) {
+        Log.err(`Program length exceeded 999 lines. Copy-pasting into an ingame processor will fail.`);
+    }
+    return outputProgram;
 }
 export function typeCheckLine(compiledLine, typeCheckingData) {
     const cleanedCompiledLine = cleanLine(compiledLine[0]);

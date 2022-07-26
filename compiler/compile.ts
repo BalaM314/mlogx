@@ -9,7 +9,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { Settings, GAT, CommandDefinition, CommandErrorType, StackElement, Line, TData, TypeCheckingData, CompiledLine } from "./types.js";
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand,  } from "./funcs.js";
-import { processorVariables, requiredVarCode } from "./consts.js";
+import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { Arg, CompilerError, Log } from "./classes.js";
 import commands from "./commands.js";
 
@@ -111,11 +111,17 @@ ${formatLineWithPrefix({
 	if(settings.compilerOptions.checkTypes && !hasInvalidStatements)
 		printTypeErrors(typeCheckingData, settings);
 	
-	//Remove unused jump labels
-	if(settings.compilerOptions.removeUnusedJumpLabels)
-		return removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed);
-	else
-		return compiledProgram;
+	const outputProgram = 
+		settings.compilerOptions.removeUnusedJumpLabels ?
+			removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed) :
+			compiledProgram;
+
+	if(outputProgram.length > maxLines){
+		Log.err(`Program length exceeded 999 lines. Copy-pasting into an ingame processor will fail.`);
+	}
+
+	return outputProgram;
+	
 }
 
 export function typeCheckLine(compiledLine:CompiledLine, typeCheckingData:TypeCheckingData){

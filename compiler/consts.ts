@@ -76,3 +76,5 @@ export const buildingInternalNames: string[] = [
 	"cell", "bank", "display"
 ];
 export const buildingNameRegex = new RegExp(`^(${buildingInternalNames.map(el => `(${el})`).join("|")})[\\d]+$`);
+
+export const maxLines = 999;
