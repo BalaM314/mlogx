@@ -8,15 +8,15 @@ mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANT
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 */
 
-import * as path from "path";
-import * as fs from "fs";
 import { commands } from "./commands.js";
-import { compileMlogxToMlog } from "./compile.js";
-import { addJumpLabels, askQuestion, parseIcons } from "./funcs.js";
+import { compileMlogxToMlog, addJumpLabels } from "./compile.js";
+import { askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import { Settings } from "./types.js";
 import { Application } from "cli-app";
+import * as path from "path";
+import * as fs from "fs";
 import chalk from "chalk";
 import deepmerge from "deepmerge";
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-import * as path from "path";
-import * as fs from "fs";
 import { commands } from "./commands.js";
-import { compileMlogxToMlog } from "./compile.js";
-import { addJumpLabels, askQuestion, parseIcons } from "./funcs.js";
+import { compileMlogxToMlog, addJumpLabels } from "./compile.js";
+import { askQuestion, parseIcons } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import { Application } from "cli-app";
+import * as path from "path";
+import * as fs from "fs";
 import chalk from "chalk";
 import deepmerge from "deepmerge";
 const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
