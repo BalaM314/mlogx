@@ -1,10 +1,12 @@
 import { Arg } from "../classes.js";
 import commands from "../commands.js";
-import { addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables } from "../funcs.js";
-import { getVariablesDefined } from "../funcs.js";
-import { cleanLine } from "../funcs.js";
-import { isGenericArg, typeofArg } from "../funcs.js";
+import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, inForLoop, topForLoop, inNamespace, parsePreprocessorDirectives, getCommandDefinitions, getCommandDefinition, isCommand, areAnyOfInputsCompatibleWithType, typesAreCompatible, acceptsVariable, addSourcesToCode } from "../funcs.js";
 import { GAT } from "../types.js";
+describe("templateFunction", () => {
+    it("should ", () => {
+        expect("functionThing").toEqual("functionThing");
+    });
+});
 describe("isGenericArg", () => {
     it("should determine if an arg is generic", () => {
         for (const genericArg of Object.values(GAT)) {
@@ -61,6 +63,14 @@ describe("isArgOfType", () => {
         }
     });
 });
+describe("removeTrailingSpaces", () => {
+    it("should remove trailing and leading spaces and tabs", () => {
+        expect(cleanLine("    set x 5")).toBe("set x 5");
+        expect(cleanLine("set x 5  ")).toBe("set x 5");
+        expect(cleanLine("\tset x 5")).toBe("set x 5");
+        expect(cleanLine(" \tset x 5\t ")).toBe("set x 5");
+    });
+});
 describe("cleanLine", () => {
     it("should not modify lines that are already clean", () => {
         expect(cleanLine("set x 5")).toBe("set x 5");
@@ -112,14 +122,6 @@ describe("replaceCompilerConstants", () => {
         expect(replaceCompilerConstants(`print "$(err)"`, sampleVars)).toBe(`print "thingy"`);
     });
 });
-describe("getParameters", () => {
-    it("should get function parameters from a program", () => {
-        expect(getParameters(["#function move_unit_precise(dest.x:number, u:unit)"]))
-            .toEqual([["dest.x", "number"], ["u", "unit"]]);
-        expect(getParameters(["#sussy amogus"]))
-            .toEqual([]);
-    });
-});
 describe("splitLineIntoArguments", () => {
     it("should split a line on space", () => {
         expect(splitLineIntoArguments("a b cd e")).toEqual(["a", "b", "cd", "e"]);
@@ -141,10 +143,109 @@ describe("transformCommand", () => {
         expect(transformCommand(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3], x => x.toUpperCase(), (arg, commandArg) => !(commandArg?.isGeneric ?? true))).toEqual(["ulocate", "BUILDING", "core", "true", "outX", "outY", "found", "building"]);
     });
 });
+describe("addNamespacesToVariable", () => {
+    it("should add namespaces to a variable", () => {
+        expect(addNamespacesToVariable("x", [{ name: "amogus", type: "namespace" }])).toEqual("_amogus_x");
+        expect(addNamespacesToVariable("sussyBaka", [{ name: "amogus", type: "namespace" }, { name: "sus", type: "namespace" }])).toEqual("_amogus_sus_sussyBaka");
+    });
+});
 describe("addNamespacesToLine", () => {
     it("should add namespaces to a statement", () => {
         expect(addNamespacesToLine(["set", "x", "5"], commands["set"][0], [{ name: "amogus", type: "namespace" }])).toEqual("set _amogus_x 5");
         expect(addNamespacesToLine(["ulocate", "building", "core", "true", "outX", "outY", "found", "core"], commands["ulocate"][3], [{ name: "amogus", type: "namespace" }])).toEqual("ulocate building core true _amogus_outX _amogus_outY _amogus_found _amogus_core");
+        expect(addNamespacesToLine(["set", "x", ":number", "5"], commands["set"][1], [{ name: "amogus", type: "namespace" }, { name: "sus", type: "namespace" }])).toEqual("set _amogus_sus_x :number 5");
+    });
+});
+describe("prependFilenameToArg", () => {
+    it("should prepend filename for an arg with two underscores before it", () => {
+        expect(prependFilenameToArg("__thing", false, "test.mlogx")).toEqual("__test__thing");
+    });
+    it("should not prepend filename for an arg without two underscores before it", () => {
+        expect(prependFilenameToArg("_thing", false, "test.mlogx")).toEqual("_thing");
+    });
+});
+describe("removeUnusedJumps", () => {
+    it("should not remove used jumps", () => {
+        expect(removeUnusedJumps([
+            "label5:",
+            "jump label5 always"
+        ], {
+            label5: [{
+                    line: { text: "jump label5 always", lineNumber: 2 }
+                }]
+        })).toEqual([
+            "label5:",
+            "jump label5 always"
+        ]);
+    });
+    it("should remove unused jumps", () => {
+        expect(removeUnusedJumps([
+            "label5:",
+            "jump label5 always",
+            "label6:"
+        ], {
+            label5: [{
+                    line: { text: "jump label5 always", lineNumber: 2 }
+                }]
+        })).toEqual([
+            "label5:",
+            "jump label5 always"
+        ]);
+    });
+});
+describe("parseIcons", () => {
+    it("should parse icons", () => {
+        expect(parseIcons([
+            `63734=craters|block-craters-ui`
+        ])).toEqual({
+            "_craters": String.fromCodePoint(63734)
+        });
+    });
+});
+describe("getParameters", () => {
+    it("should get function parameters from a program", () => {
+        expect(getParameters(["#function move_unit_precise(dest.x:number, u:unit)"]))
+            .toEqual([["dest.x", "number"], ["u", "unit"]]);
+        expect(getParameters(["#sussy amogus"]))
+            .toEqual([]);
+    });
+});
+describe("parsePreprocessorDirectives", () => {
+    it("should parse required vars from a program", () => {
+        expect(parsePreprocessorDirectives([
+            `#require cookie`
+        ])[1]).toEqual(["cookie"]);
+        expect(parsePreprocessorDirectives([
+            `#require core, thing`,
+            `#sussy baka`,
+            `set x false`,
+            `#required that stuff be done`
+        ])[1]).toEqual(["core", "thing"]);
+        expect(parsePreprocessorDirectives([
+            `#require cookie`
+        ])[1]).toEqual(["cookie"]);
+    });
+    it("should parse author from a program", () => {
+        expect(parsePreprocessorDirectives([
+            `#author amogus`
+        ])[2]).toEqual("amogus");
+        expect(parsePreprocessorDirectives([
+            `#author sussy baka`,
+            `#sussy baka`,
+            `set x false`,
+            `#required that stuff be done`
+        ])[2]).toEqual("sussy baka");
+    });
+    it("should parse program type from a program", () => {
+        expect(parsePreprocessorDirectives([
+            `#program_type main`
+        ])[0]).toEqual("main");
+        expect(parsePreprocessorDirectives([
+            `#sussy baka`,
+            `#program_type main`,
+            `set x false`,
+            `#required that stuff be done`
+        ])[0]).toEqual("main");
     });
 });
 describe("getVariablesDefined", () => {
@@ -199,32 +300,212 @@ describe("getJumpLabelUsed", () => {
         expect(getJumpLabelUsed("set label \"greaterThan\"")).toEqual(null);
     });
 });
-describe("removeUnusedJumps", () => {
-    it("should not remove used jumps", () => {
-        expect(removeUnusedJumps([
-            "label5:",
-            "jump label5 always"
-        ], {
-            label5: [{
-                    line: { text: "jump label5 always", lineNumber: 2 }
-                }]
-        })).toEqual([
-            "label5:",
-            "jump label5 always"
+describe("getJumpLabel", () => {
+    it("should get the jump label defined", () => {
+        expect(getJumpLabel("label:")).toEqual("label");
+    });
+    it("should return null if no jump label exists", () => {
+        expect(getJumpLabel("jump label greaterThan x 5")).toEqual(null);
+    });
+});
+describe("inForLoop", () => {
+    it("should return whether or not the stack contains an &for loop", () => {
+        expect(inForLoop([
+            { name: "amogus", type: "namespace" }, { name: "sus", type: "namespace" }
+        ])).toEqual(false);
+        expect(inForLoop([])).toEqual(false);
+        expect(inForLoop([
+            { name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" }
+        ])).toEqual(true);
+        expect(inForLoop([
+            { name: "amogus", type: "namespace" },
+            { type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" },
+            { type: "&for", loopBuffer: [], lowerBound: 3, upperBound: 10, variableName: "J" }
+        ])).toEqual(true);
+    });
+});
+describe("topForLoop", () => {
+    it("should return the topmost &for loop on the stack", () => {
+        expect(topForLoop([
+            { name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" }
+        ])).toEqual({ type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" });
+        expect(topForLoop([
+            { name: "amogus", type: "namespace" },
+            { type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" },
+            { type: "&for", loopBuffer: [], lowerBound: 3, upperBound: 10, variableName: "J" }
+        ])).toEqual({ type: "&for", loopBuffer: [], lowerBound: 3, upperBound: 10, variableName: "J" });
+    });
+    it("should return null when no &for loop is on the stack", () => {
+        expect(topForLoop([
+            { name: "amogus", type: "namespace" }
+        ])).toEqual(null);
+    });
+});
+describe("inNamespace", () => {
+    it("should return whether or not the stack contains a namespace", () => {
+        expect(inNamespace([
+            { name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" }
+        ])).toEqual(true);
+        expect(inNamespace([
+            { type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" },
+            { type: "&for", loopBuffer: [], lowerBound: 3, upperBound: 10, variableName: "J" }
+        ])).toEqual(false);
+        expect(inNamespace([])).toEqual(false);
+    });
+});
+describe("getCommandDefinitions", () => {
+    it("should get all valid command definitions for a command", () => {
+        expect(getCommandDefinitions(`read x cell1 4`)).toEqual([
+            commands.read[0]
+        ]);
+        expect(getCommandDefinitions(`ulocate building core true outX outY found core`)).toEqual([
+            commands.ulocate[3]
+        ]);
+        expect(getCommandDefinitions(`sensor x thing @x`)).toEqual([
+            commands.sensor[0], commands.sensor[1]
+        ]);
+        expect(getCommandDefinitions(`print x`)).toEqual([
+            commands.print[0]
         ]);
     });
-    it("should remove unused jumps", () => {
-        expect(removeUnusedJumps([
-            "label5:",
-            "jump label5 always",
-            "label6:"
+    it("should return empty if no valid definitions", () => {
+        expect(getCommandDefinitions(`print sussy baka`)).toEqual([]);
+        expect(getCommandDefinitions(`drawflush 5`)).toEqual([]);
+        expect(getCommandDefinitions(`ulocate ore @this outX outY found`)).toEqual([]);
+    });
+});
+describe("getCommandDefinition", () => {
+    it("should get the first valid command definition for a command", () => {
+        expect(getCommandDefinition(`read x cell1 4`))
+            .toEqual(commands.read[0]);
+        expect(getCommandDefinition(`ulocate building core true outX outY found core`))
+            .toEqual(commands.ulocate[3]);
+    });
+});
+describe("isCommand", () => {
+    it("should check if a command is valid for a command definition", () => {
+        expect(isCommand(`set x 5`, commands.set[0]))
+            .toEqual([true, null]);
+        expect(isCommand(`set x :number 5`, commands.set[1]))
+            .toEqual([true, null]);
+        expect(isCommand(`set x 5`, commands.set[1])[0])
+            .toEqual(false);
+        expect(isCommand(`set x :number 5`, commands.set[0])[0])
+            .toEqual(false);
+    });
+});
+describe("areAnyOfInputsCompatibleWithType", () => {
+    it("should return true if types are the same", () => {
+        expect(areAnyOfInputsCompatibleWithType(["number"], "number")).toEqual(true);
+        expect(areAnyOfInputsCompatibleWithType(["building", "type", "number"], "number")).toEqual(true);
+    });
+    it("should return true if types are compatible", () => {
+        expect(areAnyOfInputsCompatibleWithType(["boolean"], "number")).toEqual(true);
+        expect(areAnyOfInputsCompatibleWithType(["any", "operandTest"], "number")).toEqual(true);
+    });
+    it("should return false if types are incompatible", () => {
+        expect(areAnyOfInputsCompatibleWithType(["building", "type"], "number")).toEqual(false);
+    });
+});
+describe("typesAreCompatible", () => {
+    it("should return true if types are the same", () => {
+        expect(typesAreCompatible("number", "number")).toEqual(true);
+        expect(typesAreCompatible("operandSingle", "operandSingle")).toEqual(true);
+    });
+    it("should return true if types are compatible", () => {
+        expect(typesAreCompatible("number", "boolean")).toEqual(true);
+        expect(typesAreCompatible("any", "jumpAddress")).toEqual(true);
+        expect(typesAreCompatible("any", "unit")).toEqual(true);
+    });
+    it("should return false if types are incompatible", () => {
+        expect(typesAreCompatible("number", "string")).toEqual(false);
+        expect(typesAreCompatible("operandSingle", "ctype")).toEqual(false);
+    });
+});
+describe("acceptsVariable", () => {
+    it("should determine if an Arg accepts a variable as an input", () => {
+        expect(acceptsVariable(new Arg("unit", "target", true, true, false)))
+            .toEqual(true);
+        expect(acceptsVariable(new Arg("number", "target", true, true, false)))
+            .toEqual(true);
+        expect(acceptsVariable(new Arg("unit", "target", true, true, true)))
+            .toEqual(false);
+        expect(acceptsVariable(new Arg("buildingGroup", "thing", true, true, false)))
+            .toEqual(false);
+        expect(acceptsVariable(new Arg("ctype", "thing", true, true, false)))
+            .toEqual(false);
+        expect(acceptsVariable(new Arg("unitSortCriteria", "thing", true, true, false)))
+            .toEqual(false);
+    });
+});
+describe("processCommands", () => {
+    it("should process the commands ast", () => {
+        expect(processCommands({
+            "amogus": [{
+                    args: "sus susLevel:number",
+                    description: "Sets the suslevel of the imposter."
+                }],
+            "sus": [
+                {
+                    args: "building buildingGroup:buildingGroup enemy:boolean outX:*number outY:*number found:*boolean building:*building",
+                    description: "is sus.",
+                    replace: ["sus building %2 %3 _ %4 %5 %6 %7"]
+                },
+                {
+                    args: "",
+                    description: "Does nothing."
+                }
+            ],
+        }))
+            .toEqual({
+            "amogus": [{
+                    args: [new Arg("sus", "sus", false, false, false), new Arg("number", "susLevel", false, true, false)],
+                    description: "Sets the suslevel of the imposter.",
+                    name: "amogus",
+                    getVariablesDefined: undefined,
+                    getVariablesUsed: undefined,
+                }],
+            "sus": [
+                {
+                    name: "sus",
+                    description: "is sus.",
+                    args: [
+                        new Arg("building", "building", false, false, false),
+                        new Arg("buildingGroup", "buildingGroup", false, true, false),
+                        new Arg("boolean", "enemy", false, true, false),
+                        new Arg("number", "outX", false, true, true),
+                        new Arg("number", "outY", false, true, true),
+                        new Arg("boolean", "found", false, true, true),
+                        new Arg("building", "building", false, true, true),
+                    ],
+                    getVariablesDefined: undefined,
+                    getVariablesUsed: undefined,
+                    replace: jasmine.any(Function)
+                },
+                {
+                    args: [],
+                    description: "Does nothing.",
+                    name: "sus",
+                    getVariablesDefined: undefined,
+                    getVariablesUsed: undefined,
+                }
+            ]
+        });
+    });
+});
+describe("addSourcesToCode", () => {
+    it("should add sources to code", () => {
+        expect(addSourcesToCode([
+            `print "hello"`,
+            `printflush message1`,
+            `//sussy baka`
         ], {
-            label5: [{
-                    line: { text: "jump label5 always", lineNumber: 2 }
-                }]
+            lineNumber: 69,
+            text: `print "hello"`
         })).toEqual([
-            "label5:",
-            "jump label5 always"
+            [`print "hello"`, { lineNumber: 69, text: `print "hello"` }],
+            [`printflush message1`, { lineNumber: 69, text: `print "hello"` }],
+            [`//sussy baka`, { lineNumber: 69, text: `print "hello"` }],
         ]);
     });
 });
