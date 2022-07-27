@@ -9,7 +9,7 @@
   },
   "type": "module",
   "name": "mlogx",
-  "version": "1.4.4",
+  "version": "1.5.0",
   "description": "MLOGX transpiler targeting Mindustry Logic.",
   "main": "index.js",
   "scripts": {
