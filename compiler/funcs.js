@@ -45,7 +45,7 @@ export function typeofArg(arg) {
         return GAT.operandTest;
     if (["true", "false"].includes(arg))
         return GAT.boolean;
-    if (arg.match(/^-?\d+(\.\d+)?$/))
+    if (arg.match(/^-?\d+((\.\d+)|(e-?\d+))?$/))
         return GAT.number;
     if (arg.match(/^"[^"]*"$/gi))
         return GAT.string;

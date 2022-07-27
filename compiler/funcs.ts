@@ -47,7 +47,7 @@ export function typeofArg(arg:string):GAT {
 	// if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
 	// if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;
 	if(["true", "false"].includes(arg)) return GAT.boolean;
-	if(arg.match(/^-?\d+(\.\d+)?$/)) return GAT.number;
+	if(arg.match(/^-?\d+((\.\d+)|(e-?\d+))?$/)) return GAT.number;
 	if(arg.match(/^"[^"]*"$/gi)) return GAT.string;
 	//TODO this will fail on strings with escaped quotes
 	if(arg.match(buildingNameRegex)) return GAT.building;
@@ -622,7 +622,6 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 
 export function range(min:number, max:number):number[];
 export function range(min:number, max:number, strings:true):string[];
-
 /**Returns a list */
 export function range(min:number, max:number, strings?:true):number[]|string[] {
 	if(min > max) return [];
