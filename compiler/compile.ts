@@ -322,26 +322,63 @@ export function compileLine(
 
 	//if its an &for loop: special handling
 	if(args[0] == "&for"){
+		if(args.at(-1) != "{"){
+			throw new CompilerError("expected { at and of &for statement");
+		}
 		const variableName = args[1];
-		const lowerBound = parseInt(args[2]);
-		const upperBound = parseInt(args[3]);
-		if(isNaN(lowerBound))
-			throw new CompilerError(`Invalid for loop syntax: lowerBound(${lowerBound}) is invalid`);
-		if(isNaN(upperBound))
-			throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
-		if(lowerBound < 0)
-			throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
-		if((upperBound - lowerBound) > 200)
-			throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
-		return {
-			modifiedStack: stack.concat({
-				type: "&for",
-				elements: range(lowerBound, upperBound, true),
-				variableName,
-				loopBuffer: []
-			}),
-			compiledCode: []
-		};
+		const type = args[2];
+		if(type == "of"){
+			return {
+				modifiedStack: stack.concat({
+					type: "&for",
+					elements: args.slice(3, -1),
+					variableName,
+					loopBuffer: []
+				}),
+				compiledCode: []
+			};
+		} else if(type == "in"){
+			const lowerBound = parseInt(args[3]);
+			const upperBound = parseInt(args[4]);
+			if(isNaN(lowerBound))
+				throw new CompilerError(`Invalid for loop syntax: lowerBound(${lowerBound}) is invalid`);
+			if(isNaN(upperBound))
+				throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
+			if(lowerBound < 0)
+				throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
+			if((upperBound - lowerBound) > 200)
+				throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
+			return {
+				modifiedStack: stack.concat({
+					type: "&for",
+					elements: range(lowerBound, upperBound, true),
+					variableName,
+					loopBuffer: []
+				}),
+				compiledCode: []
+			};
+		} else {
+			const lowerBound = parseInt(args[2]);
+			const upperBound = parseInt(args[3]);
+			Log.warn(`"&for ${variableName} ${lowerBound} ${upperBound}" syntax is deprecated, please use "&for ${variableName} in ${lowerBound} ${upperBound}" instead.`);
+			if(isNaN(lowerBound))
+				throw new CompilerError(`Invalid for loop syntax: lowerBound(${lowerBound}) is invalid`);
+			if(isNaN(upperBound))
+				throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
+			if(lowerBound < 0)
+				throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
+			if((upperBound - lowerBound) > 200)
+				throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
+			return {
+				modifiedStack: stack.concat({
+					type: "&for",
+					elements: range(lowerBound, upperBound, true),
+					variableName,
+					loopBuffer: []
+				}),
+				compiledCode: []
+			};
+		}
 	}
 
 	//} means a block ended

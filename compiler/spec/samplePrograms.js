@@ -170,13 +170,13 @@ set offSwitch switch1
 print "Config options above"
 #Runtime variables
 restart:
-	&for n 1 $numReconstructors {
+	&for n in 1 $numReconstructors {
 		jump restart equal reconstructor$n null
 		sensor reconstructor$n.x
 		sensor reconstructor$n.y
 	}
 
-&for n 1 $numReconstructors {
+&for n in 1 $numReconstructors {
 	set unit$n :unit null
 }
 
@@ -187,7 +187,7 @@ main_loop:
 	not_switched_off:
 
 	check_units:
-		&for n 1 $numReconstructors {
+		&for n in 1 $numReconstructors {
 			check_unit$n_ok:
 			sensor unit$n.dead
 			sensor unit$n.controlled
@@ -197,7 +197,7 @@ main_loop:
 		}
 
 	move_units:
-		&for n 1 $numReconstructors {
+		&for n in 1 $numReconstructors {
 			move_unit$n:
 			ubind unit$n
 			ucontrol move reconstructor$n.x reconstructor$n.y
@@ -211,7 +211,7 @@ main_loop:
 		jump main_loop
 
 		
-	&for n 1 $numReconstructors {
+	&for n in 1 $numReconstructors {
 		bind_unit$n:
 		#Bind a unit, but check if it's alive and unflagged.
 		ubind unitType

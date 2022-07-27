@@ -78,12 +78,23 @@ describe("compileLine", () => {
 		}
 	});
 
-	it("should detect the start of an &for loop", () => {
+	it("should detect the start of an &for in loop", () => {
 		expect(
-			compileLine({text: `&for i 0 5`, lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, []).modifiedStack
+			compileLine({text: `&for i in 0 5 {`, lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, []).modifiedStack
 		).toEqual([{
 			type: "&for",
 			elements: range(0, 5, true),
+			variableName: "i",
+			loopBuffer: []
+		}]);
+	});
+
+	it("should detect the start of an &for of loop", () => {
+		expect(
+			compileLine({text: `&for i of c d e {`, lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, []).modifiedStack
+		).toEqual([{
+			type: "&for",
+			elements: ["c", "d", "e"],
 			variableName: "i",
 			loopBuffer: []
 		}]);
@@ -104,11 +115,11 @@ describe("compileLine", () => {
 		expect(
 			compileLine({text: "}", lineNumber: 1}, {}, settingsForFilename("sample.mlogx"), false, [{
 				type: "&for",
-				elements: range(1, 3, true),
+				elements: ["32", "53", "60"],
 				variableName: "n",
 				loopBuffer: addSourcesToCode([`set x 5`, `print "n is $n"`])
 			}]).compiledCode.map(line => line[0])
-		).toEqual([`set x 5`, `print "n is 1"`, `set x 5`, `print "n is 2"`, `set x 5`, `print "n is 3"`]);
+		).toEqual([`set x 5`, `print "n is 32"`, `set x 5`, `print "n is 53"`, `set x 5`, `print "n is 60"`]);
 	});
 
 	it("should unroll nested &for loops", () => {
