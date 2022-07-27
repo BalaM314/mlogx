@@ -27,7 +27,7 @@ export class Log {
         console.log(chalk.gray(`[DEBUG]\t${message}`));
     }
     static dump(...objects) {
-        console.log(`[DEBUG]`, objects);
+        console.log(`[DEBUG]`, ...objects);
     }
     static info(message) {
         console.log(chalk.white(`[INFO]\t${message}`));

@@ -42,7 +42,7 @@ export class Log {
 	}
 	/**Dumps objects */
 	static dump(...objects:unknown[]){
-		console.log(`[DEBUG]`, objects);
+		console.log(`[DEBUG]`, ...objects);
 	}
 	/**For general info. */
 	static info(message:string){
