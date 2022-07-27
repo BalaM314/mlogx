@@ -16,7 +16,7 @@ import {
 	cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable,
 	prependFilenameToArg, getJumpLabel, inForLoop, topForLoop, parsePreprocessorDirectives,
 	inNamespace, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType,
-	isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode
+	isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range
 } from "../funcs.js";
 import { ArgType, GAT } from "../types.js";
 
@@ -413,12 +413,12 @@ describe("inForLoop", () => {
 		])).toEqual(false);
 		expect(inForLoop([])).toEqual(false);
 		expect(inForLoop([
-			{ name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" }
+			{ name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" }
 		])).toEqual(true);
 		expect(inForLoop([
 			{ name: "amogus", type: "namespace" },
-			{ type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" },
-			{ type: "&for", loopBuffer: [], lowerBound: 3, upperBound: 10, variableName: "J" }
+			{ type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" },
+			{ type: "&for", loopBuffer: [], elements: range(3, 10, true), variableName: "J" }
 		])).toEqual(true);
 	});
 });
@@ -426,13 +426,13 @@ describe("inForLoop", () => {
 describe("topForLoop", () => {
 	it("should return the topmost &for loop on the stack", () => {
 		expect(topForLoop([
-			{ name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" }
-		])).toEqual({ type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" });
+			{ name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" }
+		])).toEqual({ type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" });
 		expect(topForLoop([
 			{ name: "amogus", type: "namespace" },
-			{ type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" },
-			{ type: "&for", loopBuffer: [], lowerBound: 3, upperBound: 10, variableName: "J" }
-		])).toEqual({ type: "&for", loopBuffer: [], lowerBound: 3, upperBound: 10, variableName: "J" });
+			{ type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" },
+			{ type: "&for", loopBuffer: [], elements: range(3, 10, true), variableName: "J" }
+		])).toEqual({ type: "&for", loopBuffer: [], elements: range(3, 10, true), variableName: "J" });
 	});
 	it("should return null when no &for loop is on the stack", () => {
 		expect(topForLoop([
@@ -444,11 +444,11 @@ describe("topForLoop", () => {
 describe("inNamespace", () => {
 	it("should return whether or not the stack contains a namespace", () => {
 		expect(inNamespace([
-			{ name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" }
+			{ name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" }
 		])).toEqual(true);
 		expect(inNamespace([
-			{ type: "&for", loopBuffer: [], lowerBound: 0, upperBound: 5, variableName: "I" },
-			{ type: "&for", loopBuffer: [], lowerBound: 3, upperBound: 10, variableName: "J" }
+			{ type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" },
+			{ type: "&for", loopBuffer: [], elements: range(3, 10, true), variableName: "J" }
 		])).toEqual(false);
 		expect(inNamespace([])).toEqual(false);
 	});

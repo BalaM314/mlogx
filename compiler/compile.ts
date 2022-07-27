@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { Settings, GAT, CommandDefinition, CommandErrorType, StackElement, Line, TData, TypeCheckingData, CompiledLine } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand,  } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, inForLoop, inNamespace, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand, range,  } from "./funcs.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { Arg, CompilerError, Log } from "./classes.js";
 import commands from "./commands.js";
@@ -337,8 +337,7 @@ export function compileLine(
 		return {
 			modifiedStack: stack.concat({
 				type: "&for",
-				lowerBound,
-				upperBound,
+				elements: range(lowerBound, upperBound, true),
 				variableName,
 				loopBuffer: []
 			}),
@@ -355,14 +354,14 @@ export function compileLine(
 			const endedBlock = modifiedStack.pop();
 			if(endedBlock?.type == "&for"){
 				const compiledCode:CompiledLine[] = [];
-				for(let i = endedBlock.lowerBound; i <= endedBlock.upperBound; i ++){
+				for(const el of endedBlock.elements){
 					compiledCode.push(
 						...endedBlock.loopBuffer.map(line => [replaceCompilerConstants(line[0], {
-							[endedBlock.variableName]: i.toString()
+							[endedBlock.variableName]: el
 						}), {
 							text: replaceCompilerConstants(line[1].text, {
 								...compilerConstants,
-								[endedBlock.variableName]: i.toString()
+								[endedBlock.variableName]: el
 							}),
 							lineNumber: line[1].lineNumber
 						}] as CompiledLine)

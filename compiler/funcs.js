@@ -501,3 +501,8 @@ export function processCommands(preprocessedCommands) {
     }
     return out;
 }
+export function range(min, max, strings) {
+    if (min > max)
+        return [];
+    return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
+}

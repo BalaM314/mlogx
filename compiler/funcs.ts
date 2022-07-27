@@ -533,6 +533,7 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean =
 }
 //#endregion
 //#region misc
+
 /**Displays a Line. */
 export function formatLine(line:Line, settings:Settings & {filename: string}):string {
 	return chalk.gray(`${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
@@ -617,6 +618,15 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 		}
 	}
 	return out;
+}
+
+export function range(min:number, max:number):number[];
+export function range(min:number, max:number, strings:true):string[];
+
+/**Returns a list */
+export function range(min:number, max:number, strings?:true):number[]|string[] {
+	if(min > max) return [];
+	return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
 }
 
 //#endregion

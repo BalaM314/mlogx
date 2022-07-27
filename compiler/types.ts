@@ -97,8 +97,7 @@ export interface NamespaceStackElement {
 }
 export interface ForStackElement {
 	type: "&for";
-	upperBound: number;
-	lowerBound: number;
+	elements: string[];
 	variableName: string;
 	loopBuffer: CompiledLine[];
 }
