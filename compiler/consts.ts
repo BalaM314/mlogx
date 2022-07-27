@@ -24,7 +24,8 @@ export const defaultSettings:Settings = {
 		mode: "single",
 		prependFileName: true,
 		checkTypes: true,
-		removeUnusedJumpLabels: false
+		removeUnusedJumpLabels: false,
+		removeCompilerMark: false,
 	},
 	compilerConstants: {
 		

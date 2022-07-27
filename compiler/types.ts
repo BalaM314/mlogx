@@ -20,6 +20,7 @@ export interface Settings {
 		checkTypes: boolean;
 		verbose: boolean;
 		removeUnusedJumpLabels: boolean;
+		removeCompilerMark: boolean;
 	};
 	compilerConstants: {
 		[index: string]: string | string[];

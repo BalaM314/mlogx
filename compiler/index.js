@@ -227,7 +227,7 @@ function compileDirectory(directory, stdlibPath, defaultSettings) {
                 Log.dump(err);
             return;
         }
-        if (settings.compilerOptions.mode == "single") {
+        if (settings.compilerOptions.mode == "single" && !settings.compilerOptions.removeCompilerMark) {
             outputData.push("end", ...compilerMark);
         }
         fs.writeFileSync(path.join(outputDirectory, filename.slice(0, -1)), outputData.join("\r\n"));
@@ -259,7 +259,7 @@ function compileDirectory(directory, stdlibPath, defaultSettings) {
             ...[].concat(...Object.values(compiledData).map(program => program.concat("end"))), "",
             "#stdlib functions",
             ...[].concat(...Object.entries(stdlibData).filter(([name]) => settings.compilerOptions.include.includes(name)).map(([, program]) => program.concat("end"))),
-            "", ...compilerMark
+            "", ...(settings.compilerOptions.removeCompilerMark ? compilerMark : [])
         ];
         fs.writeFileSync(path.join(directory, "out.mlog"), outputData.join("\r\n"));
     }

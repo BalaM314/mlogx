@@ -272,7 +272,7 @@ function compileDirectory(directory:string, stdlibPath:string, defaultSettings:S
 				Log.dump(err);
 			return;
 		}
-		if(settings.compilerOptions.mode == "single"){
+		if(settings.compilerOptions.mode == "single" && !settings.compilerOptions.removeCompilerMark){
 			outputData.push("end", ...compilerMark);
 		}
 		//Write .mlog files to output
@@ -318,7 +318,7 @@ function compileDirectory(directory:string, stdlibPath:string, defaultSettings:S
 					([name]) => settings.compilerOptions.include.includes(name)
 				).map(([, program]) => program.concat("end"))
 			),
-			"", ...compilerMark
+			"", ...(settings.compilerOptions.removeCompilerMark ? compilerMark : [])
 		];
 
 		fs.writeFileSync(
