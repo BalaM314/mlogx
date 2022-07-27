@@ -197,10 +197,10 @@ export function removeComments(line:string):string {
 }
 
 /**Replaces compiler constants in a line. */
-export function replaceCompilerConstants(line:string, variables: {[index: string]: string;}):string {
+export function replaceCompilerConstants(line:string, variables: Settings["compilerConstants"]):string {
 	if(!line.includes("$")) return line;
 	for(const [key, value] of Object.entries(variables)){
-		line = line.replace(new RegExp(`(\\$\\(${key}\\))|(\\$${key})`, "g"), value);
+		line = line.replace(new RegExp(`(\\$\\(${key}\\))|(\\$${key})`, "g"), value instanceof Array ? value.join(" ") : value);
 	}
 	return line;
 }

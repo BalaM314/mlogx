@@ -22,7 +22,7 @@ export interface Settings {
 		removeUnusedJumpLabels: boolean;
 	};
 	compilerConstants: {
-		[index: string]: string;
+		[index: string]: string | string[];
 	}
 }
 
