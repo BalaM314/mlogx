@@ -10,7 +10,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { commands } from "./commands.js";
 import { compileMlogxToMlog, addJumpLabels } from "./compile.js";
-import { askQuestion, parseIcons } from "./funcs.js";
+import { askQuestion, parseIcons, getCompilerConsts } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import { Settings } from "./types.js";
@@ -254,16 +254,16 @@ function compileDirectory(directory:string, stdlibPath:string, defaultSettings:S
 		let outputData: string[];
 		//Compile, but handle errors
 		try {
-			outputData = compileMlogxToMlog(data, {
-				filename,
-				...settings
-			}, {
-				...icons,
-				filename: filename.split(".")[0],
-				name: settings.name,
-				authors: settings.authors.join(", "),
-				...settings.compilerConstants,
-			});
+			outputData = compileMlogxToMlog(data,
+				{
+					filename,
+					...settings
+				}, 
+				getCompilerConsts(icons, {
+					...settings,
+					filename
+				})
+			);
 		} catch(err){
 			Log.err(`Failed to compile file ${filename}!`);
 			if(err instanceof CompilerError)
@@ -339,13 +339,10 @@ function compileFile(name:string, settings:Settings){
 		outputData = compileMlogxToMlog(data, {
 			filename: name,
 			...settings
-		}, {
-			...icons,
-			filename: name.split(".")[0],
-			name: settings.name,
-			authors: settings.authors.join(", "),
-			...settings.compilerConstants,
-		});
+		}, getCompilerConsts(icons, {
+			...settings,
+			filename: name
+		}));
 	} catch(err){
 		Log.err(`Failed to compile file ${name}!`);
 		if(err instanceof CompilerError){

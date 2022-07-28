@@ -299,9 +299,7 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
             if (endedBlock?.type == "&for") {
                 const compiledCode = [];
                 for (const el of endedBlock.elements) {
-                    compiledCode.push(...endedBlock.loopBuffer.map(line => [replaceCompilerConstants(line[0], {
-                            [endedBlock.variableName]: el
-                        }), {
+                    compiledCode.push(...endedBlock.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[endedBlock.variableName, el]])), {
                             text: replaceCompilerConstants(line[1].text, {
                                 ...compilerConstants,
                                 [endedBlock.variableName]: el

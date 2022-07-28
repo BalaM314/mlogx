@@ -82,7 +82,7 @@ export const testPrograms = {
     emptyProgram: {
         program: [],
         expectedOutput: [],
-        compilerConsts: {}
+        compilerConsts: new Map()
     },
     mostlyEmptyProgram: {
         program: [
@@ -92,7 +92,7 @@ export const testPrograms = {
             `\t \t`
         ],
         expectedOutput: [],
-        compilerConsts: {}
+        compilerConsts: new Map()
     },
     throughputCounter: {
         program: `#Item ThroughputCounter by BalaM314
@@ -155,7 +155,7 @@ wait_for_reset:
 sensor container.items container @totalItems
 jump wait_for_reset notEqual items 0
 end`.split("\n"),
-        compilerConsts: {}
+        compilerConsts: new Map()
     },
     multiPayenter: {
         program: `#For when one reconstructor isn't enough.
@@ -381,15 +381,15 @@ jump bind_unit6 greaterThan unit.controlled 1
 ucontrol flag cookie
 set unit6 @unit
 jump unit6_ok always 0 0`.split("\n"),
-        compilerConsts: {
-            message: "[orange]Core T4 Payenter[] by [#3141FF]BalaM314[]",
-            numReconstructors: "6",
-            githubUrl: "https://github.com/BalaM314/mlog/tree/main/single_files/payEnter/"
-        }
+        compilerConsts: new Map([
+            ["message", "[orange]Core T4 Payenter[] by [#3141FF]BalaM314[]"],
+            ["numReconstructors", "6"],
+            ["githubUrl", "https://github.com/BalaM314/mlog/tree/main/single_files/payEnter/"],
+        ])
     },
     thing: {
         program: `print "e"`.split("\n"),
         expectedOutput: `print "e"`.split("\n"),
-        compilerConsts: {}
+        compilerConsts: new Map()
     },
 };

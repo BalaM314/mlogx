@@ -103,12 +103,12 @@ describe("cleanLine", () => {
     });
 });
 describe("replaceCompilerConstants", () => {
-    const sampleVars = {
-        mog: "amogus",
-        e: "building core true",
-        err: "thingy",
-        "memcellpos.mode": "5"
-    };
+    const sampleVars = new Map([
+        ["mog", "amogus"],
+        ["e", "building core true"],
+        ["err", "thingy"],
+        ["memcellpos.mode", "5"]
+    ]);
     it("should not modify lines without compiler constants", () => {
         expect(replaceCompilerConstants(`print "x + 5 is $amogus"`, sampleVars)).toBe(`print "x + 5 is $amogus"`);
     });
@@ -197,9 +197,7 @@ describe("parseIcons", () => {
     it("should parse icons", () => {
         expect(parseIcons([
             `63734=craters|block-craters-ui`
-        ])).toEqual({
-            "_craters": String.fromCodePoint(63734)
-        });
+        ]).get("_craters")).toEqual(String.fromCodePoint(63734));
     });
 });
 describe("getParameters", () => {

@@ -193,10 +193,20 @@ export function removeComments(line) {
     return parsedChars.join("");
 }
 export function replaceCompilerConstants(line, variables) {
+    const specifiedConsts = line.match(/(?<!\\\$\()(?<=\$\()[\w-.]+(?=\))/g);
+    specifiedConsts?.forEach(key => {
+        if (variables.has(key)) {
+            const value = variables.get(key);
+            line = line.replace(`$(${key})`, value instanceof Array ? value.join(" ") : value);
+        }
+        else {
+            Log.warn(`Unknown compiler const ${key}`);
+        }
+    });
     if (!line.includes("$"))
         return line;
-    for (const [key, value] of Object.entries(variables)) {
-        line = line.replace(new RegExp(`(\\$\\(${key}\\))|(\\$${key})`, "g"), value instanceof Array ? value.join(" ") : value);
+    for (const [key, value] of Array.from(variables).slice().sort((a, b) => b.length - a.length)) {
+        line = line.replaceAll(`$${key}`, value instanceof Array ? value.join(" ") : value);
     }
     return line;
 }
@@ -246,10 +256,10 @@ export function removeUnusedJumps(compiledProgram, jumpLabelUsages) {
     return compiledProgram.filter(line => !getJumpLabel(line) || getJumpLabel(line) in jumpLabelUsages);
 }
 export function parseIcons(data) {
-    const icons = {};
+    const icons = new Map();
     for (const line of data) {
         try {
-            icons["_" + line.split("=")[1].split("|")[0]] = String.fromCodePoint(parseInt(line.split("=")[0]));
+            icons.set("_" + line.split("=")[1].split("|")[0].replaceAll("-", "_"), String.fromCodePoint(parseInt(line.split("=")[0])));
         }
         catch (err) {
             if (!(err instanceof RangeError)) {
@@ -505,4 +515,17 @@ export function range(min, max, strings) {
     if (min > max)
         return [];
     return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
+}
+export function getCompilerConsts(icons, settings) {
+    const outputMap = new Map();
+    for (const [key, value] of icons) {
+        outputMap.set(key, value);
+    }
+    outputMap.set("name", settings.name);
+    outputMap.set("authors", settings.authors.join(", "));
+    outputMap.set("filename", settings.filename);
+    for (const [key, value] of Object.entries(settings.compilerConstants)) {
+        outputMap.set(key, value);
+    }
+    return outputMap;
 }

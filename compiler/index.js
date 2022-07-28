@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { commands } from "./commands.js";
 import { compileMlogxToMlog, addJumpLabels } from "./compile.js";
-import { askQuestion, parseIcons } from "./funcs.js";
+import { askQuestion, parseIcons, getCompilerConsts } from "./funcs.js";
 import { defaultSettings, compilerMark } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import { Application } from "cli-app";
@@ -211,13 +211,10 @@ function compileDirectory(directory, stdlibPath, defaultSettings) {
             outputData = compileMlogxToMlog(data, {
                 filename,
                 ...settings
-            }, {
-                ...icons,
-                filename: filename.split(".")[0],
-                name: settings.name,
-                authors: settings.authors.join(", "),
-                ...settings.compilerConstants,
-            });
+            }, getCompilerConsts(icons, {
+                ...settings,
+                filename
+            }));
         }
         catch (err) {
             Log.err(`Failed to compile file ${filename}!`);
@@ -273,13 +270,10 @@ function compileFile(name, settings) {
         outputData = compileMlogxToMlog(data, {
             filename: name,
             ...settings
-        }, {
-            ...icons,
-            filename: name.split(".")[0],
-            name: settings.name,
-            authors: settings.authors.join(", "),
-            ...settings.compilerConstants,
-        });
+        }, getCompilerConsts(icons, {
+            ...settings,
+            filename: name
+        }));
     }
     catch (err) {
         Log.err(`Failed to compile file ${name}!`);

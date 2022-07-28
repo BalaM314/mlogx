@@ -197,10 +197,19 @@ export function removeComments(line:string):string {
 }
 
 /**Replaces compiler constants in a line. */
-export function replaceCompilerConstants(line:string, variables: Settings["compilerConstants"]):string {
+export function replaceCompilerConstants(line:string, variables:Map<string, string|string[]>):string {
+	const specifiedConsts = line.match(/(?<!\\\$\()(?<=\$\()[\w-.]+(?=\))/g);
+	specifiedConsts?.forEach(key => {
+		if(variables.has(key)){
+			const value = variables.get(key)!;
+			line = line.replace(`$(${key})`, value instanceof Array ? value.join(" ") : value);
+		} else {
+			Log.warn(`Unknown compiler const ${key}`);
+		}
+	});
 	if(!line.includes("$")) return line;
-	for(const [key, value] of Object.entries(variables)){
-		line = line.replace(new RegExp(`(\\$\\(${key}\\))|(\\$${key})`, "g"), value instanceof Array ? value.join(" ") : value);
+	for(const [key, value] of Array.from(variables).slice().sort((a, b) => b.length - a.length)){
+		line = line.replaceAll(`$${key}`, value instanceof Array ? value.join(" ") : value);
 	}
 	return line;
 }
@@ -284,13 +293,14 @@ export function removeUnusedJumps(compiledProgram:string[], jumpLabelUsages:TDat
 //#region parsing
 
 /**Parses icons out of the data in the icons.properties file from the Mindustry source code. */
-export function parseIcons(data:string[]): {[index: string]: string;} {
-	const icons: {
-		[index: string]: string;
-	} = {};
+export function parseIcons(data:string[]): Map<string, string> {
+	const icons = new Map<string, string>();
 	for(const line of data){
 		try {
-			icons["_" + line.split("=")[1].split("|")[0]] = String.fromCodePoint(parseInt(line.split("=")[0]));
+			icons.set(
+				"_" + line.split("=")[1].split("|")[0].replaceAll("-","_"),
+				String.fromCodePoint(parseInt(line.split("=")[0]))
+			);
 		} catch(err){
 			if(!(err instanceof RangeError)){
 				throw err;
@@ -622,10 +632,24 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 
 export function range(min:number, max:number):number[];
 export function range(min:number, max:number, strings:true):string[];
-/**Returns a list */
+/**Returns a list of numbers within two bounds */
 export function range(min:number, max:number, strings?:true):number[]|string[] {
 	if(min > max) return [];
 	return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
+}
+
+export function getCompilerConsts(icons:Map<string, string>, settings:Settings & {filename: string;}):Map<string, string|string[]>{
+	const outputMap = new Map<string, string|string[]>();
+	for(const [key, value] of icons){
+		outputMap.set(key, value);
+	}
+	outputMap.set("name", settings.name);
+	outputMap.set("authors", settings.authors.join(", "));
+	outputMap.set("filename", settings.filename);
+	for(const [key, value] of Object.entries(settings.compilerConstants)){
+		outputMap.set(key, value);
+	}
+	return outputMap;
 }
 
 //#endregion

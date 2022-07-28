@@ -16,7 +16,7 @@ import commands from "./commands.js";
 export function compileMlogxToMlog(
 	mlogxProgram:string[],
 	settings:Settings & {filename: string},
-	compilerConstants: Settings["compilerConstants"]
+	compilerConstants: Map<string, string|string[]>
 ):string[] {
 
 	const [programType, requiredVars] = parsePreprocessorDirectives(mlogxProgram);
@@ -256,7 +256,7 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 }
 
 export function compileLine(
-	line:Line, compilerConstants: Settings["compilerConstants"],
+	line:Line, compilerConstants: Map<string, string|string[]>,
 	settings:Settings & {filename:string},
 	isMain:boolean,
 	stack:StackElement[]
@@ -392,9 +392,7 @@ export function compileLine(
 				const compiledCode:CompiledLine[] = [];
 				for(const el of endedBlock.elements){
 					compiledCode.push(
-						...endedBlock.loopBuffer.map(line => [replaceCompilerConstants(line[0], {
-							[endedBlock.variableName]: el
-						}), {
+						...endedBlock.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[endedBlock.variableName, el]])), {
 							text: replaceCompilerConstants(line[1].text, {
 								...compilerConstants,
 								[endedBlock.variableName]: el
