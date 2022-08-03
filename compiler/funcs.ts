@@ -48,8 +48,7 @@ export function typeofArg(arg:string):GAT {
 	// if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;
 	if(["true", "false"].includes(arg)) return GAT.boolean;
 	if(arg.match(/^-?\d+((\.\d+)|(e-?\d+))?$/)) return GAT.number;
-	if(arg.match(/^"[^"]*"$/gi)) return GAT.string;
-	//TODO this will fail on strings with escaped quotes
+	if(arg.match(/^"(?:[^"]|(\\"))*"$/gi)) return GAT.string;
 	if(arg.match(buildingNameRegex)) return GAT.building;
 	if(arg.match(/^[^"]+$/i)) return GAT.variable;
 	return GAT.invalid;
@@ -69,7 +68,7 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 	if(knownType == arg.type) return true;
 	switch(arg.type){
 		case GAT.ctype:
-			return /:\w+/.test(argToCheck);
+			return /:[\w-$]+/.test(argToCheck);
 		case GAT.number:
 			return knownType == GAT.boolean || knownType == GAT.variable;
 		case GAT.jumpAddress:
