@@ -296,6 +296,7 @@ export function compileLine(
 			compiledCode: [
 				[
 					inNamespace(stack) ? 
+						//I think this is the wrong function TODO fix
 						`${addNamespacesToVariable(getJumpLabel(cleanedLine)!, stack)}:` :
 						settings.compilerOptions.removeComments ? cleanedLine : line.text,
 					line
@@ -318,7 +319,8 @@ export function compileLine(
 		return {
 			modifiedStack: stack.concat({
 				name,
-				type: "namespace"
+				type: "namespace",
+				line
 			}),
 			compiledCode: []
 		};
@@ -337,7 +339,8 @@ export function compileLine(
 					type: "&for",
 					elements: args.slice(3, -1),
 					variableName,
-					loopBuffer: []
+					loopBuffer: [],
+					line
 				}),
 				compiledCode: []
 			};
@@ -357,7 +360,8 @@ export function compileLine(
 					type: "&for",
 					elements: range(lowerBound, upperBound, true),
 					variableName,
-					loopBuffer: []
+					loopBuffer: [],
+					line
 				}),
 				compiledCode: []
 			};
@@ -378,7 +382,8 @@ export function compileLine(
 					type: "&for",
 					elements: range(lowerBound, upperBound, true),
 					variableName,
-					loopBuffer: []
+					loopBuffer: [],
+					line
 				}),
 				compiledCode: []
 			};
