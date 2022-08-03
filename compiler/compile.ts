@@ -26,7 +26,7 @@ export function compileMlogxToMlog(
 	const compiledProgram:string[] = [];
 	let stack:StackElement[] = [];
 
-	
+	/** Warning: mutated in a function. */
 	// eslint-disable-next-line prefer-const
 	let typeCheckingData:TypeCheckingData = {
 		jumpLabelsDefined: {},
@@ -102,8 +102,12 @@ ${formatLineWithPrefix({
 
 	//Check for unclosed blocks
 	if(stack.length !== 0){
-		Log.err(`Some blocks were not closed.`);
-		Log.dump(stack);
+		for(let element of stack){
+			Log.err(
+`${element.type == "namespace" ? `Namespace "${element.name}"` : `For loop with variable "${element.variableName}"`} was not closed.`
+			);
+		}
+		throw new CompilerError("There were unclosed blocks.");
 		//TODO better
 	}
 
