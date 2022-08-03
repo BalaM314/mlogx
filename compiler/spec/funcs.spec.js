@@ -2,6 +2,7 @@ import { Arg } from "../classes.js";
 import commands from "../commands.js";
 import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, inForLoop, topForLoop, parsePreprocessorDirectives, inNamespace, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range } from "../funcs.js";
 import { GAT } from "../types.js";
+import { makeForEl, makeNamespaceEl } from "./test_utils.js";
 describe("templateFunction", () => {
     it("should ", () => {
         expect("functionThing").toEqual("functionThing");
@@ -145,15 +146,15 @@ describe("transformCommand", () => {
 });
 describe("addNamespacesToVariable", () => {
     it("should add namespaces to a variable", () => {
-        expect(addNamespacesToVariable("x", [{ name: "amogus", type: "namespace" }])).toEqual("_amogus_x");
-        expect(addNamespacesToVariable("sussyBaka", [{ name: "amogus", type: "namespace" }, { name: "sus", type: "namespace" }])).toEqual("_amogus_sus_sussyBaka");
+        expect(addNamespacesToVariable("x", [makeNamespaceEl("amogus")])).toEqual("_amogus_x");
+        expect(addNamespacesToVariable("sussyBaka", [makeNamespaceEl("amogus"), makeNamespaceEl("sus")])).toEqual("_amogus_sus_sussyBaka");
     });
 });
 describe("addNamespacesToLine", () => {
     it("should add namespaces to a statement", () => {
-        expect(addNamespacesToLine(["set", "x", "5"], commands["set"][0], [{ name: "amogus", type: "namespace" }])).toEqual("set _amogus_x 5");
-        expect(addNamespacesToLine(["ulocate", "building", "core", "true", "outX", "outY", "found", "core"], commands["ulocate"][3], [{ name: "amogus", type: "namespace" }])).toEqual("ulocate building core true _amogus_outX _amogus_outY _amogus_found _amogus_core");
-        expect(addNamespacesToLine(["set", "x", ":number", "5"], commands["set"][1], [{ name: "amogus", type: "namespace" }, { name: "sus", type: "namespace" }])).toEqual("set _amogus_sus_x :number 5");
+        expect(addNamespacesToLine(["set", "x", "5"], commands["set"][0], [makeNamespaceEl("amogus")])).toEqual("set _amogus_x 5");
+        expect(addNamespacesToLine(["ulocate", "building", "core", "true", "outX", "outY", "found", "core"], commands["ulocate"][3], [makeNamespaceEl("amogus")])).toEqual("ulocate building core true _amogus_outX _amogus_outY _amogus_found _amogus_core");
+        expect(addNamespacesToLine(["set", "x", ":number", "5"], commands["set"][1], [makeNamespaceEl("amogus"), makeNamespaceEl("sus")])).toEqual("set _amogus_sus_x :number 5");
     });
 });
 describe("prependFilenameToArg", () => {
@@ -309,44 +310,44 @@ describe("getJumpLabel", () => {
 describe("inForLoop", () => {
     it("should return whether or not the stack contains an &for loop", () => {
         expect(inForLoop([
-            { name: "amogus", type: "namespace" }, { name: "sus", type: "namespace" }
+            makeNamespaceEl("amogus"), makeNamespaceEl("sus")
         ])).toEqual(false);
         expect(inForLoop([])).toEqual(false);
         expect(inForLoop([
-            { name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" }
+            makeNamespaceEl("amogus"), makeForEl("I", range(0, 5, true))
         ])).toEqual(true);
         expect(inForLoop([
-            { name: "amogus", type: "namespace" },
-            { type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" },
-            { type: "&for", loopBuffer: [], elements: range(3, 10, true), variableName: "J" }
+            makeNamespaceEl("amogus"),
+            makeForEl("I", range(0, 5, true)),
+            makeForEl("J", range(3, 10, true))
         ])).toEqual(true);
     });
 });
 describe("topForLoop", () => {
     it("should return the topmost &for loop on the stack", () => {
         expect(topForLoop([
-            { name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" }
-        ])).toEqual({ type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" });
+            makeNamespaceEl("amogus"), makeForEl("I", range(0, 5, true))
+        ])).toEqual(makeForEl("I", range(0, 5, true)));
         expect(topForLoop([
-            { name: "amogus", type: "namespace" },
-            { type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" },
-            { type: "&for", loopBuffer: [], elements: range(3, 10, true), variableName: "J" }
-        ])).toEqual({ type: "&for", loopBuffer: [], elements: range(3, 10, true), variableName: "J" });
+            makeNamespaceEl("amogus"),
+            makeForEl("I", range(0, 5, true)),
+            makeForEl("J", range(3, 10, true))
+        ])).toEqual(makeForEl("J", range(3, 10, true)));
     });
     it("should return null when no &for loop is on the stack", () => {
         expect(topForLoop([
-            { name: "amogus", type: "namespace" }
+            makeNamespaceEl("amogus")
         ])).toEqual(null);
     });
 });
 describe("inNamespace", () => {
     it("should return whether or not the stack contains a namespace", () => {
         expect(inNamespace([
-            { name: "amogus", type: "namespace" }, { type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" }
+            makeNamespaceEl("amogus"), makeForEl("I", range(0, 5, true))
         ])).toEqual(true);
         expect(inNamespace([
-            { type: "&for", loopBuffer: [], elements: range(0, 5, true), variableName: "I" },
-            { type: "&for", loopBuffer: [], elements: range(3, 10, true), variableName: "J" }
+            makeForEl("I", range(0, 5, true)),
+            makeForEl("J", range(3, 10, true))
         ])).toEqual(false);
         expect(inNamespace([])).toEqual(false);
     });

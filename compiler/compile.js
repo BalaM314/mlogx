@@ -77,8 +77,11 @@ ${formatLineWithPrefix({
         }
     }
     if (stack.length !== 0) {
-        Log.err(`Some blocks were not closed.`);
-        Log.dump(stack);
+        for (const element of stack) {
+            Log.err(`${element.type == "namespace" ? `Namespace "${element.name}"` : `For loop with variable "${element.variableName}"`} was not closed.
+${formatLineWithPrefix(element.line, settings)}`);
+        }
+        throw new CompilerError("There were unclosed blocks.");
     }
     if (settings.compilerOptions.checkTypes && !hasInvalidStatements)
         printTypeErrors(typeCheckingData, settings);
@@ -223,7 +226,8 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
         return {
             modifiedStack: stack.concat({
                 name,
-                type: "namespace"
+                type: "namespace",
+                line
             }),
             compiledCode: []
         };
@@ -240,7 +244,8 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
                     type: "&for",
                     elements: args.slice(3, -1),
                     variableName,
-                    loopBuffer: []
+                    loopBuffer: [],
+                    line
                 }),
                 compiledCode: []
             };
@@ -261,7 +266,8 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
                     type: "&for",
                     elements: range(lowerBound, upperBound, true),
                     variableName,
-                    loopBuffer: []
+                    loopBuffer: [],
+                    line
                 }),
                 compiledCode: []
             };
@@ -283,7 +289,8 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
                     type: "&for",
                     elements: range(lowerBound, upperBound, true),
                     variableName,
-                    loopBuffer: []
+                    loopBuffer: [],
+                    line
                 }),
                 compiledCode: []
             };

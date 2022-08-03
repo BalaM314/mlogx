@@ -12,6 +12,7 @@ import { defaultSettings } from "../consts.js";
 import { addSourcesToCode, range } from "../funcs.js";
 import { ForStackElement, Settings, StackElement } from "../types.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
+import { makeForEl, makeNamespaceEl } from "./test_utils.js";
 
 
 function settingsForFilename(name:string, checkTypes:boolean = false): Settings & {filename: string} {
@@ -55,18 +56,12 @@ describe("compileLine", () => {
 	it("should detect the start of a namespace", () => {
 		expect(
 			compileLine({text: startNamespace, lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
-		).toEqual([{
-			type: "namespace",
-			name: "testname"
-		}]);
+		).toEqual([makeNamespaceEl("testname")]);
 	});
 
 	it("should detect the end of a namespace", () => {
 		expect(
-			compileLine({text: "}", lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, [{
-				type: "namespace",
-				name: "testname"
-			}]).modifiedStack
+			compileLine({text: "}", lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, [makeNamespaceEl("testname")]).modifiedStack
 		).toEqual([]);
 	});
 
@@ -81,23 +76,13 @@ describe("compileLine", () => {
 	it("should detect the start of an &for in loop", () => {
 		expect(
 			compileLine({text: `&for i in 0 5 {`, lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
-		).toEqual([{
-			type: "&for",
-			elements: range(0, 5, true),
-			variableName: "i",
-			loopBuffer: []
-		}]);
+		).toEqual([makeForEl("i", range(0, 5, true))]);
 	});
 
 	it("should detect the start of an &for of loop", () => {
 		expect(
 			compileLine({text: `&for i of c d e {`, lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
-		).toEqual([{
-			type: "&for",
-			elements: ["c", "d", "e"],
-			variableName: "i",
-			loopBuffer: []
-		}]);
+		).toEqual([makeForEl("i", ["c", "d", "e"])]);
 	});
 
 	it("should detect the end of an &for loop", () => {

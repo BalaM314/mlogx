@@ -47,7 +47,7 @@ export function typeofArg(arg) {
         return GAT.boolean;
     if (arg.match(/^-?\d+((\.\d+)|(e-?\d+))?$/))
         return GAT.number;
-    if (arg.match(/^"[^"]*"$/gi))
+    if (arg.match(/^"(?:[^"]|(\\"))*"$/gi))
         return GAT.string;
     if (arg.match(buildingNameRegex))
         return GAT.building;
@@ -74,7 +74,7 @@ export function isArgOfType(argToCheck, arg) {
         return true;
     switch (arg.type) {
         case GAT.ctype:
-            return /:\w+/.test(argToCheck);
+            return /:[\w-$]+/.test(argToCheck);
         case GAT.number:
             return knownType == GAT.boolean || knownType == GAT.variable;
         case GAT.jumpAddress:

@@ -2,6 +2,7 @@ import { compileLine, compileMlogxToMlog } from "../compile.js";
 import { defaultSettings } from "../consts.js";
 import { addSourcesToCode, range } from "../funcs.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
+import { makeForEl, makeNamespaceEl } from "./test_utils.js";
 function settingsForFilename(name, checkTypes = false) {
     return {
         ...defaultSettings,
@@ -31,16 +32,10 @@ describe("compileLine", () => {
         }
     });
     it("should detect the start of a namespace", () => {
-        expect(compileLine({ text: startNamespace, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([{
-                type: "namespace",
-                name: "testname"
-            }]);
+        expect(compileLine({ text: startNamespace, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([makeNamespaceEl("testname")]);
     });
     it("should detect the end of a namespace", () => {
-        expect(compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, [{
-                type: "namespace",
-                name: "testname"
-            }]).modifiedStack).toEqual([]);
+        expect(compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, [makeNamespaceEl("testname")]).modifiedStack).toEqual([]);
     });
     it("should prepend namespaces", () => {
         for (const [input, stack, output] of namespaceTests) {
@@ -48,20 +43,10 @@ describe("compileLine", () => {
         }
     });
     it("should detect the start of an &for in loop", () => {
-        expect(compileLine({ text: `&for i in 0 5 {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([{
-                type: "&for",
-                elements: range(0, 5, true),
-                variableName: "i",
-                loopBuffer: []
-            }]);
+        expect(compileLine({ text: `&for i in 0 5 {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([makeForEl("i", range(0, 5, true))]);
     });
     it("should detect the start of an &for of loop", () => {
-        expect(compileLine({ text: `&for i of c d e {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([{
-                type: "&for",
-                elements: ["c", "d", "e"],
-                variableName: "i",
-                loopBuffer: []
-            }]);
+        expect(compileLine({ text: `&for i of c d e {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([makeForEl("i", ["c", "d", "e"])]);
     });
     it("should detect the end of an &for loop", () => {
         expect(compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, [{
