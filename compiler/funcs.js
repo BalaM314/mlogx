@@ -463,6 +463,9 @@ export function askQuestion(question) {
         resolve(answer);
     }));
 }
+export async function askYesOrNo(question) {
+    return ["y", "yes"].includes(await askQuestion(question));
+}
 export function processCommands(preprocessedCommands) {
     function arg(str) {
         if (!str.includes(":")) {

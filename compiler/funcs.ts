@@ -578,6 +578,10 @@ export function askQuestion(question:string): Promise<string> {
 	}));
 }
 
+export async function askYesOrNo(question:string): Promise<boolean> {
+	return ["y", "yes"].includes(await askQuestion(question));
+}
+
 /**Processes commands(adds in what would otherwise be boilerplate). */
 export function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):CommandDefinitions {
 
