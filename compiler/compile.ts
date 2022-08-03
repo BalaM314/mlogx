@@ -104,11 +104,11 @@ ${formatLineWithPrefix({
 	if(stack.length !== 0){
 		for(let element of stack){
 			Log.err(
-`${element.type == "namespace" ? `Namespace "${element.name}"` : `For loop with variable "${element.variableName}"`} was not closed.`
+`${element.type == "namespace" ? `Namespace "${element.name}"` : `For loop with variable "${element.variableName}"`} was not closed.
+${formatLineWithPrefix(line, settings)}`
 			);
 		}
 		throw new CompilerError("There were unclosed blocks.");
-		//TODO better
 	}
 
 	
