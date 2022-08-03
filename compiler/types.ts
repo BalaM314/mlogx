@@ -92,11 +92,15 @@ export interface PreprocessedCommandDefinitions {
 
 export type ArgType = GAT | string;
 
-export interface NamespaceStackElement {
+interface BaseStackElement {
+	line: Line;
+}
+
+export interface NamespaceStackElement extends BaseStackElement {
 	type: "namespace";
 	name: string;
 }
-export interface ForStackElement {
+export interface ForStackElement extends BaseStackElement {
 	type: "&for";
 	elements: string[];
 	variableName: string;
