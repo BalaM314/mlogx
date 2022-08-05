@@ -6,13 +6,14 @@ mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANT
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 */
 
-import { CompiledLine, ForStackElement, NamespaceStackElement } from "../types";
+import { addSourcesToCode } from "../funcs.js";
+import { ForStackElement, NamespaceStackElement } from "../types.js";
 
 
 
 export function makeNamespaceEl(name:string):NamespaceStackElement {
-	return {type: "namespace", name, line: {lineNumber:420, text: "[test]"}};
+	return {type: "namespace", name, line: {lineNumber:1, text: `namespace ${name} {`}};
 }
-export function makeForEl(varname:string, elements:string[], loopBuffer:CompiledLine[] = []):ForStackElement {
-	return {type: "&for", variableName: varname, elements, loopBuffer, line: {lineNumber:420, text: "[test]"}};
+export function makeForEl(varname:string, elements:string[], loopBuffer:string[] = []):ForStackElement {
+	return {type: "&for", variableName: varname, elements, loopBuffer: addSourcesToCode(loopBuffer), line: {lineNumber:420, text: "[test]"}};
 }

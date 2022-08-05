@@ -1,6 +1,6 @@
 import { compileLine, compileMlogxToMlog } from "../compile.js";
 import { defaultSettings } from "../consts.js";
-import { addSourcesToCode, range } from "../funcs.js";
+import { range } from "../funcs.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
 import { makeForEl, makeNamespaceEl } from "./test_utils.js";
 function settingsForFilename(name, checkTypes = false) {
@@ -43,53 +43,54 @@ describe("compileLine", () => {
         }
     });
     it("should detect the start of an &for in loop", () => {
-        expect(compileLine({ text: `&for i in 0 5 {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([makeForEl("i", range(0, 5, true))]);
+        expect(compileLine({ text: `&for i in 0 5 {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([{
+                type: "&for",
+                elements: range(0, 5, true),
+                variableName: "i",
+                loopBuffer: [],
+                line: {
+                    lineNumber: jasmine.any(Number),
+                    text: jasmine.any(String)
+                }
+            }]);
     });
     it("should detect the start of an &for of loop", () => {
-        expect(compileLine({ text: `&for i of c d e {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([makeForEl("i", ["c", "d", "e"])]);
+        expect(compileLine({ text: `&for i of c d e {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([
+            {
+                type: "&for",
+                elements: ["c", "d", "e"],
+                variableName: "i",
+                loopBuffer: [],
+                line: {
+                    lineNumber: jasmine.any(Number),
+                    text: jasmine.any(String)
+                }
+            }
+        ]);
     });
     it("should detect the end of an &for loop", () => {
-        expect(compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, [{
-                type: "&for",
-                elements: range(1, 3, true),
-                variableName: "n",
-                loopBuffer: addSourcesToCode([`set x 5`, `print "n is $n"`])
-            }]).modifiedStack).toEqual([]);
+        expect(compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, [
+            makeForEl("n", range(1, 3, true), [`set x 5`, `print "n is $n"`])
+        ]).modifiedStack).toEqual([]);
     });
     it("should unroll an &for loop", () => {
-        expect(compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, [{
-                type: "&for",
-                elements: ["32", "53", "60"],
-                variableName: "n",
-                loopBuffer: addSourcesToCode([`set x 5`, `print "n is $n"`])
-            }]).compiledCode.map(line => line[0])).toEqual([`set x 5`, `print "n is 32"`, `set x 5`, `print "n is 53"`, `set x 5`, `print "n is 60"`]);
+        expect(compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, [
+            makeForEl("n", ["32", "53", "60"], [`set x 5`, `print "n is $n"`])
+        ]).compiledCode.map(line => line[0])).toEqual([`set x 5`, `print "n is 32"`, `set x 5`, `print "n is 53"`, `set x 5`, `print "n is 60"`]);
     });
     it("should unroll nested &for loops", () => {
         let stack = [
-            {
-                type: "&for",
-                elements: range(1, 3, true),
-                variableName: "I",
-                loopBuffer: addSourcesToCode([`loop_$I:`])
-            },
-            {
-                type: "&for",
-                elements: range(5, 6, true),
-                variableName: "J",
-                loopBuffer: addSourcesToCode([`set x 5`, `print "j is $J"`])
-            }
+            makeForEl("I", range(1, 3, true), [`loop_$I:`]),
+            makeForEl("J", range(5, 6, true), [`set x 5`, `print "j is $J"`])
         ];
         const compiledOutput = compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, stack);
         stack = compiledOutput.modifiedStack ?? stack;
         stack.at(-1)?.loopBuffer.push(...compiledOutput.compiledCode);
         expect(compiledOutput.compiledCode.map(line => line[0]))
             .toEqual([`set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]);
-        expect(compiledOutput.modifiedStack).toEqual([{
-                type: "&for",
-                elements: range(1, 3, true),
-                variableName: "I",
-                loopBuffer: addSourcesToCode([`loop_$I:`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`])
-            }]);
+        expect(compiledOutput.modifiedStack).toEqual([
+            makeForEl("I", range(1, 3, true), [`loop_$I:`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`])
+        ]);
         const secondOutput = compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, stack);
         expect(secondOutput.compiledCode.map(line => line[0]))
             .toEqual([
