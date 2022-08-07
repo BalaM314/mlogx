@@ -1,4 +1,4 @@
-import { addSourcesToCode } from "../funcs.js";
+import { addSourcesToCode } from "../src/funcs.js";
 export function makeNamespaceEl(name) {
     return { type: "namespace", name, line: { lineNumber: 1, text: `namespace ${name} {` } };
 }

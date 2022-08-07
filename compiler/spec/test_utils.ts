@@ -6,8 +6,8 @@ mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANT
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 */
 
-import { addSourcesToCode } from "../funcs.js";
-import { ForStackElement, NamespaceStackElement } from "../types.js";
+import { addSourcesToCode } from "../src/funcs.js";
+import { ForStackElement, NamespaceStackElement } from "../src/types.js";
 
 
 

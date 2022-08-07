@@ -7,10 +7,10 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { compileLine, compileMlogxToMlog } from "../compile.js";
-import { defaultSettings } from "../consts.js";
-import { range } from "../funcs.js";
-import { ForStackElement, Settings, StackElement } from "../types.js";
+import { compileLine, compileMlogxToMlog } from "../src/compile.js";
+import { defaultSettings } from "../src/consts.js";
+import { range } from "../src/funcs.js";
+import { ForStackElement, Settings, StackElement } from "../src/types.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
 import { makeForEl, makeNamespaceEl } from "./test_utils.js";
 

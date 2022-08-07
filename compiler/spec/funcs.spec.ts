@@ -7,8 +7,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { Arg } from "../classes.js";
-import commands from "../commands.js";
+import { Arg } from "../src/classes.js";
+import commands from "../src/commands.js";
 import {
 	processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed,
 	getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants,
@@ -17,8 +17,8 @@ import {
 	prependFilenameToArg, getJumpLabel, inForLoop, topForLoop, parsePreprocessorDirectives,
 	inNamespace, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType,
 	isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range
-} from "../funcs.js";
-import { ArgType, GAT } from "../types.js";
+} from "../src/funcs.js";
+import { ArgType, GAT } from "../src/types.js";
 import { makeForEl, makeNamespaceEl } from "./test_utils.js";
 
 

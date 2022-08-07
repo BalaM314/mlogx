@@ -7,7 +7,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { StackElement } from "../types";
+import { StackElement } from "../src/types";
 
 export const allMlogCommands:string[] =`\
 read result cell1 0
