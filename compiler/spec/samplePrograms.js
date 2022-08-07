@@ -1,3 +1,4 @@
+import { makeNamespaceEl } from "./test_utils";
 export const allMlogCommands = `\
 read result cell1 0
 write result cell1 0
@@ -74,9 +75,9 @@ export const allShorthandCommands = [
 ];
 export const startNamespace = `namespace testname {`;
 export const namespaceTests = [
-    [`set x 5`, [{ type: "namespace", name: "nametest" }], `set _nametest_x 5`],
-    [`radar enemy distance scatter1 0 unit`, [{ type: "namespace", name: "nametest" }], `radar enemy any any distance scatter1 0 _nametest_unit`],
-    [`radar enemy distance scatter1 0 unit`, [{ type: "namespace", name: "nametest" }, { type: "namespace", name: "othername" }], `radar enemy any any distance scatter1 0 _nametest_othername_unit`],
+    [`set x 5`, [makeNamespaceEl("nametest")], `set _nametest_x 5`],
+    [`radar enemy distance scatter1 0 unit`, [makeNamespaceEl("nametest")], `radar enemy any any distance scatter1 0 _nametest_unit`],
+    [`radar enemy distance scatter1 0 unit`, [makeNamespaceEl("nametest"), makeNamespaceEl("othername")], `radar enemy any any distance scatter1 0 _nametest_othername_unit`],
 ];
 export const testPrograms = {
     emptyProgram: {
