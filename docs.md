@@ -1,6 +1,4 @@
-Documentation for mlogx(mindustry logic extended)
-
-This project is a work in progress! These instructions are not complete!
+Documentation for mlogx(Mindustry Logic Extended)
 
 ## Guide to making programs
 This guide assumes you already know how to make mlog programs, but are frustrated when you try to make larger projects. You also need basic knowledge of the command line.
@@ -127,6 +125,33 @@ Calls a function. Equivalent instructions:
 Returns from a function. Equivalent instructions:
 
 `set @counter _stack1`
+
+## Compiler constants
+Replace bits of your program with constants defined by the compiler.
+
+Use the compilerConsts object in settings.json to define custom constants.
+
+Example:
+"compilerConsts": {
+	"name": "ExampleProject by [#3141FF]BalaM314",
+  "buildings": ["mender1", "mender2", "projector1"]
+}
+
+Code like `print "$name"` will get replaced with `print "ExampleProject by [#3141FF]BalaM314"`.
+
+Compiler consts can also be an array: `print "Managed buildings: $buildings"` gets replaced with `print "Managed buildings: mender1 mender2 mender3"`
+
+### Builtin compiler consts
+
+`filename`: The filename of the file being compiled(minus the .mlogx at the end).
+
+`name`: The name of your project from config.json
+
+`authors`: List of authors from config.json
+
+`$_[any mindustry icon name]`: The Unicode character that displays as the icon in-game. Example: `$_lead` will get replaced with `` (U+F837), the char for lead.
+
+\[NYI\] `oct.itemCapacity` and other stuff like that will be added eventually.
 
 ## &for loops
 
