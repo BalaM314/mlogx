@@ -307,10 +307,10 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
                 const compiledCode = [];
                 for (const el of endedBlock.elements) {
                     compiledCode.push(...endedBlock.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[endedBlock.variableName, el]])), {
-                            text: replaceCompilerConstants(line[1].text, {
-                                ...compilerConstants,
-                                [endedBlock.variableName]: el
-                            }),
+                            text: replaceCompilerConstants(line[1].text, new Map([
+                                ...compilerConstants.entries(),
+                                [endedBlock.variableName, el]
+                            ])),
                             lineNumber: line[1].lineNumber
                         }]));
                 }
