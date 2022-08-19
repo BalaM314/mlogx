@@ -151,12 +151,12 @@ describe("compileLine", () => {
 	it("should detect the start of an &if block", () => {
 		expect(
 			compileLine({text: `&if false {`, lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
-		).toEqual([makeIfEl()]);
+		).toEqual([makeIfEl(false)]);
 	});
 
 	it("should detect the end of an &if block", () => {
 		expect(
-			compileLine({text: "}", lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, [makeIfEl()]).modifiedStack
+			compileLine({text: "}", lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, [makeIfEl(true)]).modifiedStack
 		).toEqual([]);
 	});
 

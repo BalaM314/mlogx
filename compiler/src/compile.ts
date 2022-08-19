@@ -18,7 +18,7 @@ import {
 	getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel,
 	addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop,
 	prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps,
-	addSourcesToCode, transformCommand, range, 
+	addSourcesToCode, transformCommand, range, hasDisabledIf, 
 } from "./funcs.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { Arg, CompilerError, Log } from "./classes.js";
@@ -83,7 +83,7 @@ export function compileMlogxToMlog(
 		try {
 			const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(sourceLine, compilerConstants, settings, isMain, stack);
 			if(modifiedStack) stack = modifiedStack; //ew mutable data
-			if(hasElement(stack, "&if")){
+			if(hasDisabledIf(stack)){
 				continue;
 			}
 			if(!hasInvalidStatements && !skipTypeChecks && !hasElement(stack, "&for")){
@@ -419,19 +419,18 @@ export function compileLine(
 			} else if(args[1] == "true"){
 				isEnabled = true;
 			} else if(args[1] == "false"){
-				isEnabled = true;
+				isEnabled = false;
 			} else {
 				Log.warn(`condition in &if statement(${args[1]}) is not true or false.`);
 				isEnabled = true;
 			}
 		}
-		if(isEnabled){
-			return {compiledCode: []};
-		}
+
 		return {
 			modifiedStack: stack.concat({
 				type: "&if",
-				line
+				line,
+				enabled: isEnabled
 			}),
 			compiledCode: []
 		};

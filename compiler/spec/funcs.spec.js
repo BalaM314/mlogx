@@ -343,7 +343,7 @@ describe("hasElement", () => {
     });
     it("should return whether or not the stack contains an if statement", () => {
         expect(hasElement([
-            makeNamespaceEl("amogus"), makeForEl("I", range(0, 5, true)), makeIfEl()
+            makeNamespaceEl("amogus"), makeForEl("I", range(0, 5, true)), makeIfEl(false)
         ], "&if")).toEqual(true);
         expect(hasElement([
             makeForEl("I", range(0, 5, true)),

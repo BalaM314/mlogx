@@ -115,6 +115,7 @@ export interface ForStackElement extends BaseStackElement {
 }
 export interface IfStackElement extends BaseStackElement {
 	type: "&if";
+	enabled: boolean;
 }
 
 export type StackElement = NamespaceStackElement | ForStackElement | IfStackElement;

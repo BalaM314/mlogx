@@ -100,10 +100,10 @@ describe("compileLine", () => {
         expect(secondOutput.modifiedStack).toEqual([]);
     });
     it("should detect the start of an &if block", () => {
-        expect(compileLine({ text: `&if false {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([makeIfEl()]);
+        expect(compileLine({ text: `&if false {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([makeIfEl(false)]);
     });
     it("should detect the end of an &if block", () => {
-        expect(compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, [makeIfEl()]).modifiedStack).toEqual([]);
+        expect(compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, [makeIfEl(true)]).modifiedStack).toEqual([]);
     });
 });
 describe("compileMlogxToMlog", () => {

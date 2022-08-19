@@ -17,6 +17,6 @@ export function makeNamespaceEl(name:string):NamespaceStackElement {
 export function makeForEl(varname:string, elements:string[], loopBuffer:string[] = []):ForStackElement {
 	return {type: "&for", variableName: varname, elements, loopBuffer: addSourcesToCode(loopBuffer), line: {lineNumber:420, text: "[test]"}};
 }
-export function makeIfEl():IfStackElement {
-	return {type: "&if", line: {lineNumber:420, text: "[test]"}};
+export function makeIfEl(enabled:boolean):IfStackElement {
+	return {type: "&if", line: {lineNumber:420, text: "[test]"}, enabled};
 }

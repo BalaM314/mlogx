@@ -420,9 +420,14 @@ export function getJumpLabel(cleanedLine:string):string | null {
 //#endregion
 //#region stack
 
-/**Returns if the stack contains a for loop. */
+/**Returns if the stack contains an element of a particular type. */
 export function hasElement(stack:StackElement[], type:StackElement["type"]):boolean {
 	return stack.filter(el => el.type == type).length != 0;
+}
+
+/** Returns if the stack contains a disabled if statement */
+export function hasDisabledIf(stack:StackElement[]):boolean {
+	return stack.filter(el => el.type == "&if" && !el.enabled).length != 0;
 }
 
 /**Returns the topmost for loop in the stack. */

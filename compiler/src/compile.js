@@ -1,5 +1,5 @@
 import { GAT, CommandErrorType } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand, range, } from "./funcs.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand, range, hasDisabledIf, } from "./funcs.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import commands from "./commands.js";
@@ -49,7 +49,7 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
             const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(sourceLine, compilerConstants, settings, isMain, stack);
             if (modifiedStack)
                 stack = modifiedStack;
-            if (hasElement(stack, "&if")) {
+            if (hasDisabledIf(stack)) {
                 continue;
             }
             if (!hasInvalidStatements && !skipTypeChecks && !hasElement(stack, "&for")) {
@@ -318,20 +318,18 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
                 isEnabled = true;
             }
             else if (args[1] == "false") {
-                isEnabled = true;
+                isEnabled = false;
             }
             else {
                 Log.warn(`condition in &if statement(${args[1]}) is not true or false.`);
                 isEnabled = true;
             }
         }
-        if (isEnabled) {
-            return { compiledCode: [] };
-        }
         return {
             modifiedStack: stack.concat({
                 type: "&if",
-                line
+                line,
+                enabled: isEnabled
             }),
             compiledCode: []
         };
