@@ -234,7 +234,7 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
     }
     if (args[0] == "&for") {
         if (args.at(-1) != "{") {
-            throw new CompilerError("expected { at and of &for statement");
+            throw new CompilerError("expected { at end of &for statement");
         }
         const variableName = args[1];
         const type = args[2];
