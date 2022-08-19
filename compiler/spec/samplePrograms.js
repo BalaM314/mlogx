@@ -1,4 +1,4 @@
-import { makeNamespaceEl } from "./test_utils";
+import { makeNamespaceEl } from "./test_utils.js";
 export const allMlogCommands = `\
 read result cell1 0
 write result cell1 0

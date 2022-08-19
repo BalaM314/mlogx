@@ -7,8 +7,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { StackElement } from "../src/types";
-import { makeNamespaceEl } from "./test_utils";
+import { StackElement } from "../src/types.js";
+import { makeNamespaceEl } from "./test_utils.js";
 
 export const allMlogCommands:string[] =`\
 read result cell1 0
