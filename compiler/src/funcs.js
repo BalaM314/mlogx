@@ -197,7 +197,7 @@ export function replaceCompilerConstants(line, variables) {
     specifiedConsts?.forEach(key => {
         if (variables.has(key)) {
             const value = variables.get(key);
-            line = line.replace(`$(${key})`, value instanceof Array ? value.join(" ") : value);
+            line = line.replace(`$(${key})`, value instanceof Array ? value.join(" ") : value.toString());
         }
         else {
             Log.warn(`Unknown compiler const ${key}`);
@@ -206,7 +206,7 @@ export function replaceCompilerConstants(line, variables) {
     if (!line.includes("$"))
         return line;
     for (const [key, value] of Array.from(variables).slice().sort((a, b) => b.length - a.length)) {
-        line = line.replaceAll(`$${key}`, value instanceof Array ? value.join(" ") : value);
+        line = line.replaceAll(`$${key}`, value instanceof Array ? value.join(" ") : value.toString());
     }
     return line;
 }

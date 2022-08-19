@@ -10,7 +10,7 @@ Contains pure-ish functions related to compiling.
 
 
 import {
-	Settings, GAT, CommandDefinition, CommandErrorType, StackElement, Line, TData, TypeCheckingData, CompiledLine
+	Settings, GAT, CommandDefinition, CommandErrorType, StackElement, Line, TData, TypeCheckingData, CompiledLine, CompilerConsts
 } from "./types.js";
 import {
 	cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined,
@@ -27,7 +27,7 @@ import commands from "./commands.js";
 export function compileMlogxToMlog(
 	mlogxProgram:string[],
 	settings:Settings,
-	compilerConstants: Map<string, string|string[]>
+	compilerConstants: CompilerConsts
 ):string[] {
 
 	const [programType, requiredVars] = parsePreprocessorDirectives(mlogxProgram);
@@ -279,7 +279,7 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 }
 
 export function compileLine(
-	line:Line, compilerConstants: Map<string, string|string[]>,
+	line:Line, compilerConstants: CompilerConsts,
 	settings:Settings,
 	isMain:boolean,
 	stack:StackElement[]

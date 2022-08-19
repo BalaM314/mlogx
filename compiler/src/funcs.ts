@@ -12,7 +12,7 @@ import { Arg, Log } from "./classes.js";
 import commands from "./commands.js";
 import {
 	ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType,
-	CompiledLine, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions,
+	CompiledLine, CompilerConst, CompilerConsts, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions,
 	Settings, StackElement, TData
 } from "./types.js";
 import { buildingNameRegex } from "./consts.js";
@@ -202,19 +202,19 @@ export function removeComments(line:string):string {
 }
 
 /**Replaces compiler constants in a line. */
-export function replaceCompilerConstants(line:string, variables:Map<string, string|string[]>):string {
+export function replaceCompilerConstants(line:string, variables:CompilerConsts):string {
 	const specifiedConsts = line.match(/(?<!\\\$\()(?<=\$\()[\w-.]+(?=\))/g);
 	specifiedConsts?.forEach(key => {
 		if(variables.has(key)){
 			const value = variables.get(key)!;
-			line = line.replace(`$(${key})`, value instanceof Array ? value.join(" ") : value);
+			line = line.replace(`$(${key})`, value instanceof Array ? value.join(" ") : value.toString());
 		} else {
 			Log.warn(`Unknown compiler const ${key}`);
 		}
 	});
 	if(!line.includes("$")) return line;
 	for(const [key, value] of Array.from(variables).slice().sort((a, b) => b.length - a.length)){
-		line = line.replaceAll(`$${key}`, value instanceof Array ? value.join(" ") : value);
+		line = line.replaceAll(`$${key}`, value instanceof Array ? value.join(" ") : value.toString());
 	}
 	return line;
 }
@@ -647,8 +647,8 @@ export function range(min:number, max:number, strings?:true):number[]|string[] {
 	return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
 }
 
-export function getCompilerConsts(icons:Map<string, string>, settings:Settings):Map<string, string|string[]>{
-	const outputMap = new Map<string, string|string[]>();
+export function getCompilerConsts(icons:Map<string, string>, settings:Settings):CompilerConsts {
+	const outputMap = new Map<string, CompilerConst>();
 	for(const [key, value] of icons){
 		outputMap.set(key, value);
 	}

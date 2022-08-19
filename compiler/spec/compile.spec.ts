@@ -30,7 +30,7 @@ describe("compileLine", () => {
 	it("should not change any mlog commands", () => {
 		for (const line of allMlogCommands) {
 			expect(
-				compileLine({text: line, lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
+				compileLine({text: line, lineNumber: 1}, new Map(), settingsForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
 			).toEqual([line]);
 		}
 	});
@@ -38,7 +38,7 @@ describe("compileLine", () => {
 	it("should mark all mlogx commands as valid", () => {
 		for (const line of allMlogxCommands) {
 			expect(() =>
-				compileLine({text: line, lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
+				compileLine({text: line, lineNumber: 1}, new Map(), settingsForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
 			).not.toThrow();
 		}
 	});
@@ -46,34 +46,34 @@ describe("compileLine", () => {
 	it("should process all shorthands", () => {
 		for(const [input, output] of allShorthandCommands){
 			expect(
-				compileLine({text: input, lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
+				compileLine({text: input, lineNumber: 1}, new Map(), settingsForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
 			).toEqual([output]);
 		}
 	});
 
 	it("should detect the start of a namespace", () => {
 		expect(
-			compileLine({text: startNamespace, lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
+			compileLine({text: startNamespace, lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
 		).toEqual([makeNamespaceEl("testname")]);
 	});
 
 	it("should detect the end of a namespace", () => {
 		expect(
-			compileLine({text: "}", lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, [makeNamespaceEl("testname")]).modifiedStack
+			compileLine({text: "}", lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, [makeNamespaceEl("testname")]).modifiedStack
 		).toEqual([]);
 	});
 
 	it("should prepend namespaces", () => {
 		for(const [input, stack, output] of namespaceTests){
 			expect(
-				compileLine({text: input, lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample1.mlogx"), false, stack).compiledCode.map(line => line[0])
+				compileLine({text: input, lineNumber: 1}, new Map(), settingsForFilename("sample1.mlogx"), false, stack).compiledCode.map(line => line[0])
 			).toEqual([output]);
 		}
 	});
 
 	it("should detect the start of an &for in loop", () => {
 		expect(
-			compileLine({text: `&for i in 0 5 {`, lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
+			compileLine({text: `&for i in 0 5 {`, lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
 		).toEqual([{
 			type: "&for",
 			elements: range(0, 5, true),
@@ -88,7 +88,7 @@ describe("compileLine", () => {
 
 	it("should detect the start of an &for of loop", () => {
 		expect(
-			compileLine({text: `&for i of c d e {`, lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
+			compileLine({text: `&for i of c d e {`, lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
 		).toEqual([
 			{
 				type: "&for",
@@ -105,7 +105,7 @@ describe("compileLine", () => {
 
 	it("should detect the end of an &for loop", () => {
 		expect(
-			compileLine({text: "}", lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, [
+			compileLine({text: "}", lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, [
 				makeForEl("n", range(1, 3, true), [`set x 5`, `print "n is $n"`])
 			]).modifiedStack
 		).toEqual([]);
@@ -113,7 +113,7 @@ describe("compileLine", () => {
 
 	it("should unroll an &for loop", () => {
 		expect(
-			compileLine({text: "}", lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, [
+			compileLine({text: "}", lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, [
 				makeForEl("n", ["32", "53", "60"], [`set x 5`, `print "n is $n"`])
 			]).compiledCode.map(line => line[0])
 		).toEqual([`set x 5`, `print "n is 32"`, `set x 5`, `print "n is 53"`, `set x 5`, `print "n is 60"`]);
@@ -128,7 +128,7 @@ describe("compileLine", () => {
 				"J", range(5, 6, true), [`set x 5`, `print "j is $J"`]
 			)
 		];
-		const compiledOutput = compileLine({text: "}", lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, stack);
+		const compiledOutput = compileLine({text: "}", lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, stack);
 		stack = compiledOutput.modifiedStack ?? stack;
 		(stack.at(-1) as ForStackElement)?.loopBuffer.push(...compiledOutput.compiledCode);
 		expect(compiledOutput.compiledCode.map(line => line[0]))
@@ -136,7 +136,7 @@ describe("compileLine", () => {
 		expect(compiledOutput.modifiedStack).toEqual([
 			makeForEl("I", range(1, 3, true), [`loop_$I:`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`])
 		]);
-		const secondOutput = compileLine({text: "}", lineNumber: 1}, new Map<string, string>(), settingsForFilename("sample.mlogx"), false, stack);
+		const secondOutput = compileLine({text: "}", lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, stack);
 		expect(secondOutput.compiledCode.map(line => line[0]))
 			.toEqual([
 				`loop_1:`, `set x 5`, `print "j is 5"`, `set x 5`,
@@ -155,7 +155,7 @@ describe("compileMlogxToMlog", () => {
 		for(const line of allMlogCommands){
 			expect(
 				compileMlogxToMlog([line], 
-					settingsForFilename("sample1.mlogx"), new Map<string, string>()
+					settingsForFilename("sample1.mlogx"), new Map()
 				)
 			).toEqual([line]);
 		}
@@ -165,7 +165,7 @@ describe("compileMlogxToMlog", () => {
 		for(const line of allMlogxCommands){
 			expect(() =>
 				compileMlogxToMlog([line], 
-					settingsForFilename("sample2.mlogx"), new Map<string, string>()
+					settingsForFilename("sample2.mlogx"), new Map()
 				)
 			).not.toThrow();
 		}
@@ -175,7 +175,7 @@ describe("compileMlogxToMlog", () => {
 		for(const [input, output] of allShorthandCommands){
 			expect(
 				compileMlogxToMlog([input], 
-					settingsForFilename("sample3.mlogx"), new Map<string, string>()
+					settingsForFilename("sample3.mlogx"), new Map()
 				)
 			).toEqual([output]);
 		}

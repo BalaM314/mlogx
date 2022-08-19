@@ -7,7 +7,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { StackElement } from "../src/types.js";
+import { CompilerConsts, StackElement } from "../src/types.js";
 import { makeNamespaceEl } from "./test_utils.js";
 
 export const allMlogCommands:string[] =`\
@@ -101,7 +101,7 @@ export const testPrograms: {
 	[index: string]: {
 		program: string[];
 		expectedOutput: string[];
-		compilerConsts: Map<string, string>;
+		compilerConsts: CompilerConsts;
 	};
 } = {
 	emptyProgram: {

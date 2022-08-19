@@ -26,7 +26,7 @@ export interface Settings {
 		removeCompilerMark: boolean;
 	};
 	compilerConstants: {
-		[index: string]: string | string[];
+		[index: string]: CompilerConst;
 	}
 }
 
@@ -117,6 +117,8 @@ export interface ForStackElement extends BaseStackElement {
 export type StackElement = NamespaceStackElement | ForStackElement;
 export type CompiledLine = [compiledCode:string, source:Line];
 
+export type CompilerConst = string | number | boolean | (string | number | boolean)[];
+export type CompilerConsts = Map<string, CompilerConst>;
 export interface Line {
 	text: string;
 	lineNumber: number;

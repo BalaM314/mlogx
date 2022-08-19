@@ -108,7 +108,10 @@ describe("replaceCompilerConstants", () => {
         ["mog", "amogus"],
         ["e", "building core true"],
         ["err", "thingy"],
-        ["memcellpos.mode", "5"]
+        ["memcellpos.mode", "5"],
+        ["number", 50.2],
+        ["boolean", true],
+        ["array", [50.2, true, "e"]],
     ]);
     it("should not modify lines without compiler constants", () => {
         expect(replaceCompilerConstants(`print "x + 5 is $amogus"`, sampleVars)).toBe(`print "x + 5 is $amogus"`);
@@ -118,9 +121,15 @@ describe("replaceCompilerConstants", () => {
         expect(replaceCompilerConstants(`write x cell1 $memcellpos.mode`, sampleVars)).toBe(`write x cell1 5`);
         expect(replaceCompilerConstants(`print "$err"`, sampleVars)).toBe(`print "building core truerr"`);
     });
+    it("should replace non-string compiler consts", () => {
+        expect(replaceCompilerConstants(`print $number`, sampleVars)).toBe(`print 50.2`);
+        expect(replaceCompilerConstants(`print $boolean`, sampleVars)).toBe(`print true`);
+        expect(replaceCompilerConstants(`print "$array"`, sampleVars)).toBe(`print "50.2 true e"`);
+    });
     it("should replace compiler constants when parentheses are used", () => {
         expect(replaceCompilerConstants(`print "$(mog)"`, sampleVars)).toBe(`print "amogus"`);
         expect(replaceCompilerConstants(`print "$(err)"`, sampleVars)).toBe(`print "thingy"`);
+        expect(replaceCompilerConstants(`print "$(e)rr"`, sampleVars)).toBe(`print "building core truerr"`);
     });
 });
 describe("splitLineIntoArguments", () => {
