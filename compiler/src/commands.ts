@@ -137,6 +137,18 @@ export const commands: CommandDefinitions = processCommands({
 			replace: [
 				"radar %1 any any %2 %3 %4 %5"
 			]
+		},{
+			args: "targetClass:targetClass sortCriteria:unitSortCriteria sortOrder:number turret:building output:*unit",
+			description: "Finds units of specified type within the range of (turret).",
+			replace: [
+				"radar %1 any any %2 %3 %4 %5"
+			]
+		},{
+			args: "targetClass:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number turret:building output:*unit",
+			description: "Finds units of specified type within the range of (turret).",
+			replace: [
+				"radar %1 %2 %3 %4 %6 %5 %7"
+			]
 		},
 	],
 	sensor: [
@@ -323,7 +335,7 @@ export const commands: CommandDefinitions = processCommands({
 				"uradar %1 %2 %3 %4 0 %5 %6"
 			]
 		},{
-			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sillyness:any sortOrder:number output:*any",
+			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sillyness:0 sortOrder:number output:*any",
 			description: "Today I learned that the default signature of uradar has a random 0 that doesn't mean anything."
 		},{
 			args: "targetClass:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
