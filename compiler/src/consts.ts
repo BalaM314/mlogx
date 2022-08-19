@@ -35,12 +35,12 @@ export const settingsSchema = yup.object({
 }).required();
 
 export const requiredVarCode: {
-	[index: string]: string[];
+	[index: string]: [string[], GAT];
 } = {
-	"cookie": [
+	"cookie": [[
 		`op mul cookie @thisx @maph`,
 		`op add cookie @thisy cookie`
-	]
+	], GAT.number]
 };
 
 export const processorVariables:{

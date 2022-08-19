@@ -25,10 +25,19 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
         variableUsages: {}
     };
     for (const requiredVar of requiredVars) {
-        if (requiredVarCode[requiredVar])
-            compiledProgram.push(...requiredVarCode[requiredVar]);
-        else
+        if (requiredVarCode[requiredVar]) {
+            compiledProgram.push(...requiredVarCode[requiredVar][0]);
+            typeCheckingData.variableDefinitions[requiredVar] = [{
+                    variableType: requiredVarCode[requiredVar][1],
+                    line: {
+                        text: `[required variable]`,
+                        lineNumber: 0
+                    }
+                }];
+        }
+        else {
             Log.warn("Unknown require " + requiredVar);
+        }
     }
     let hasInvalidStatements = false;
     for (const line in mlogxProgram) {

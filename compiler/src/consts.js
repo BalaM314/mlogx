@@ -22,10 +22,10 @@ export const settingsSchema = yup.object({
     compilerConstants: yup.object().default({})
 }).required();
 export const requiredVarCode = {
-    "cookie": [
-        `op mul cookie @thisx @maph`,
-        `op add cookie @thisy cookie`
-    ]
+    "cookie": [[
+            `op mul cookie @thisx @maph`,
+            `op add cookie @thisy cookie`
+        ], GAT.number]
 };
 export const processorVariables = {
     "@counter": [{
