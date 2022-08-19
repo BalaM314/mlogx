@@ -11,12 +11,12 @@ Contains the mlogx Application.
 import { Log } from "./classes.js";
 import commands from "./commands.js";
 import { addJumpLabels } from "./compile.js";
-import { defaultSettings } from "./consts.js";
 import { Application } from "cli-app";
 import chalk from "chalk";
 import path from "path";
 import * as fs from "fs";
 import { createProject, compileDirectory, compileFile } from "./compile_fs.js";
+import { PartialRecursive, Settings } from "./types.js";
 
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
@@ -75,14 +75,18 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 	}
 
 	const target = opts.positionalArgs[0] ?? process.cwd();
-	if("verbose" in opts.namedArgs){
+	const settingsOverrides:PartialRecursive<Settings> = {
+		compilerOptions: {
+			verbose: "verbose" in opts.namedArgs
+		}
+	};
+	
+	if(settingsOverrides.compilerOptions?.verbose){
 		Log.announce("Using verbose mode");
-		defaultSettings.compilerOptions.verbose = true;
 	}
-
 	if("watch" in opts.namedArgs){
 		let lastCompiledTime = Date.now();
-		compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
+		compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), settingsOverrides);
 		fs.watch(target, {
 			recursive: true
 		}, (type, filename) => {
@@ -109,7 +113,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 					Log.announce(`Compiling directory ${dirToCompile}`);
 
 
-					compileDirectory(dirToCompile, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
+					compileDirectory(dirToCompile, path.join(app.sourceDirectory, "../stdlib"), settingsOverrides);
 					lastCompiledTime = Date.now();
 				}
 			}
@@ -122,11 +126,11 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 	}
 	if(fs.lstatSync(target).isDirectory()){
 		Log.announce(`Compiling folder ${target}`);
-		compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
+		compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), settingsOverrides);
 		return 0;
 	} else {
 		Log.announce(`Compiling file ${target}`);
-		compileFile(target, defaultSettings);
+		compileFile(target, settingsOverrides);
 		return 0;
 	}
 }, true, {

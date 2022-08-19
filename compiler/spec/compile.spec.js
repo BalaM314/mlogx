@@ -1,19 +1,17 @@
 import { compileLine, compileMlogxToMlog } from "../src/compile.js";
-import { defaultSettings } from "../src/consts.js";
+import { settingsSchema } from "../src/consts.js";
 import { range } from "../src/funcs.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
 import { makeForEl, makeNamespaceEl } from "./test_utils.js";
 function settingsForFilename(name, checkTypes = false) {
-    return {
-        ...defaultSettings,
+    return settingsSchema.validateSync({
         filename: name,
         compilerOptions: {
-            ...defaultSettings.compilerOptions,
             compileWithErrors: false,
             checkTypes,
             removeUnusedJumpLabels: true
         }
-    };
+    });
 }
 describe("compileLine", () => {
     it("should not change any mlog commands", () => {

@@ -13,6 +13,7 @@ import { Arg } from "./classes.js";
 export interface Settings {
 	name: string;
 	authors: string[];
+	filename: string;
 	compilerOptions: {
 		include: string[];
 		removeComments: boolean;
@@ -28,6 +29,10 @@ export interface Settings {
 		[index: string]: string | string[];
 	}
 }
+
+export type PartialRecursive<T> = {
+	[P in keyof T]?: (T[P] extends Record<string, unknown> ? PartialRecursive<T[P]> : T[P]) | undefined;
+};
 
 /**Generic Arg Type */
 export enum GAT {

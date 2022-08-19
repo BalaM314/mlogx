@@ -8,24 +8,22 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { compileLine, compileMlogxToMlog } from "../src/compile.js";
-import { defaultSettings } from "../src/consts.js";
+import { settingsSchema } from "../src/consts.js";
 import { range } from "../src/funcs.js";
 import { ForStackElement, Settings, StackElement } from "../src/types.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
 import { makeForEl, makeNamespaceEl } from "./test_utils.js";
 
 
-function settingsForFilename(name:string, checkTypes:boolean = false): Settings & {filename: string} {
-	return {
-		...defaultSettings,
+function settingsForFilename(name:string, checkTypes:boolean = false): Settings {
+	return settingsSchema.validateSync({
 		filename: name,
 		compilerOptions: {
-			...defaultSettings.compilerOptions,
 			compileWithErrors: false,
 			checkTypes,
 			removeUnusedJumpLabels: true
 		}
-	};
+	}) as Settings;
 }
 
 describe("compileLine", () => {

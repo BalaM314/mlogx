@@ -475,6 +475,7 @@ describe("getCommandDefinitions", () => {
 	});
 	//TODO add more
 	it("should return empty if no valid definitions", () => {
+		expect(getCommandDefinitions(`amogus`)).toEqual([]);
 		expect(getCommandDefinitions(`print sussy baka`)).toEqual([]);
 		expect(getCommandDefinitions(`drawflush 5`)).toEqual([]);
 		expect(getCommandDefinitions(`ulocate ore @this outX outY found`)).toEqual([]);

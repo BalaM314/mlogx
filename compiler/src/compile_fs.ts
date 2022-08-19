@@ -8,30 +8,36 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains impure functions related to compiling that interact with the filesystem.
 */
 
-import deepmerge from "deepmerge";
 import * as fs from "fs";
+import * as yup from "yup";
 import path from "path";
+import deepmerge from "deepmerge";
 import { Log, CompilerError } from "./classes.js";
 import { compileMlogxToMlog } from "./compile.js";
-import { compilerMark, defaultSettings } from "./consts.js";
+import { compilerMark, settingsSchema } from "./consts.js";
 import { parseIcons, getCompilerConsts, askQuestion } from "./funcs.js";
-import { Settings } from "./types";
+import { PartialRecursive, Settings } from "./types";
 
-export function compileDirectory(directory:string, stdlibPath:string, defaultSettings:Settings){
-	let settings = defaultSettings;
+export function compileDirectory(directory:string, stdlibPath:string, defaultSettings:PartialRecursive<Settings>){
+	let settings:Settings;
 	try {
 		fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
-		settings = deepmerge(
-			defaultSettings,
-			JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"))
-		);
+		const settingsInFile = JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"));
+		settings = settingsSchema.validateSync(deepmerge(defaultSettings, settingsInFile), {
+			stripUnknown: false
+		}) as Settings;
 		if("compilerVariables" in settings){
 			Log.warn(`settings.compilerVariables is deprecated, please use settings.compilerConstants instead.`);
 			settings.compilerConstants = (settings as Settings & {compilerVariables: typeof settings.compilerConstants})["compilerVariables"];
 		}
-		//Todo: config file validation
+		
 	} catch(err){
-		Log.debug("No valid config.json found, using default settings.");
+		if(err instanceof yup.ValidationError || err instanceof SyntaxError){
+			Log.err(`config.json file is invalid. (${err.message}) Using default settings.`);
+		} else {
+			Log.debug("No config.json found, using default settings.");
+		}
+		settings = settingsSchema.getDefault() as Settings;
 	}
 	
 	const icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
@@ -88,8 +94,8 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 		try {
 			outputData = compileMlogxToMlog(data,
 				{
-					filename,
-					...settings
+					...settings,
+					filename
 				}, 
 				getCompilerConsts(icons, {
 					...settings,
@@ -161,20 +167,22 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 	Log.announce("Done!");
 }
 
-export function compileFile(name:string, settings:Settings){
+export function compileFile(name:string, givenSettings:PartialRecursive<Settings>){
 
 	const icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
 
 	const data:string[] = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
 	let outputData:string[];
+	const settings = settingsSchema.validateSync({
+		filename: name,
+		...givenSettings
+	}) as Settings;
 	try {
-		outputData = compileMlogxToMlog(data, {
-			filename: name,
-			...settings
-		}, getCompilerConsts(icons, {
-			...settings,
-			filename: name
-		}));
+		outputData = compileMlogxToMlog(
+			data,
+			settings,
+			getCompilerConsts(icons, settings)
+		);
 	} catch(err){
 		Log.err(`Failed to compile file ${name}!`);
 		if(err instanceof CompilerError){
@@ -207,15 +215,13 @@ export async function createProject(name:string|undefined){
 	const isSingleFiles = await askQuestion("Single files [y/n]:");
 	fs.mkdirSync(path.join(process.cwd(), name));
 	fs.mkdirSync(path.join(process.cwd(), name, "src"));
-	fs.writeFileSync(path.join(process.cwd(), name, "config.json"), JSON.stringify({
-		...defaultSettings,
+	fs.writeFileSync(path.join(process.cwd(), name, "config.json"), JSON.stringify(settingsSchema.validateSync({
 		name,
 		authors,
 		compilerOptions: {
-			...defaultSettings.compilerOptions,
 			mode: isSingleFiles ? "single" : "project"
 		}
-	}, null, "\t"), "utf-8");
+	}), null, "\t"), "utf-8");
 	Log.announce(`Successfully created a new project in ${path.join(process.cwd(), name)}`);
 	return true;
 }

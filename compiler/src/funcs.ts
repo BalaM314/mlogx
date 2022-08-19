@@ -550,12 +550,12 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean =
 //#region misc
 
 /**Displays a Line. */
-export function formatLine(line:Line, settings:Settings & {filename: string}):string {
+export function formatLine(line:Line, settings:Settings):string {
 	return chalk.gray(`${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
 
 /**Displays a Line with a prefix before it. */
-export function formatLineWithPrefix(line:Line, settings:Settings & {filename: string}, prefix:string = "\t\tat "):string {
+export function formatLineWithPrefix(line:Line, settings:Settings, prefix:string = "\t\tat "):string {
 	return chalk.gray(`${prefix}${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
 
@@ -647,7 +647,7 @@ export function range(min:number, max:number, strings?:true):number[]|string[] {
 	return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
 }
 
-export function getCompilerConsts(icons:Map<string, string>, settings:Settings & {filename: string;}):Map<string, string|string[]>{
+export function getCompilerConsts(icons:Map<string, string>, settings:Settings):Map<string, string|string[]>{
 	const outputMap = new Map<string, string|string[]>();
 	for(const [key, value] of icons){
 		outputMap.set(key, value);

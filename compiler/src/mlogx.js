@@ -1,7 +1,6 @@
 import { Log } from "./classes.js";
 import commands from "./commands.js";
 import { addJumpLabels } from "./compile.js";
-import { defaultSettings } from "./consts.js";
 import { Application } from "cli-app";
 import chalk from "chalk";
 import path from "path";
@@ -58,13 +57,17 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
         return 1;
     }
     const target = opts.positionalArgs[0] ?? process.cwd();
-    if ("verbose" in opts.namedArgs) {
+    const settingsOverrides = {
+        compilerOptions: {
+            verbose: "verbose" in opts.namedArgs
+        }
+    };
+    if (settingsOverrides.compilerOptions?.verbose) {
         Log.announce("Using verbose mode");
-        defaultSettings.compilerOptions.verbose = true;
     }
     if ("watch" in opts.namedArgs) {
         let lastCompiledTime = Date.now();
-        compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
+        compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), settingsOverrides);
         fs.watch(target, {
             recursive: true
         }, (type, filename) => {
@@ -90,7 +93,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
                         dirToCompile = process.cwd();
                     }
                     Log.announce(`Compiling directory ${dirToCompile}`);
-                    compileDirectory(dirToCompile, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
+                    compileDirectory(dirToCompile, path.join(app.sourceDirectory, "../stdlib"), settingsOverrides);
                     lastCompiledTime = Date.now();
                 }
             }
@@ -103,12 +106,12 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
     }
     if (fs.lstatSync(target).isDirectory()) {
         Log.announce(`Compiling folder ${target}`);
-        compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), defaultSettings);
+        compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), settingsOverrides);
         return 0;
     }
     else {
         Log.announce(`Compiling file ${target}`);
-        compileFile(target, defaultSettings);
+        compileFile(target, settingsOverrides);
         return 0;
     }
 }, true, {

@@ -26,7 +26,7 @@ import commands from "./commands.js";
 
 export function compileMlogxToMlog(
 	mlogxProgram:string[],
-	settings:Settings & {filename: string},
+	settings:Settings,
 	compilerConstants: Map<string, string|string[]>
 ):string[] {
 
@@ -197,7 +197,7 @@ export function typeCheckLine(compiledLine:CompiledLine, typeCheckingData:TypeCh
 	return;
 }
 
-export function printTypeErrors({variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed}: TypeCheckingData, settings:Settings & {filename: string}){
+export function printTypeErrors({variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed}: TypeCheckingData, settings:Settings){
 	//Check for conflicting definitions
 	for(const [name, definitions] of Object.entries(variableDefinitions)){
 		//Create a list of each definition's type and remove duplicates.
@@ -272,7 +272,7 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 
 export function compileLine(
 	line:Line, compilerConstants: Map<string, string|string[]>,
-	settings:Settings & {filename:string},
+	settings:Settings,
 	isMain:boolean,
 	stack:StackElement[]
 ): {
@@ -307,7 +307,6 @@ export function compileLine(
 			compiledCode: [
 				[
 					inNamespace(stack) ? 
-						//I think this is the wrong function TODO fix
 						`${addNamespacesToVariable(getJumpLabel(cleanedLine)!, stack)}:` :
 						settings.compilerOptions.removeComments ? cleanedLine : line.text,
 					line
