@@ -7,7 +7,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 import { addSourcesToCode } from "../src/funcs.js";
-import { ForStackElement, NamespaceStackElement } from "../src/types.js";
+import { ForStackElement, IfStackElement, NamespaceStackElement } from "../src/types.js";
 
 
 
@@ -16,4 +16,7 @@ export function makeNamespaceEl(name:string):NamespaceStackElement {
 }
 export function makeForEl(varname:string, elements:string[], loopBuffer:string[] = []):ForStackElement {
 	return {type: "&for", variableName: varname, elements, loopBuffer: addSourcesToCode(loopBuffer), line: {lineNumber:420, text: "[test]"}};
+}
+export function makeIfEl():IfStackElement {
+	return {type: "&if", line: {lineNumber:420, text: "[test]"}};
 }

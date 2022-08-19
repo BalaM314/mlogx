@@ -272,7 +272,7 @@ export function addNamespacesToVariable(variable:string, stack:StackElement[]):s
 
 /**Prepends namespaces on the given stack to all variables in a line. */
 export function addNamespacesToLine(args:string[], commandDefinition:CommandDefinition, stack:StackElement[]):string {
-	if(!inNamespace(stack)) return args.join(" ");
+	if(!hasElement(stack, "namespace")) return args.join(" ");
 	// if(args[0] == "jump"){
 	// 	//special handling for labels todo maybe remove
 	// 	return transformCommand(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack), 
@@ -421,8 +421,8 @@ export function getJumpLabel(cleanedLine:string):string | null {
 //#region stack
 
 /**Returns if the stack contains a for loop. */
-export function inForLoop(stack:StackElement[]):boolean {
-	return stack.filter(el => el.type == "&for").length != 0;
+export function hasElement(stack:StackElement[], type:StackElement["type"]):boolean {
+	return stack.filter(el => el.type == type).length != 0;
 }
 
 /**Returns the topmost for loop in the stack. */
@@ -430,10 +430,6 @@ export function topForLoop(stack:StackElement[]):ForStackElement | null {
 	return stack.filter(el => el.type == "&for").at(-1) as ForStackElement ?? null;
 }
 
-/**Returns if the stack contains a namespace. */
-export function inNamespace(stack:StackElement[]):boolean {
-	return stack.filter(el => el.type == "namespace").length != 0;
-}
 
 //#endregion
 //#region typechecking

@@ -113,8 +113,11 @@ export interface ForStackElement extends BaseStackElement {
 	variableName: string;
 	loopBuffer: CompiledLine[];
 }
+export interface IfStackElement extends BaseStackElement {
+	type: "&if";
+}
 
-export type StackElement = NamespaceStackElement | ForStackElement;
+export type StackElement = NamespaceStackElement | ForStackElement | IfStackElement;
 export type CompiledLine = [compiledCode:string, source:Line];
 
 export type CompilerConst = string | number | boolean | (string | number | boolean)[];

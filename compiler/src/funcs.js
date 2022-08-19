@@ -245,7 +245,7 @@ export function addNamespacesToVariable(variable, stack) {
     return `_${stack.filter(el => el.type == "namespace").map(el => el.name).join("_")}_${variable}`;
 }
 export function addNamespacesToLine(args, commandDefinition, stack) {
-    if (!inNamespace(stack))
+    if (!hasElement(stack, "namespace"))
         return args.join(" ");
     return transformVariables(args, commandDefinition, (variable) => addNamespacesToVariable(variable, stack)).join(" ");
 }
@@ -340,14 +340,11 @@ export function getJumpLabelUsed(line) {
 export function getJumpLabel(cleanedLine) {
     return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0] ?? null;
 }
-export function inForLoop(stack) {
-    return stack.filter(el => el.type == "&for").length != 0;
+export function hasElement(stack, type) {
+    return stack.filter(el => el.type == type).length != 0;
 }
 export function topForLoop(stack) {
     return stack.filter(el => el.type == "&for").at(-1) ?? null;
-}
-export function inNamespace(stack) {
-    return stack.filter(el => el.type == "namespace").length != 0;
 }
 export function areAnyOfInputsCompatibleWithType(inputs, output) {
     for (const input of inputs) {

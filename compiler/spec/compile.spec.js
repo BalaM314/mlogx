@@ -2,7 +2,7 @@ import { compileLine, compileMlogxToMlog } from "../src/compile.js";
 import { settingsSchema } from "../src/consts.js";
 import { range } from "../src/funcs.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
-import { makeForEl, makeNamespaceEl } from "./test_utils.js";
+import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 function settingsForFilename(name, checkTypes = false) {
     return settingsSchema.validateSync({
         filename: name,
@@ -98,6 +98,12 @@ describe("compileLine", () => {
             `print "j is 5"`, `set x 5`, `print "j is 6"`
         ]);
         expect(secondOutput.modifiedStack).toEqual([]);
+    });
+    it("should detect the start of an &if block", () => {
+        expect(compileLine({ text: `&if false {`, lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([makeIfEl()]);
+    });
+    it("should detect the end of an &if block", () => {
+        expect(compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, [makeIfEl()]).modifiedStack).toEqual([]);
     });
 });
 describe("compileMlogxToMlog", () => {

@@ -16,7 +16,7 @@ import {
 	cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined,
 	parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType,
 	getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel,
-	addNamespacesToVariable, addNamespacesToLine, inForLoop, inNamespace, topForLoop,
+	addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop,
 	prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps,
 	addSourcesToCode, transformCommand, range, 
 } from "./funcs.js";
@@ -83,7 +83,10 @@ export function compileMlogxToMlog(
 		try {
 			const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(sourceLine, compilerConstants, settings, isMain, stack);
 			if(modifiedStack) stack = modifiedStack; //ew mutable data
-			if(!hasInvalidStatements && !skipTypeChecks && !inForLoop(stack)){
+			if(hasElement(stack, "&if")){
+				continue;
+			}
+			if(!hasInvalidStatements && !skipTypeChecks && !hasElement(stack, "&for")){
 				try {
 					for(const compiledLine of compiledCode){
 						typeCheckLine(compiledLine, typeCheckingData);
@@ -100,7 +103,7 @@ ${formatLineWithPrefix(sourceLine, settings)}`
 					}
 				}
 			}
-			if(inForLoop(stack)){
+			if(hasElement(stack, "&for")){
 				topForLoop(stack)?.loopBuffer.push(...compiledCode);
 			} else {
 				compiledProgram.push(...compiledCode.map(line => line[0]));
@@ -123,7 +126,7 @@ ${formatLineWithPrefix({
 	if(stack.length !== 0){
 		for(const element of stack){
 			Log.err(
-`${element.type == "namespace" ? `Namespace "${element.name}"` : `For loop with variable "${element.variableName}"`} was not closed.
+`${element.type == "namespace" ? `Namespace "${element.name}"` : element.type == "&for" ? `For loop with variable "${element.variableName}"` : `&if statement`} was not closed.
 ${formatLineWithPrefix(element.line, settings)}`
 			);
 		}
@@ -314,7 +317,7 @@ export function compileLine(
 		return {
 			compiledCode: [
 				[
-					inNamespace(stack) ? 
+					hasElement(stack, "namespace") ? 
 						`${addNamespacesToVariable(getJumpLabel(cleanedLine)!, stack)}:` :
 						settings.compilerOptions.removeComments ? cleanedLine : line.text,
 					line
@@ -406,6 +409,32 @@ export function compileLine(
 				compiledCode: []
 			};
 		}
+	}
+
+	if(args[0] == "&if"){
+		let isEnabled = false;
+		if(args.length == 3){
+			if(!isNaN(parseInt(args[1]))){
+				isEnabled = !! parseInt(args[1]);
+			} else if(args[1] == "true"){
+				isEnabled = true;
+			} else if(args[1] == "false"){
+				isEnabled = true;
+			} else {
+				Log.warn(`condition in &if statement(${args[1]}) is not true or false.`);
+				isEnabled = true;
+			}
+		}
+		if(isEnabled){
+			return {compiledCode: []};
+		}
+		return {
+			modifiedStack: stack.concat({
+				type: "&if",
+				line
+			}),
+			compiledCode: []
+		};
 	}
 
 	//} means a block ended

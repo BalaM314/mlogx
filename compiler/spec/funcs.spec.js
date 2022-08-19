@@ -1,8 +1,8 @@
 import { Arg } from "../src/classes.js";
 import commands from "../src/commands.js";
-import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, inForLoop, topForLoop, parsePreprocessorDirectives, inNamespace, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range } from "../src/funcs.js";
+import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, } from "../src/funcs.js";
 import { GAT } from "../src/types.js";
-import { makeForEl, makeNamespaceEl } from "./test_utils.js";
+import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 describe("templateFunction", () => {
     it("should ", () => {
         expect("functionThing").toEqual("functionThing");
@@ -316,20 +316,40 @@ describe("getJumpLabel", () => {
         expect(getJumpLabel("jump label greaterThan x 5")).toEqual(null);
     });
 });
-describe("inForLoop", () => {
+describe("hasElement", () => {
     it("should return whether or not the stack contains an &for loop", () => {
-        expect(inForLoop([
+        expect(hasElement([
             makeNamespaceEl("amogus"), makeNamespaceEl("sus")
-        ])).toEqual(false);
-        expect(inForLoop([])).toEqual(false);
-        expect(inForLoop([
+        ], "&for")).toEqual(false);
+        expect(hasElement([], "&for")).toEqual(false);
+        expect(hasElement([
             makeNamespaceEl("amogus"), makeForEl("I", range(0, 5, true))
-        ])).toEqual(true);
-        expect(inForLoop([
+        ], "&for")).toEqual(true);
+        expect(hasElement([
             makeNamespaceEl("amogus"),
             makeForEl("I", range(0, 5, true)),
             makeForEl("J", range(3, 10, true))
-        ])).toEqual(true);
+        ], "&for")).toEqual(true);
+    });
+    it("should return whether or not the stack contains a namespace", () => {
+        expect(hasElement([
+            makeNamespaceEl("amogus"), makeForEl("I", range(0, 5, true))
+        ], "namespace")).toEqual(true);
+        expect(hasElement([
+            makeForEl("I", range(0, 5, true)),
+            makeForEl("J", range(3, 10, true))
+        ], "namespace")).toEqual(false);
+        expect(hasElement([], "namespace")).toEqual(false);
+    });
+    it("should return whether or not the stack contains an if statement", () => {
+        expect(hasElement([
+            makeNamespaceEl("amogus"), makeForEl("I", range(0, 5, true)), makeIfEl()
+        ], "&if")).toEqual(true);
+        expect(hasElement([
+            makeForEl("I", range(0, 5, true)),
+            makeForEl("J", range(3, 10, true))
+        ], "&if")).toEqual(false);
+        expect(hasElement([], "&if")).toEqual(false);
     });
 });
 describe("topForLoop", () => {
@@ -347,18 +367,6 @@ describe("topForLoop", () => {
         expect(topForLoop([
             makeNamespaceEl("amogus")
         ])).toEqual(null);
-    });
-});
-describe("inNamespace", () => {
-    it("should return whether or not the stack contains a namespace", () => {
-        expect(inNamespace([
-            makeNamespaceEl("amogus"), makeForEl("I", range(0, 5, true))
-        ])).toEqual(true);
-        expect(inNamespace([
-            makeForEl("I", range(0, 5, true)),
-            makeForEl("J", range(3, 10, true))
-        ])).toEqual(false);
-        expect(inNamespace([])).toEqual(false);
     });
 });
 describe("getCommandDefinitions", () => {

@@ -12,7 +12,7 @@ import { settingsSchema } from "../src/consts.js";
 import { range } from "../src/funcs.js";
 import { ForStackElement, Settings, StackElement } from "../src/types.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
-import { makeForEl, makeNamespaceEl } from "./test_utils.js";
+import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 
 
 function settingsForFilename(name:string, checkTypes:boolean = false): Settings {
@@ -146,6 +146,18 @@ describe("compileLine", () => {
 			]);
 		expect(secondOutput.modifiedStack).toEqual([]);
 
+	});
+
+	it("should detect the start of an &if block", () => {
+		expect(
+			compileLine({text: `&if false {`, lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
+		).toEqual([makeIfEl()]);
+	});
+
+	it("should detect the end of an &if block", () => {
+		expect(
+			compileLine({text: "}", lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, [makeIfEl()]).modifiedStack
+		).toEqual([]);
 	});
 
 });
