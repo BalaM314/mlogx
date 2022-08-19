@@ -63,14 +63,62 @@ Returns from a function. Equivalent instructions:
 
 `set @counter _stack1`
 
-### sensor shorthand
+## Shorthands
 
+### sensor shorthand
 `sensor building1.property`
 
 A shorthand for sensor statements. Equivalent instructions:
 
 `sensor building1.property building1 @property`
+### radar shorthands
+`radar enemy distance hail1 0 enemy` => `radar enemy any any distance hail1 0 enemy`
 
+Lets you avoid needing to write "enemy" 3 times.
+
+`radar enemy distance 0 hail1 enemy` => `radar enemy any any distance hail1 0 enemy`
+
+Sort order should come before the turret.
+### uradar shorthands
+`uradar enemy any any distance 0 enemy` => `uradar enemy any any distance 0 0 enemy`
+
+The regular syntax for the uradar command has a meaningless zero.
+
+`radar enemy distance 0 enemy` => `uradar enemy any any distance 0 0 enemy`
+
+Lets you avoid needing to write "enemy" 3 times.
+### set type annotation
+`set target :building null` => `set target null`
+
+Allows you to specify the type of a variable.
+### op shorthands
+`op cos x theta` => `op cos x theta 0`
+
+For single-argument operations.
+
+`op add x 5` => `op add x x 5`
+
+For two-argument operations.
+
+`op abs xDiff` => `op abs xDiff xDiff 0`
+
+For single-argument operations. Mutates the variable.
+
+### jump shorthand
+`jump label` => `jump label always 0 0`
+
+Shorthand for jump always.
+
+### ulocate shorthand
+The following shorthands all remove meaningless arguments.
+
+`ulocate ore @copper ore.x ore.y ore.found` => `ulocate ore core _ @copper ore.x ore.y ore.found _`
+
+`ulocate spawn spawn.x spawn.y spawn.found` => `ulocate spawn core _ _ spawn.x spawn.y spawn.found _`
+
+`ulocate damaged build.x build.y build.found build` => `ulocate damaged core _ _ build.x build.y build.found build`
+
+`ulocate building turret true turret.x turret.y turret.found turret` => `ulocate building turret true _ turret.x turret.y turret.found turret`
 ## Preprocessor directives
 
 WARNING: THESE MAY NOT WORK.
@@ -107,9 +155,100 @@ Generates a random cookie based on the processor's x and y coordinates. Useful f
 
 [NYI] Uses a unit to ulocate the nearest core. Errors if no units are available.
 
+## &for loops
+
+Possibly the most useful feature in this project. &for loops allow you to repeat code with small bits changed(using compiler constants).
+
+You can use this for automatic loop unrolling, to make large sections of mostly repeated code easier to change and read, or to be able to easily adapt [a program](https://github.com/BalaM314/mlog/blob/main/single_files/payEnter/multiPayenter.mlogx) to handle an arbitrary number of buildings.
+
+There are two types: `&for in` and `&for of`.
+
+### &for in loops
+
+&for in loops set the loop variable to each value between two numbers.
+
+Syntax:
+```
+&for [variable] in [lowerBound] [upperBound] {
+  #statements...
+}
+```
+
+Example:
+```
+&for i in 0 4 {
+  set x_$i 5
+}
+```
+Compiles to:
+```
+set x_0 5
+set x_1 5
+set x_2 5
+set x_3 5
+set x_4 5
+```
+
+### &for of loops
+&for of loops set the loop variable to arbitrary values.
+
+Syntax:
+```
+&for [variable] of [things...] {
+  #statements...
+}
+```
+
+Example:
+```
+&for building of mender1 mender2 mender3 mender4 projector1 projector2 {
+  control enabled $building isActive
+}
+```
+Compiles to:
+```
+control enabled mender1 isActive
+control enabled mender2 isActive
+control enabled mender3 isActive
+control enabled mender4 isActive
+control enabled projector1 isActive
+control enabled projector2 isActive
+```
+
+This works nicely with compiler const arrays. Example:
+
+```
+&for building of $buildingsToManage {
+  sensor $building.health
+  sensor $building.maxHealth
+  jump mend lessThan $building.health $building.maxHealth
+}
+```
+Compiles to:
+```
+sensor mender1.health
+sensor mender1.maxHealth
+jump mend lessThan mender1.health mender1.maxHealth
+sensor mender2.health
+sensor mender2.maxHealth
+jump mend lessThan mender2.health mender2.maxHealth
+sensor mender3.health
+sensor mender3.maxHealth
+jump mend lessThan mender3.health mender3.maxHealth
+sensor projector1.health
+sensor projector1.maxHealth
+jump mend lessThan projector1.health projector1.maxHealth
+sensor projector2.health
+sensor projector2.maxHealth
+jump mend lessThan projector2.health projector2.maxHealth
+```
+if buildingsToManage is set to \["mender1", "mender2", "mender3", "projector1", "projector2"]
+
 ## Namespaces
 
 Cause all variables inside to be prefixed with \_name_.
+
+Note: this feature is incomplete and is somewhat useless as you cannot reference external variables.
 
 ```mlogx
 set x 5
@@ -147,17 +286,4 @@ Code like `print "$name"` will get replaced with `print "ExampleProject by [#314
 \[NYI\] `oct.itemCapacity` and other stuff like that will be added eventually.
 
 ## Inline functions
-**This section is not yet implemented.**
-
-Example declaration:
-```
-inline 
-```
-Example usage:
-```
-
-```
-Compiled output:
-```
-
-```
+TODO
