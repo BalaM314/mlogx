@@ -34,6 +34,14 @@ ${commands[command].map(commandDefinition => command + " " + commandDefinition.a
             description: "The command to get information about"
         }]
 }, ["i"]);
+mlogx.command("version", "Displays the version of mlogx", (opts, app) => {
+    try {
+        Log.info(`MLOGX Compiler version ${chalk.cyan(JSON.parse(fs.readFileSync(path.join(app.sourceDirectory, "../package.json"), 'utf-8')).version)}`);
+    }
+    catch (err) {
+        Log.err(`This should not happen. ${err.message}`);
+    }
+}, false, undefined, ["v"]);
 mlogx.command("init", "Creates a new project", (opts) => {
     createProject(opts.positionalArgs[0])
         .catch(err => Log.err(err?.message ?? err));
