@@ -101,10 +101,16 @@ export const commands: CommandDefinitions = processCommands({
 		args: "display:building",
 		description: "Flushes queued draw instructions to (display)."
 	}],
-	printflush: [{
-		args: "messageblock:building",
-		description: "Flushes queued print instructions to (messageblock)"
-	}],
+	printflush: [
+		{
+			args: "messageblock:building",
+			description: "Flushes queued print instructions to (messageblock)."
+		},
+		{
+			args: "null",
+			description: "Clears queued print instructions."
+		}
+	],
 	getlink: [{
 		args: "output:*building n:number",
 		description: "Gets the (n)th linked building. Useful when looping over all buildings."
