@@ -156,10 +156,11 @@ export function typeCheckLine(compiledLine, typeCheckingData) {
 export function printTypeErrors({ variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed }, settings) {
     for (const [name, definitions] of Object.entries(variableDefinitions)) {
         const types = [
-            ...new Set(definitions.map(el => el.variableType))
-        ].filter(el => el != GAT.valid && el != GAT.any &&
-            el != GAT.variable && el != GAT.valid &&
-            el != GAT.null).map(el => el == "boolean" ? "number" : el);
+            ...new Set(definitions.map(el => el.variableType)
+                .filter(el => el != GAT.valid && el != GAT.any &&
+                el != GAT.variable && el != GAT.valid &&
+                el != GAT.null).map(el => el == "boolean" ? "number" : el))
+        ];
         if (types.length > 1) {
             Log.warn(`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
 	First definition:
@@ -321,7 +322,7 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
                 isEnabled = false;
             }
             else {
-                Log.warn(`condition in &if statement(${args[1]}) is not true or false.`);
+                Log.warn(`condition in &if statement(${args[1]}) is not "true" or "false".`);
                 isEnabled = true;
             }
         }

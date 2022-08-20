@@ -214,12 +214,15 @@ export function printTypeErrors({variableDefinitions, variableUsages, jumpLabels
 		//Create a list of each definition's type and remove duplicates.
 		//If this list has more than one element there are definitions of conflicting types.
 		const types = [
-			...new Set(definitions.map(el => el.variableType))
-		].filter(el => 
-			el != GAT.valid && el != GAT.any &&
-			el != GAT.variable && el != GAT.valid &&
-			el != GAT.null
-		).map(el => el == "boolean" ? "number" : el);
+			...new Set(
+				definitions.map(el => el.variableType)
+					.filter(el => 
+						el != GAT.valid && el != GAT.any &&
+						el != GAT.variable && el != GAT.valid &&
+						el != GAT.null
+					).map(el => el == "boolean" ? "number" : el)
+			)
+		];
 		//TODO do this properly
 		if(types.length > 1){
 			Log.warn(
@@ -421,7 +424,7 @@ export function compileLine(
 			} else if(args[1] == "false"){
 				isEnabled = false;
 			} else {
-				Log.warn(`condition in &if statement(${args[1]}) is not true or false.`);
+				Log.warn(`condition in &if statement(${args[1]}) is not "true" or "false".`);
 				isEnabled = true;
 			}
 		}
