@@ -151,7 +151,14 @@ describe("compileLine", () => {
 	it("should detect the start of an &if block", () => {
 		expect(
 			compileLine({text: `&if false {`, lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
-		).toEqual([makeIfEl(false)]);
+		).toEqual([{
+			type: "&if",
+			line: {
+				lineNumber: jasmine.any(Number),
+				text: jasmine.any(String)
+			},
+			enabled: false
+		}]);
 	});
 
 	it("should detect the end of an &if block", () => {
