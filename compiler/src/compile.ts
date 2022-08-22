@@ -20,7 +20,7 @@ import {
 	prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps,
 	addSourcesToCode, transformCommand, range, hasDisabledIf, 
 } from "./funcs.js";
-import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
+import { maxLines, maxLoops, processorVariables, requiredVarCode } from "./consts.js";
 import { Arg, CompilerError, Log } from "./classes.js";
 import commands from "./commands.js";
 
@@ -377,7 +377,7 @@ export function compileLine(
 				throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
 			if(lowerBound < 0)
 				throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
-			if((upperBound - lowerBound) > 200)
+			if((upperBound - lowerBound) > maxLoops)
 				throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
 			return {
 				modifiedStack: stack.concat({
@@ -399,7 +399,7 @@ export function compileLine(
 				throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
 			if(lowerBound < 0)
 				throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
-			if((upperBound - lowerBound) > 200)
+			if((upperBound - lowerBound) > maxLoops)
 				throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
 			return {
 				modifiedStack: stack.concat({

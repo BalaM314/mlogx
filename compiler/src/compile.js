@@ -1,6 +1,6 @@
 import { GAT, CommandErrorType } from "./types.js";
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand, range, hasDisabledIf, } from "./funcs.js";
-import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
+import { maxLines, maxLoops, processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import commands from "./commands.js";
 export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
@@ -272,7 +272,7 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
                 throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
             if (lowerBound < 0)
                 throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
-            if ((upperBound - lowerBound) > 200)
+            if ((upperBound - lowerBound) > maxLoops)
                 throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
             return {
                 modifiedStack: stack.concat({
@@ -295,7 +295,7 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
                 throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
             if (lowerBound < 0)
                 throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
-            if ((upperBound - lowerBound) > 200)
+            if ((upperBound - lowerBound) > maxLoops)
                 throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
             return {
                 modifiedStack: stack.concat({

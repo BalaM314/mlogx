@@ -27,6 +27,7 @@ export const requiredVarCode = {
             `op add cookie @thisy cookie`
         ], GAT.number]
 };
+export const maxLoops = 200;
 export const processorVariables = {
     "@counter": [{
             variableType: GAT.number,

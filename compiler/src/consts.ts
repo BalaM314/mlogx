@@ -43,6 +43,8 @@ export const requiredVarCode: {
 	], GAT.number]
 };
 
+export const maxLoops = 200;
+
 export const processorVariables:{
 	[name: string]: {
 		variableType: ArgType;
