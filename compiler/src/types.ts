@@ -9,6 +9,7 @@ Contains type definitions and enums.
 */
 
 import { Arg } from "./classes.js";
+import { compileLine } from "./compile.js";
 
 export interface Settings {
 	name: string;
@@ -95,6 +96,42 @@ export interface CommandDefinitions {
 
 export interface PreprocessedCommandDefinitions {
 	[index: string]: PreprocessedCommand[]
+}
+
+export interface PreprocessedCompilerCommandDefinition<StackEl> {
+	args: string;
+	onbegin?: (args:string[], line:Line, stack:StackElement[]) => {
+		compiledCode:CompiledLine[];
+		element:StackEl | null;
+		skipTypeChecks?:boolean;
+	};
+	oninblock?: (compiledOutput:CompiledLine, stack:StackElement[]) => {
+		output:CompiledLine;
+		skipTypeChecks:boolean;
+	}
+	onend?: (line:Line, removedStackElement:StackEl) => {
+		compiledCode:CompiledLine[];
+		skipTypeChecks?:boolean;
+	};
+}
+
+export interface PreprocessedCompilerCommandDefinitionGroup<StackEl> {
+	stackElement: boolean;
+	overloads: PreprocessedCompilerCommandDefinition<StackEl>[];
+}
+
+interface StackElementMapping {
+	'&for': ForStackElement;
+	'&if': IfStackElement;
+	'namespace': NamespaceStackElement;
+}
+
+export type PreprocessedCompilerCommandDefinitions = {
+	[ID in keyof StackElementMapping]?: PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[ID]>
+}
+
+export type CompilerCommandDefinitions = {
+	[ID in keyof StackElementMapping]?: PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[ID]>
 }
 
 export type ArgType = GAT | string;

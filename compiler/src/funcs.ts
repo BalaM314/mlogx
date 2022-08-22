@@ -12,7 +12,8 @@ import { Arg, Log } from "./classes.js";
 import commands from "./commands.js";
 import {
 	ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType,
-	CompiledLine, CompilerConst, CompilerConsts, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions,
+	CompiledLine, CompilerCommandDefinitions, CompilerConst, CompilerConsts, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions,
+	PreprocessedCompilerCommandDefinitions,
 	Settings, StackElement, TData
 } from "./types.js";
 import { buildingNameRegex } from "./consts.js";
@@ -638,6 +639,10 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 		}
 	}
 	return out;
+}
+
+export function processCompilerCommands(preprocessedCommands:PreprocessedCompilerCommandDefinitions):CompilerCommandDefinitions {
+	throw new Error("not yet implemented");
 }
 
 export function range(min:number, max:number):number[];

@@ -514,6 +514,9 @@ export function processCommands(preprocessedCommands) {
     }
     return out;
 }
+export function processCompilerCommands(preprocessedCommands) {
+    throw new Error("not yet implemented");
+}
 export function range(min, max, strings) {
     if (min > max)
         return [];

@@ -9,8 +9,9 @@ Contains the commands AST.
 */
 
 import { CompilerError } from "./classes.js";
-import { processCommands, typeofArg } from "./funcs.js";
-import { CommandDefinitions, GAT } from "./types.js";
+import { maxLoops } from "./consts.js";
+import { processCommands, processCompilerCommands, range, replaceCompilerConstants, typeofArg } from "./funcs.js";
+import { CommandDefinitions, CompiledLine, ForStackElement, GAT, StackElement } from "./types.js";
 
 //welcome to AST hell
 /** Contains the arguments for all types.*/
@@ -373,6 +374,62 @@ export const commands: CommandDefinitions = processCommands({
 			description: "The wack default ulocate signature, included for compatibility."
 		}
 	],
+});
+
+const compilerCommands = processCompilerCommands({
+	'&for': {
+		stackElement: true,
+		overloads: [{
+			args: "variable:*any in lowerBound:number upperBound:number {",
+			onbegin(args, line) {
+				const variableName = args[1];
+				const lowerBound = parseInt(args[3]);
+				const upperBound = parseInt(args[4]);
+				if(isNaN(lowerBound))
+					throw new CompilerError(`Invalid for loop syntax: lowerBound(${lowerBound}) is invalid`);
+				if(isNaN(upperBound))
+					throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
+				if(lowerBound < 0)
+					throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
+				if((upperBound - lowerBound) > maxLoops)
+					throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
+				return {
+					element: {
+						type: "&for",
+						elements: range(lowerBound, upperBound, true),
+						variableName,
+						loopBuffer: [],
+						line
+					},
+					compiledCode: []
+				};
+			},
+			oninblock(compiledOutput) {
+				return {
+					output: compiledOutput,
+					skipTypeChecks: true
+				};
+			},
+			onend(line, removedStackElement:ForStackElement) {
+				removedStackElement;
+				const compiledCode:CompiledLine[] = [];
+				for(const el of removedStackElement.elements){
+					compiledCode.push(
+						...removedStackElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedStackElement.variableName, el]])), {
+							text: replaceCompilerConstants(line[1].text, new Map([
+								// ...compilerConstants.entries(),
+								[removedStackElement.variableName, el]
+							])),
+							lineNumber: line[1].lineNumber
+						}] as CompiledLine)
+					);
+				}
+				return {
+					compiledCode
+				};
+			},
+		}]
+	}
 });
 
 export default commands;
