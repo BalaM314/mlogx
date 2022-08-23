@@ -98,8 +98,10 @@ export interface PreprocessedCommandDefinitions {
 	[index: string]: PreprocessedCommand[]
 }
 
-export interface PreprocessedCompilerCommandDefinition<StackEl> {
-	args: string;
+export interface CompilerCommandDefinition<StackEl> {
+	args: Arg[];
+	name: string;
+	description: string;
 	onbegin?: (args:string[], line:Line, stack:StackElement[]) => {
 		compiledCode:CompiledLine[];
 		element:StackEl | null;
@@ -113,6 +115,29 @@ export interface PreprocessedCompilerCommandDefinition<StackEl> {
 		compiledCode:CompiledLine[];
 		skipTypeChecks?:boolean;
 	};
+}
+
+export interface PreprocessedCompilerCommandDefinition<StackEl> {
+	args: string;
+	description: string;
+	onbegin?: (args:string[], line:Line, stack:StackElement[]) => {
+		compiledCode:CompiledLine[];
+		element:StackEl | null;
+		skipTypeChecks?:boolean;
+	};
+	oninblock?: (compiledOutput:CompiledLine, stack:StackElement[]) => {
+		output:CompiledLine;
+		skipTypeChecks:boolean;
+	}
+	onend?: (line:Line, removedStackElement:StackEl) => {
+		compiledCode:CompiledLine[];
+		skipTypeChecks?:boolean;
+	};
+}
+
+export interface CompilerCommandDefinitionGroup<StackEl> {
+	stackElement: boolean;
+	overloads: CompilerCommandDefinition<StackEl>[];
 }
 
 export interface PreprocessedCompilerCommandDefinitionGroup<StackEl> {
@@ -131,10 +156,11 @@ export type PreprocessedCompilerCommandDefinitions = {
 }
 
 export type CompilerCommandDefinitions = {
-	[ID in keyof StackElementMapping]?: PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[ID]>
+	[ID in keyof StackElementMapping]?: CompilerCommandDefinitionGroup<StackElementMapping[ID]>
 }
 
 export type ArgType = GAT | string;
+export type PreprocessedArg = `${string}:${"*"|""}${string}${"?"|""}`;
 
 interface BaseStackElement {
 	line: Line;

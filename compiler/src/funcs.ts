@@ -14,7 +14,7 @@ import {
 	ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType,
 	CompiledLine, CompilerCommandDefinitions, CompilerConst, CompilerConsts, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions,
 	PreprocessedCompilerCommandDefinitions,
-	Settings, StackElement, TData
+	Settings, StackElement, TData, PreprocessedArg
 } from "./types.js";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -589,28 +589,28 @@ export async function askYesOrNo(question:string): Promise<boolean> {
 	return ["y", "yes"].includes(await askQuestion(question));
 }
 
+/**Converts an arg string into an Arg. */
+function arg(str:PreprocessedArg){
+	if(!str.includes(":")){
+		return new Arg(str, str, false, false, false);
+	}
+	const [name, type] = str.split(":");
+	let modifiedType = type;
+	let isVariable = false;
+	let isOptional = false;
+	if(type.startsWith("*")){
+		isVariable = true;
+		modifiedType = type.substring(1);
+	}
+	if(type.endsWith("?")){
+		isOptional = true;
+		modifiedType = type.substring(0, type.length - 1);
+	}
+	return new Arg(modifiedType, name, isOptional, true, isVariable);
+}
+
 /**Processes commands(adds in what would otherwise be boilerplate). */
 export function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):CommandDefinitions {
-
-	type PreprocessedArg = `${string}:${"*"|""}${string}${"?"|""}`;
-	function arg(str:PreprocessedArg){
-		if(!str.includes(":")){
-			return new Arg(str, str, false, false, false);
-		}
-		const [name, type] = str.split(":");
-		let modifiedType = type;
-		let isVariable = false;
-		let isOptional = false;
-		if(type.startsWith("*")){
-			isVariable = true;
-			modifiedType = type.substring(1);
-		}
-		if(type.endsWith("?")){
-			isOptional = true;
-			modifiedType = type.substring(0, type.length - 1);
-		}
-		return new Arg(modifiedType, name, isOptional, true, isVariable);
-	}
 
 	const out:CommandDefinitions = {};
 	for(const [name, commands] of Object.entries(preprocessedCommands)){
@@ -642,7 +642,24 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 }
 
 export function processCompilerCommands(preprocessedCommands:PreprocessedCompilerCommandDefinitions):CompilerCommandDefinitions {
-	throw new Error("not yet implemented");
+	const out:CompilerCommandDefinitions = {};
+	for(const [id, group] of Object.entries(preprocessedCommands)){
+		out[id] = {
+			stackElement: group.stackElement,
+			overloads: []
+		};
+		for(const command of commands){
+			out[id].overloads.push({
+				description: command.description,
+				name: id,
+				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as PreprocessedArg)) : [],
+				onbegin: command.onbegin,
+				oninblock: command.oninblock,
+				onend: command.onend
+			});
+		}
+	}
+	return out;
 }
 
 export function range(min:number, max:number):number[];
