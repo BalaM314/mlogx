@@ -379,56 +379,61 @@ export const commands: CommandDefinitions = processCommands({
 const compilerCommands = processCompilerCommands({
 	'&for': {
 		stackElement: true,
-		overloads: [{
-			args: "variable:*any in lowerBound:number upperBound:number {",
-			onbegin(args, line) {
-				const variableName = args[1];
-				const lowerBound = parseInt(args[3]);
-				const upperBound = parseInt(args[4]);
-				if(isNaN(lowerBound))
-					throw new CompilerError(`Invalid for loop syntax: lowerBound(${lowerBound}) is invalid`);
-				if(isNaN(upperBound))
-					throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
-				if(lowerBound < 0)
-					throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
-				if((upperBound - lowerBound) > maxLoops)
-					throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
-				return {
-					element: {
-						type: "&for",
-						elements: range(lowerBound, upperBound, true),
-						variableName,
-						loopBuffer: [],
-						line
-					},
-					compiledCode: []
-				};
-			},
-			oninblock(compiledOutput) {
-				return {
-					output: compiledOutput,
-					skipTypeChecks: true
-				};
-			},
-			onend(line, removedStackElement:ForStackElement) {
-				removedStackElement;
-				const compiledCode:CompiledLine[] = [];
-				for(const el of removedStackElement.elements){
-					compiledCode.push(
-						...removedStackElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedStackElement.variableName, el]])), {
-							text: replaceCompilerConstants(line[1].text, new Map([
-								// ...compilerConstants.entries(),
-								[removedStackElement.variableName, el]
-							])),
-							lineNumber: line[1].lineNumber
-						}] as CompiledLine)
-					);
-				}
-				return {
-					compiledCode
-				};
-			},
-		}]
+		overloads: [
+			{
+				args: "variable:*any in lowerBound:number upperBound:number {",
+				description: "&for in loops allow you to emit the same code multiple times but with a number incrementing. (variable) is set as a compiler constant and goes from (lowerBound) through (upperBound) inclusive.",
+				onbegin(args, line) {
+					const variableName = args[1];
+					const lowerBound = parseInt(args[3]);
+					const upperBound = parseInt(args[4]);
+					if(isNaN(lowerBound))
+						throw new CompilerError(`Invalid for loop syntax: lowerBound(${lowerBound}) is invalid`);
+					if(isNaN(upperBound))
+						throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
+					if(lowerBound < 0)
+						throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
+					if((upperBound - lowerBound) > maxLoops)
+						throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
+					return {
+						element: {
+							type: "&for",
+							elements: range(lowerBound, upperBound, true),
+							variableName,
+							loopBuffer: [],
+							line
+						},
+						compiledCode: []
+					};
+				},
+				oninblock(compiledOutput) {
+					return {
+						output: compiledOutput,
+						skipTypeChecks: true
+					};
+				},
+				onend(line, removedStackElement:ForStackElement) {
+					removedStackElement;
+					const compiledCode:CompiledLine[] = [];
+					for(const el of removedStackElement.elements){
+						compiledCode.push(
+							...removedStackElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedStackElement.variableName, el]])), {
+								text: replaceCompilerConstants(line[1].text, new Map([
+									// ...compilerConstants.entries(), TODO pass this as an argument, maybe wrapped in "data"?
+									[removedStackElement.variableName, el]
+								])),
+								lineNumber: line[1].lineNumber
+							}] as CompiledLine)
+						);
+					}
+					return { compiledCode };
+				},
+			},{
+				args: "variable:*any of ...elements:any {",
+				description: "&for in loops allow you to emit the same code multiple times but with a number incrementing. (variable) is set as a compiler constant and goes from (lowerBound) through (upperBound) inclusive.",
+				
+			}
+		]
 	}
 });
 

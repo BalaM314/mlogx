@@ -664,7 +664,7 @@ export function processCompilerCommands(preprocessedCommands:PreprocessedCompile
 
 export function range(min:number, max:number):number[];
 export function range(min:number, max:number, strings:true):string[];
-/**Returns a list of numbers within two bounds */
+/**Returns a list of numbers within two bounds inclusive */
 export function range(min:number, max:number, strings?:true):number[]|string[] {
 	if(min > max) return [];
 	return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
