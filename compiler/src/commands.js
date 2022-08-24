@@ -1,6 +1,6 @@
-import { CompilerError } from "./classes.js";
+import { CompilerError, Log } from "./classes.js";
 import { maxLoops } from "./consts.js";
-import { processCommands, processCompilerCommands, range, replaceCompilerConstants, typeofArg } from "./funcs.js";
+import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
 import { GAT } from "./types.js";
 export const commands = processCommands({
     call: [{
@@ -367,10 +367,11 @@ export const commands = processCommands({
 const compilerCommands = processCompilerCommands({
     '&for': {
         stackElement: true,
-        overloads: [{
+        overloads: [
+            {
                 args: "variable:*any in lowerBound:number upperBound:number {",
+                description: "&for in loops allow you to emit the same code multiple times but with a number incrementing. (variable) is set as a compiler constant and goes from (lowerBound) through (upperBound) inclusive.",
                 onbegin(args, line) {
-                    const variableName = args[1];
                     const lowerBound = parseInt(args[3]);
                     const upperBound = parseInt(args[4]);
                     if (isNaN(lowerBound))
@@ -385,17 +386,17 @@ const compilerCommands = processCompilerCommands({
                         element: {
                             type: "&for",
                             elements: range(lowerBound, upperBound, true),
-                            variableName,
+                            variableName: args[1],
                             loopBuffer: [],
                             line
                         },
                         compiledCode: []
                     };
                 },
-                oninblock(compiledOutput) {
+                oninblock(compiledOutput, stack) {
+                    topForLoop(stack)?.loopBuffer.push(...compiledOutput);
                     return {
-                        output: compiledOutput,
-                        skipTypeChecks: true
+                        compiledCode: []
                     };
                 },
                 onend(line, removedStackElement) {
@@ -409,11 +410,106 @@ const compilerCommands = processCompilerCommands({
                                 lineNumber: line[1].lineNumber
                             }]));
                     }
+                    return { compiledCode };
+                },
+            }, {
+                args: "variable:*any of ...elements:any {",
+                description: "&for in loops allow you to emit the same code multiple times but with a value changed. (variable) is set as a compiler constant and goes through each element of (elements).",
+                onbegin(args, line) {
                     return {
-                        compiledCode
+                        element: {
+                            type: "&for",
+                            elements: args.slice(3, -1),
+                            variableName: args[1],
+                            loopBuffer: [],
+                            line
+                        },
+                        compiledCode: []
                     };
                 },
+                oninblock(compiledOutput, stack) {
+                    topForLoop(stack)?.loopBuffer.push(...compiledOutput);
+                    return {
+                        compiledCode: []
+                    };
+                },
+            }
+        ]
+    },
+    "&if": {
+        stackElement: true,
+        overloads: [{
+                args: "variable:boolean {",
+                description: "&if statements allow you to emit code only if a compiler const is true.",
+                onbegin(args, line) {
+                    let isEnabled = false;
+                    if (args.length == 3) {
+                        if (!isNaN(parseInt(args[1]))) {
+                            isEnabled = !!parseInt(args[1]);
+                        }
+                        else if (args[1] == "true") {
+                            isEnabled = true;
+                        }
+                        else if (args[1] == "false") {
+                            isEnabled = false;
+                        }
+                        else {
+                            Log.warn(`condition in &if statement(${args[1]}) is not "true" or "false".`);
+                            isEnabled = true;
+                        }
+                    }
+                    return {
+                        element: {
+                            type: "&if",
+                            line,
+                            enabled: isEnabled
+                        },
+                        compiledCode: []
+                    };
+                },
+                oninblock(compiledOutput, stack) {
+                    if (hasDisabledIf(stack)) {
+                        return {
+                            compiledCode: []
+                        };
+                    }
+                    else {
+                        return {
+                            compiledCode: compiledOutput
+                        };
+                    }
+                },
             }]
+    },
+    'namespace': {
+        stackElement: true,
+        overloads: [
+            {
+                args: "name:string {",
+                description: "[WIP] Prepends _(name)_ to all variable names to prevent name conflicts.",
+                onbegin(args, line) {
+                    return {
+                        element: {
+                            name: args[1],
+                            type: "namespace",
+                            line
+                        },
+                        compiledCode: []
+                    };
+                },
+                oninblock(compiledOutput, stack) {
+                    return {
+                        compiledCode: compiledOutput.map(line => {
+                            const commandDefinition = getCommandDefinition(line[0]);
+                            if (!commandDefinition) {
+                                throw new Error("This should not be possible.");
+                            }
+                            return [addNamespacesToLine(splitLineIntoArguments(line[0]), commandDefinition, stack), line[1]];
+                        })
+                    };
+                },
+            }
+        ]
     }
 });
 export default commands;

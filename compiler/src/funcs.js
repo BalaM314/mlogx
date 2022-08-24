@@ -466,25 +466,25 @@ export function askQuestion(question) {
 export async function askYesOrNo(question) {
     return ["y", "yes"].includes(await askQuestion(question));
 }
-export function processCommands(preprocessedCommands) {
-    function arg(str) {
-        if (!str.includes(":")) {
-            return new Arg(str, str, false, false, false);
-        }
-        const [name, type] = str.split(":");
-        let modifiedType = type;
-        let isVariable = false;
-        let isOptional = false;
-        if (type.startsWith("*")) {
-            isVariable = true;
-            modifiedType = type.substring(1);
-        }
-        if (type.endsWith("?")) {
-            isOptional = true;
-            modifiedType = type.substring(0, type.length - 1);
-        }
-        return new Arg(modifiedType, name, isOptional, true, isVariable);
+function arg(str) {
+    if (!str.includes(":")) {
+        return new Arg(str, str, false, false, false);
     }
+    const [name, type] = str.split(":");
+    let modifiedType = type;
+    let isVariable = false;
+    let isOptional = false;
+    if (type.startsWith("*")) {
+        isVariable = true;
+        modifiedType = type.substring(1);
+    }
+    if (type.endsWith("?")) {
+        isOptional = true;
+        modifiedType = type.substring(0, type.length - 1);
+    }
+    return new Arg(modifiedType, name, isOptional, true, isVariable);
+}
+export function processCommands(preprocessedCommands) {
     const out = {};
     for (const [name, commands] of Object.entries(preprocessedCommands)) {
         out[name] = [];
@@ -515,7 +515,24 @@ export function processCommands(preprocessedCommands) {
     return out;
 }
 export function processCompilerCommands(preprocessedCommands) {
-    throw new Error("not yet implemented");
+    const out = {};
+    for (const [id, group] of Object.entries(preprocessedCommands)) {
+        out[id] = {
+            stackElement: group.stackElement,
+            overloads: []
+        };
+        for (const command of group.overloads) {
+            out[id].overloads.push({
+                description: command.description,
+                name: id,
+                args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
+                onbegin: command.onbegin,
+                oninblock: command.oninblock,
+                onend: command.onend
+            });
+        }
+    }
+    return out;
 }
 export function range(min, max, strings) {
     if (min > max)

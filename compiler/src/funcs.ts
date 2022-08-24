@@ -14,7 +14,7 @@ import {
 	ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType,
 	CompiledLine, CompilerCommandDefinitions, CompilerConst, CompilerConsts, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions,
 	PreprocessedCompilerCommandDefinitions,
-	Settings, StackElement, TData, PreprocessedArg
+	Settings, StackElement, TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup, CompilerCommandDefinitionGroup
 } from "./types.js";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -643,13 +643,14 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 
 export function processCompilerCommands(preprocessedCommands:PreprocessedCompilerCommandDefinitions):CompilerCommandDefinitions {
 	const out:CompilerCommandDefinitions = {};
-	for(const [id, group] of Object.entries(preprocessedCommands)){
+	for(const [id, group] of Object.entries(preprocessedCommands) as [keyof StackElementMapping, PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[keyof StackElementMapping]>][]){
 		out[id] = {
 			stackElement: group.stackElement,
 			overloads: []
 		};
-		for(const command of commands){
-			out[id].overloads.push({
+		for(const command of group.overloads){
+			//this took me 5 minutes to make
+			(out[id]!.overloads as CompilerCommandDefinitionGroup<StackElement>["overloads"]).push({
 				description: command.description,
 				name: id,
 				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as PreprocessedArg)) : [],

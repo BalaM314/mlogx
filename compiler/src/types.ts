@@ -9,7 +9,6 @@ Contains type definitions and enums.
 */
 
 import { Arg } from "./classes.js";
-import { compileLine } from "./compile.js";
 
 export interface Settings {
 	name: string;
@@ -107,9 +106,9 @@ export interface CompilerCommandDefinition<StackEl> {
 		element:StackEl | null;
 		skipTypeChecks?:boolean;
 	};
-	oninblock?: (compiledOutput:CompiledLine, stack:StackElement[]) => {
-		output:CompiledLine;
-		skipTypeChecks:boolean;
+	oninblock?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
+		compiledCode:CompiledLine[];
+		skipTypeChecks?:boolean;
 	}
 	onend?: (line:Line, removedStackElement:StackEl) => {
 		compiledCode:CompiledLine[];
@@ -125,9 +124,9 @@ export interface PreprocessedCompilerCommandDefinition<StackEl> {
 		element:StackEl | null;
 		skipTypeChecks?:boolean;
 	};
-	oninblock?: (compiledOutput:CompiledLine, stack:StackElement[]) => {
-		output:CompiledLine;
-		skipTypeChecks:boolean;
+	oninblock?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
+		compiledCode:CompiledLine[];
+		skipTypeChecks?:boolean;
 	}
 	onend?: (line:Line, removedStackElement:StackEl) => {
 		compiledCode:CompiledLine[];
@@ -145,7 +144,7 @@ export interface PreprocessedCompilerCommandDefinitionGroup<StackEl> {
 	overloads: PreprocessedCompilerCommandDefinition<StackEl>[];
 }
 
-interface StackElementMapping {
+export interface StackElementMapping {
 	'&for': ForStackElement;
 	'&if': IfStackElement;
 	'namespace': NamespaceStackElement;
