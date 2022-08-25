@@ -334,6 +334,11 @@ export function compileLine(
 		.map(arg => prependFilenameToArg(arg, isMain, settings.filename));
 	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
+	if(args[0].startsWith("&") || args[0] == "namespace"){
+		//TODO rename namespace to &namespace
+		getCompilerCommandDefinitions(cleanedLine, true);
+	}
+
 	//if it's a namespace: special handling
 	if(args[0] == "namespace"){
 		const name:string|undefined = args[1];
@@ -578,3 +583,7 @@ export function addJumpLabels(code:string[]):string[] {
 	return outputCode;
 
 }
+function getCompilerCommandDefinitions(cleanedLine: string, arg1: boolean) {
+	throw new Error("Function not implemented.");
+}
+

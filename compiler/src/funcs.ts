@@ -8,13 +8,13 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains a lot of utility functions.
 */
 
-import { Arg, Log } from "./classes.js";
-import commands from "./commands.js";
+import { Arg, CompilerError, Log } from "./classes.js";
+import { commands, compilerCommands } from "./commands.js";
 import {
 	ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType,
 	CompiledLine, CompilerCommandDefinitions, CompilerConst, CompilerConsts, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions,
 	PreprocessedCompilerCommandDefinitions,
-	Settings, StackElement, TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup, CompilerCommandDefinitionGroup
+	Settings, StackElement, TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup, CompilerCommandDefinitionGroup, CompilerCommandDefinition, IfStackElement
 } from "./types.js";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -530,7 +530,7 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean =
 	if(commandList == undefined){
 		return returnErrors ? [[], [{
 			type: CommandErrorType.noCommand,
-			message: `Command ${args[0]} does not exist.`
+			message: `Command "${args[0]}" does not exist.`
 		}]] : [];
 	}
 
@@ -548,6 +548,34 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean =
 	else
 		return possibleCommands;
 }
+
+export function getCompilerCommandDefinitions(cleanedLine:string):[CompilerCommandDefinition<StackElement>[], CommandError[]] {
+	const args = splitLineIntoArguments(cleanedLine);
+
+	const commandGroup = compilerCommands[args[0] as keyof StackElementMapping];
+	const possibleCommands:CompilerCommandDefinition<StackElement>[] = [];
+	const errors = [];
+
+	if(commandGroup == undefined){
+		return [[], [{
+			type: CommandErrorType.noCommand,
+			message: `Compiler command "${args[0]}" does not exist.`
+		}]];
+	}
+
+	for(const possibleCommand of commandGroup.overloads){
+		const result = isCommand(cleanedLine, possibleCommand);
+		if(result[0]){
+			possibleCommands.push(possibleCommand as CompilerCommandDefinition<StackElement>);
+		} else {
+			errors.push(result[1]);
+		}
+	}
+	
+	return [possibleCommands, errors];
+	
+}
+
 //#endregion
 //#region misc
 
