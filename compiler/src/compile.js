@@ -350,17 +350,22 @@ export function addJumpLabels(code) {
 }
 export function portCode(program, mode) {
     return program.map(line => {
-        const cleanedLine = cleanLine(line);
+        let cleanedLine = cleanLine(line);
         const leadingTabsOrSpaces = line.match(/^[ \t]*/) ?? "";
         const comment = line.match(/#.*$/) ?? "";
-        const commandDefinition = getCommandDefinition(cleanedLine);
+        let commandDefinition = getCommandDefinition(cleanedLine);
         const args = splitLineIntoArguments(cleanedLine);
+        while (commandDefinition == null && args.at(-1) == "0") {
+            args.splice(-1, 1);
+            cleanedLine = args.join(" ");
+            commandDefinition = getCommandDefinition(cleanedLine);
+        }
         if (commandDefinition == null) {
             Log.warn(`No known command definition for line ${cleanedLine}`);
         }
         else if (commandDefinition.port) {
             return leadingTabsOrSpaces + commandDefinition.port(args, mode) + comment;
         }
-        return line;
+        return leadingTabsOrSpaces + args.join(" ") + comment;
     });
 }
