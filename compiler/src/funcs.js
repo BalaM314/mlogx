@@ -1,5 +1,5 @@
 import { Arg, Log } from "./classes.js";
-import commands from "./commands.js";
+import { commands, compilerCommands } from "./commands.js";
 import { CommandErrorType, GAT } from "./types.js";
 import { buildingNameRegex } from "./consts.js";
 import * as readline from "readline";
@@ -423,7 +423,7 @@ export function getCommandDefinitions(cleanedLine, returnErrors = false) {
     if (commandList == undefined) {
         return returnErrors ? [[], [{
                     type: CommandErrorType.noCommand,
-                    message: `Command ${args[0]} does not exist.`
+                    message: `Command "${args[0]}" does not exist.`
                 }]] : [];
     }
     for (const possibleCommand of commandList) {
@@ -439,6 +439,28 @@ export function getCommandDefinitions(cleanedLine, returnErrors = false) {
         return [possibleCommands, errors];
     else
         return possibleCommands;
+}
+export function getCompilerCommandDefinitions(cleanedLine) {
+    const args = splitLineIntoArguments(cleanedLine);
+    const commandGroup = compilerCommands[args[0]];
+    const possibleCommands = [];
+    const errors = [];
+    if (commandGroup == undefined) {
+        return [[], [{
+                    type: CommandErrorType.noCommand,
+                    message: `Compiler command "${args[0]}" does not exist.`
+                }]];
+    }
+    for (const possibleCommand of commandGroup.overloads) {
+        const result = isCommand(cleanedLine, possibleCommand);
+        if (result[0]) {
+            possibleCommands.push(possibleCommand);
+        }
+        else {
+            errors.push(result[1]);
+        }
+    }
+    return [possibleCommands, errors];
 }
 export function formatLine(line, settings) {
     return chalk.gray(`${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
@@ -490,6 +512,7 @@ export function processCommands(preprocessedCommands) {
         out[name] = [];
         for (const command of commands) {
             const processedCommand = {
+                type: "Command",
                 description: command.description,
                 name: name,
                 args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
@@ -522,14 +545,29 @@ export function processCompilerCommands(preprocessedCommands) {
             overloads: []
         };
         for (const command of group.overloads) {
-            out[id].overloads.push({
+            const commandDefinition = {
+                type: "CompilerCommand",
                 description: command.description,
                 name: id,
                 args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
                 onbegin: command.onbegin,
                 oninblock: command.oninblock,
                 onend: command.onend
-            });
+            };
+            if (commandDefinition.onbegin) {
+                const oldFunction = commandDefinition.onbegin;
+                commandDefinition.onbegin = (args, line, stack) => {
+                    const outputData = oldFunction(args, line, stack);
+                    return {
+                        ...outputData,
+                        element: {
+                            ...outputData.element,
+                            commandDefinition
+                        }
+                    };
+                };
+            }
+            out[id].overloads.push(commandDefinition);
         }
     }
     return out;

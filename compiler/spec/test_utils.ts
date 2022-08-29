@@ -6,17 +6,18 @@ mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANT
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 */
 
+import { compilerCommands } from "../src/commands.js";
 import { addSourcesToCode } from "../src/funcs.js";
 import { ForStackElement, IfStackElement, NamespaceStackElement } from "../src/types.js";
 
 
 
 export function makeNamespaceEl(name:string):NamespaceStackElement {
-	return {type: "namespace", name, line: {lineNumber:1, text: `namespace ${name} {`}};
+	return {type: "namespace", commandDefinition: compilerCommands["namespace"].overloads[0], name, line: {lineNumber:1, text: `namespace ${name} {`}};
 }
 export function makeForEl(varname:string, elements:string[], loopBuffer:string[] = []):ForStackElement {
-	return {type: "&for", variableName: varname, elements, loopBuffer: addSourcesToCode(loopBuffer), line: {lineNumber:420, text: "[test]"}};
+	return {type: "&for", commandDefinition: compilerCommands["&for"].overloads[elements.filter(el => !isNaN(parseInt(el))).length == elements.length ? 0 : 1], variableName: varname, elements, loopBuffer: addSourcesToCode(loopBuffer), line: {lineNumber:420, text: "[test]"}};
 }
 export function makeIfEl(enabled:boolean):IfStackElement {
-	return {type: "&if", line: {lineNumber:420, text: "[test]"}, enabled};
+	return {type: "&if", commandDefinition: compilerCommands["&if"].overloads[0], line: {lineNumber:420, text: "[test]"}, enabled};
 }

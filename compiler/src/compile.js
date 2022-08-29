@@ -1,6 +1,6 @@
 import { GAT, CommandErrorType } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand, range, hasDisabledIf, } from "./funcs.js";
-import { maxLines, maxLoops, processorVariables, requiredVarCode } from "./consts.js";
+import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand, hasDisabledIf, getCompilerCommandDefinitions, } from "./funcs.js";
+import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
 import commands from "./commands.js";
 export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
@@ -203,8 +203,12 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
     if (line.text.includes("\u{F4321}")) {
         Log.warn(`Line \`${line.text}\` includes the character \\uF4321 which may cause issues with argument parsing`);
     }
-    let cleanedLine = cleanLine(line.text);
-    if (cleanedLine == "") {
+    const cleanedLine = {
+        text: cleanLine(line.text),
+        lineNumber: line.lineNumber
+    };
+    cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConstants);
+    if (cleanedLine.text == "") {
         if (settings.compilerOptions.removeComments) {
             return {
                 compiledCode: []
@@ -216,157 +220,41 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
             };
         }
     }
-    cleanedLine = replaceCompilerConstants(cleanedLine, compilerConstants);
-    if (getJumpLabel(cleanedLine)) {
+    const cleanedText = cleanedLine.text;
+    if (getJumpLabel(cleanedText)) {
         return {
             compiledCode: [
                 [
                     hasElement(stack, "namespace") ?
-                        `${addNamespacesToVariable(getJumpLabel(cleanedLine), stack)}:` :
-                        settings.compilerOptions.removeComments ? cleanedLine : line.text,
+                        `${addNamespacesToVariable(getJumpLabel(cleanedText), stack)}:` :
+                        settings.compilerOptions.removeComments ? cleanedText : line.text,
                     line
                 ]
             ]
         };
     }
-    const args = splitLineIntoArguments(cleanedLine)
+    const args = splitLineIntoArguments(cleanedText)
         .map(arg => prependFilenameToArg(arg, isMain, settings.filename));
-    if (args[0] == "namespace") {
-        const name = args[1];
-        if (!(name?.length > 0)) {
-            throw new CompilerError("No name specified for namespace");
-        }
-        return {
-            modifiedStack: stack.concat({
-                name,
-                type: "namespace",
-                line
-            }),
-            compiledCode: []
-        };
-    }
-    if (args[0] == "&for") {
-        if (args.at(-1) != "{") {
-            throw new CompilerError("expected { at end of &for statement");
-        }
-        const variableName = args[1];
-        const type = args[2];
-        if (type == "of") {
-            return {
-                modifiedStack: stack.concat({
-                    type: "&for",
-                    elements: args.slice(3, -1),
-                    variableName,
-                    loopBuffer: [],
-                    line
-                }),
-                compiledCode: []
-            };
-        }
-        else if (type == "in") {
-            const lowerBound = parseInt(args[3]);
-            const upperBound = parseInt(args[4]);
-            if (isNaN(lowerBound))
-                throw new CompilerError(`Invalid for loop syntax: lowerBound(${lowerBound}) is invalid`);
-            if (isNaN(upperBound))
-                throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
-            if (lowerBound < 0)
-                throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
-            if ((upperBound - lowerBound) > maxLoops)
-                throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
-            return {
-                modifiedStack: stack.concat({
-                    type: "&for",
-                    elements: range(lowerBound, upperBound, true),
-                    variableName,
-                    loopBuffer: [],
-                    line
-                }),
-                compiledCode: []
-            };
-        }
-        else {
-            const lowerBound = parseInt(args[2]);
-            const upperBound = parseInt(args[3]);
-            Log.warn(`"&for ${variableName} ${lowerBound} ${upperBound}" syntax is deprecated, please use "&for ${variableName} in ${lowerBound} ${upperBound}" instead.`);
-            if (isNaN(lowerBound))
-                throw new CompilerError(`Invalid for loop syntax: lowerBound(${lowerBound}) is invalid`);
-            if (isNaN(upperBound))
-                throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
-            if (lowerBound < 0)
-                throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
-            if ((upperBound - lowerBound) > maxLoops)
-                throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
-            return {
-                modifiedStack: stack.concat({
-                    type: "&for",
-                    elements: range(lowerBound, upperBound, true),
-                    variableName,
-                    loopBuffer: [],
-                    line
-                }),
-                compiledCode: []
-            };
-        }
-    }
-    if (args[0] == "&if") {
-        let isEnabled = false;
-        if (args.length == 3) {
-            if (!isNaN(parseInt(args[1]))) {
-                isEnabled = !!parseInt(args[1]);
-            }
-            else if (args[1] == "true") {
-                isEnabled = true;
-            }
-            else if (args[1] == "false") {
-                isEnabled = false;
-            }
-            else {
-                Log.warn(`condition in &if statement(${args[1]}) is not "true" or "false".`);
-                isEnabled = true;
-            }
-        }
-        return {
-            modifiedStack: stack.concat({
-                type: "&if",
-                line,
-                enabled: isEnabled
-            }),
-            compiledCode: []
-        };
-    }
     if (args[0] == "}") {
-        if (stack.length == 0) {
+        const modifiedStack = stack.slice();
+        const endedBlock = modifiedStack.pop();
+        if (!endedBlock) {
             throw new CompilerError("No block to end");
         }
-        else {
-            const modifiedStack = stack.slice();
-            const endedBlock = modifiedStack.pop();
-            if (endedBlock?.type == "&for") {
-                const compiledCode = [];
-                for (const el of endedBlock.elements) {
-                    compiledCode.push(...endedBlock.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[endedBlock.variableName, el]])), {
-                            text: replaceCompilerConstants(line[1].text, new Map([
-                                ...compilerConstants.entries(),
-                                [endedBlock.variableName, el]
-                            ])),
-                            lineNumber: line[1].lineNumber
-                        }]));
-                }
-                return {
-                    compiledCode,
-                    modifiedStack
-                };
-            }
-            else if (endedBlock?.type == "namespace") {
-            }
+        if (endedBlock.commandDefinition.onend) {
             return {
-                modifiedStack,
-                compiledCode: []
+                ...endedBlock.commandDefinition.onend(cleanedLine, endedBlock),
+                modifiedStack
+            };
+        }
+        else {
+            return {
+                compiledCode: [],
+                modifiedStack
             };
         }
     }
-    const [commandList, errors] = getCommandDefinitions(cleanedLine, true);
+    const [commandList, errors] = (args[0].startsWith("&") || args[0] == "namespace" ? getCompilerCommandDefinitions : getCommandDefinitions)(cleanedText, true);
     if (commandList.length == 0) {
         if (errors.length == 0) {
             throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${line.text}"\nPlease copy this and file an issue on Github.`);
@@ -387,6 +275,21 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
                     throw new CompilerError(`Line did not match any overloads for command ${args[0]}`);
                 }
             }
+        }
+    }
+    if (commandList[0].type == "CompilerCommand") {
+        if (commandList[0].onbegin) {
+            const { compiledCode, element, skipTypeChecks } = commandList[0].onbegin(args, line, stack);
+            return {
+                compiledCode,
+                modifiedStack: element ? stack.concat(element) : undefined,
+                skipTypeChecks
+            };
+        }
+        else {
+            return {
+                compiledCode: []
+            };
         }
     }
     return {

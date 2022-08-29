@@ -7,6 +7,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
+import { compilerCommands } from "../src/commands.js";
 import { compileLine, compileMlogxToMlog } from "../src/compile.js";
 import { settingsSchema } from "../src/consts.js";
 import { range } from "../src/funcs.js";
@@ -76,6 +77,7 @@ describe("compileLine", () => {
 			compileLine({text: `&for i in 0 5 {`, lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
 		).toEqual([{
 			type: "&for",
+			commandDefinition: compilerCommands["&for"].overloads[0],
 			elements: range(0, 5, true),
 			variableName: "i",
 			loopBuffer: [],
@@ -92,6 +94,7 @@ describe("compileLine", () => {
 		).toEqual([
 			{
 				type: "&for",
+				commandDefinition: compilerCommands["&for"].overloads[1],
 				elements: ["c", "d", "e"],
 				variableName: "i",
 				loopBuffer: [],
@@ -153,6 +156,7 @@ describe("compileLine", () => {
 			compileLine({text: `&if false {`, lineNumber: 1}, new Map(), settingsForFilename("sample.mlogx"), false, []).modifiedStack
 		).toEqual([{
 			type: "&if",
+			commandDefinition: compilerCommands["&if"].overloads[0],
 			line: {
 				lineNumber: jasmine.any(Number),
 				text: jasmine.any(String)

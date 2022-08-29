@@ -10,7 +10,8 @@ Contains pure-ish functions related to compiling.
 
 
 import {
-	Settings, GAT, CommandDefinition, CommandErrorType, StackElement, Line, TData, TypeCheckingData, CompiledLine, CompilerConsts
+	Settings, GAT, CommandDefinition, CommandErrorType, StackElement, Line, TData,
+	TypeCheckingData, CompiledLine, CompilerConsts, CompilerCommandDefinition
 } from "./types.js";
 import {
 	cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined,
@@ -18,9 +19,9 @@ import {
 	getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel,
 	addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop,
 	prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps,
-	addSourcesToCode, transformCommand, range, hasDisabledIf, 
+	addSourcesToCode, transformCommand, hasDisabledIf, getCompilerCommandDefinitions, 
 } from "./funcs.js";
-import { maxLines, maxLoops, processorVariables, requiredVarCode } from "./consts.js";
+import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { Arg, CompilerError, Log } from "./classes.js";
 import commands from "./commands.js";
 
@@ -300,8 +301,12 @@ export function compileLine(
 		Log.warn(`Line \`${line.text}\` includes the character \\uF4321 which may cause issues with argument parsing`);
 	}
 	
-	let cleanedLine = cleanLine(line.text);
-	if(cleanedLine == ""){
+	const cleanedLine:Line = {
+		text: cleanLine(line.text),
+		lineNumber: line.lineNumber
+	};
+	cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConstants);
+	if(cleanedLine.text == ""){
 		if(settings.compilerOptions.removeComments){
 			return {
 				compiledCode: []
@@ -312,17 +317,15 @@ export function compileLine(
 			};
 		}
 	}
+	const cleanedText = cleanedLine.text;
 
-	
-	cleanedLine = replaceCompilerConstants(cleanedLine, compilerConstants);
-	
-	if(getJumpLabel(cleanedLine)){
+	if(getJumpLabel(cleanedText)){
 		return {
 			compiledCode: [
 				[
 					hasElement(stack, "namespace") ? 
-						`${addNamespacesToVariable(getJumpLabel(cleanedLine)!, stack)}:` :
-						settings.compilerOptions.removeComments ? cleanedLine : line.text,
+						`${addNamespacesToVariable(getJumpLabel(cleanedText)!, stack)}:` :
+						settings.compilerOptions.removeComments ? cleanedText : line.text,
 					line
 				] as CompiledLine
 			]
@@ -330,15 +333,12 @@ export function compileLine(
 		//TODO fix the way comments are handled
 	}
 
-	const args = splitLineIntoArguments(cleanedLine)
+	const args = splitLineIntoArguments(cleanedText)
 		.map(arg => prependFilenameToArg(arg, isMain, settings.filename));
 	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
-	if(args[0].startsWith("&") || args[0] == "namespace"){
-		//TODO rename namespace to &namespace
-		getCompilerCommandDefinitions(cleanedLine, true);
-	}
 
+	/*
 	//if it's a namespace: special handling
 	if(args[0] == "namespace"){
 		const name:string|undefined = args[1];
@@ -477,8 +477,30 @@ export function compileLine(
 			};
 		}
 	}
+	*/
 
-	const [ commandList, errors ] = getCommandDefinitions(cleanedLine, true);
+	if(args[0] == "}"){
+		const modifiedStack = stack.slice();
+		const endedBlock = modifiedStack.pop();
+		if(!endedBlock){
+			throw new CompilerError("No block to end");
+		}
+		if(endedBlock.commandDefinition.onend){
+			return {
+				...(endedBlock.commandDefinition as CompilerCommandDefinition<StackElement>).onend!(cleanedLine, endedBlock),
+				modifiedStack
+			};
+		} else {
+			return {
+				compiledCode: [],
+				modifiedStack
+			};
+		}
+	}
+
+	const [ commandList, errors ] = (
+		args[0].startsWith("&") || args[0] == "namespace" ? getCompilerCommandDefinitions : getCommandDefinitions
+	)(cleanedText, true);
 
 	if(commandList.length == 0){
 		//No commands were valid
@@ -505,6 +527,20 @@ export function compileLine(
 		}
 	}
 	//Otherwise, the command was valid, so output
+	if(commandList[0].type == "CompilerCommand"){
+		if(commandList[0].onbegin){
+			const { compiledCode, element, skipTypeChecks } = commandList[0].onbegin(args, line, stack);
+			return {
+				compiledCode,
+				modifiedStack: element ? stack.concat(element) : undefined,
+				skipTypeChecks
+			};
+		} else {
+			return {
+				compiledCode: []
+			};
+		}
+	}
 	return {
 		compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), line)
 	};
@@ -582,8 +618,5 @@ export function addJumpLabels(code:string[]):string[] {
 
 	return outputCode;
 
-}
-function getCompilerCommandDefinitions(cleanedLine: string, arg1: boolean) {
-	throw new Error("Function not implemented.");
 }
 

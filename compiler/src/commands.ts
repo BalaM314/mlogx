@@ -11,7 +11,7 @@ Contains the commands AST.
 import { CompilerError, Log } from "./classes.js";
 import { maxLoops } from "./consts.js";
 import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
-import { CommandDefinitions, CompiledLine, ForStackElement, GAT } from "./types.js";
+import { CommandDefinitions, CompiledLine, GAT } from "./types.js";
 
 //welcome to AST hell
 /** Contains the arguments for all types.*/
@@ -376,7 +376,7 @@ export const commands: CommandDefinitions = processCommands({
 	],
 });
 
-const compilerCommands = processCompilerCommands({
+export const compilerCommands = processCompilerCommands({
 	'&for': {
 		stackElement: true,
 		overloads: [
@@ -394,6 +394,7 @@ const compilerCommands = processCompilerCommands({
 						throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
 					if((upperBound - lowerBound) > maxLoops)
 						throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
+					Log.debug(`Started for loop with bounds ${lowerBound} - ${upperBound}`);
 					return {
 						element: {
 							type: "&for",
@@ -412,7 +413,6 @@ const compilerCommands = processCompilerCommands({
 					};
 				},
 				onend(line, removedStackElement) {
-					removedStackElement;
 					const compiledCode:CompiledLine[] = [];
 					for(const el of removedStackElement.elements){
 						compiledCode.push(

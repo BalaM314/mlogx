@@ -73,6 +73,7 @@ export interface CommandError {
 }
 
 export interface CommandDefinition {
+	type: "Command";
 	args: Arg[];
 	replace?: (args:string[]) => string[];
 	description: string;
@@ -98,6 +99,7 @@ export interface PreprocessedCommandDefinitions {
 }
 
 export interface CompilerCommandDefinition<StackEl> {
+	type: "CompilerCommand"
 	args: Arg[];
 	name: string;
 	description: string;
@@ -116,12 +118,13 @@ export interface CompilerCommandDefinition<StackEl> {
 	};
 }
 
+
 export interface PreprocessedCompilerCommandDefinition<StackEl> {
 	args: string;
 	description: string;
 	onbegin?: (args:string[], line:Line, stack:StackElement[]) => {
 		compiledCode:CompiledLine[];
-		element:StackEl | null;
+		element:Omit<StackEl, "commandDefinition"> | null;
 		skipTypeChecks?:boolean;
 	};
 	oninblock?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
@@ -151,18 +154,19 @@ export interface StackElementMapping {
 }
 
 export type PreprocessedCompilerCommandDefinitions = {
-	[ID in keyof StackElementMapping]?: PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[ID]>
+	[ID in keyof StackElementMapping]: PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[ID]>
 }
 
 export type CompilerCommandDefinitions = {
-	[ID in keyof StackElementMapping]?: CompilerCommandDefinitionGroup<StackElementMapping[ID]>
+	[ID in keyof StackElementMapping]: CompilerCommandDefinitionGroup<StackElementMapping[ID]>
 }
 
 export type ArgType = GAT | string;
-export type PreprocessedArg = `${string}:${"*"|""}${string}${"?"|""}`;
+export type PreprocessedArg = `${"..."|""}${string}:${"*"|""}${string}${"?"|""}`;
 
 interface BaseStackElement {
 	line: Line;
+	commandDefinition: CompilerCommandDefinition<this>;
 }
 
 export interface NamespaceStackElement extends BaseStackElement {

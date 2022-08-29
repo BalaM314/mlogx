@@ -8,13 +8,14 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains a lot of utility functions.
 */
 
-import { Arg, CompilerError, Log } from "./classes.js";
+import { Arg, Log } from "./classes.js";
 import { commands, compilerCommands } from "./commands.js";
 import {
-	ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType,
-	CompiledLine, CompilerCommandDefinitions, CompilerConst, CompilerConsts, GAT, Line, NamespaceStackElement, PreprocessedCommandDefinitions,
-	PreprocessedCompilerCommandDefinitions,
-	Settings, StackElement, TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup, CompilerCommandDefinitionGroup, CompilerCommandDefinition, IfStackElement
+	ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, CompiledLine,
+	CompilerCommandDefinitions, CompilerConst, CompilerConsts, GAT, Line, NamespaceStackElement,
+	PreprocessedCommandDefinitions, PreprocessedCompilerCommandDefinitions, Settings, StackElement,
+	TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup,
+	CompilerCommandDefinitionGroup, CompilerCommandDefinition
 } from "./types.js";
 import { buildingNameRegex } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -480,7 +481,7 @@ export function acceptsVariable(arg: Arg|undefined):boolean {
 //#region commandchecking
 
 /**Checks if a line is valid for a command definition. */
-export function isCommand(cleanedLine:string, command:CommandDefinition): [valid:false, error:CommandError] | [valid:true, error:null] {
+export function isCommand(cleanedLine:string, command:CommandDefinition | CompilerCommandDefinition<StackElement>): [valid:false, error:CommandError] | [valid:true, error:null] {
 	const args = splitLineIntoArguments(cleanedLine);
 	const commandArguments = args.slice(1);
 	if(commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length){
@@ -563,10 +564,10 @@ export function getCompilerCommandDefinitions(cleanedLine:string):[CompilerComma
 		}]];
 	}
 
-	for(const possibleCommand of commandGroup.overloads){
+	for(const possibleCommand of commandGroup.overloads as CompilerCommandDefinition<StackElement>[]){
 		const result = isCommand(cleanedLine, possibleCommand);
 		if(result[0]){
-			possibleCommands.push(possibleCommand as CompilerCommandDefinition<StackElement>);
+			possibleCommands.push(possibleCommand);
 		} else {
 			errors.push(result[1]);
 		}
@@ -645,6 +646,7 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 		out[name] = [];
 		for(const command of commands){
 			const processedCommand:CommandDefinition = {
+				type: "Command",
 				description: command.description,
 				name: name,
 				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as PreprocessedArg)) : [],
@@ -670,25 +672,66 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 }
 
 export function processCompilerCommands(preprocessedCommands:PreprocessedCompilerCommandDefinitions):CompilerCommandDefinitions {
-	const out:CompilerCommandDefinitions = {};
+	const out:Partial<CompilerCommandDefinitions> = {};
 	for(const [id, group] of Object.entries(preprocessedCommands) as [keyof StackElementMapping, PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[keyof StackElementMapping]>][]){
 		out[id] = {
 			stackElement: group.stackElement,
 			overloads: []
 		};
-		for(const command of group.overloads){
-			//this took me 5 minutes to make
-			(out[id]!.overloads as CompilerCommandDefinitionGroup<StackElement>["overloads"]).push({
+
+		type _PreprocessedCompilerCommandDefinitionGroup<T> = T extends infer A ? PreprocessedCompilerCommandDefinitionGroup<A> : never;
+		// interface SusCompilerCommandDefinition<StackEl> {
+		// 	type: "CompilerCommand"
+		// 	args: Arg[];
+		// 	name: string;
+		// 	description: string;
+		// 	onbegin?: CompilerCommandDefinition<StackEl>["onbegin"] | PreprocessedCompilerCommandDefinition<StackEl>["onbegin"];
+		// 	oninblock?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
+		// 		compiledCode:CompiledLine[];
+		// 		skipTypeChecks?:boolean;
+		// 	}
+		// 	onend?: (line:Line, removedStackElement:StackEl) => {
+		// 		compiledCode:CompiledLine[];
+		// 		skipTypeChecks?:boolean;
+		// 	};
+		// }
+		// type SussierCompilerCommandDefinition<T> = T extends infer A ? SusCompilerCommandDefinition<A> : never;
+		for(const command of (group as _PreprocessedCompilerCommandDefinitionGroup<StackElement>).overloads){
+			/**
+			 * Time for a rant.
+			 * The onbegin() function of a command definition must return a stack element which points back to the command definition.
+			 * This means I have to create the command definition and then modify the onbegin() prop.
+			 * This causes typescript to yell at me.
+			 * I tried low-level black magic for 30 minutes but couldn't get it to work.
+			 * Therefore:
+			 */
+			//eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const commandDefinition:any = {
+				type: "CompilerCommand",
 				description: command.description,
 				name: id,
 				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as PreprocessedArg)) : [],
 				onbegin: command.onbegin,
 				oninblock: command.oninblock,
 				onend: command.onend
-			});
+			};
+			if(commandDefinition.onbegin){
+				const oldFunction = commandDefinition.onbegin!;
+				commandDefinition.onbegin = (args:string[], line:Line, stack:StackElement[]) => {
+					const outputData = oldFunction(args, line, stack);
+					return {
+						...outputData,
+						element: {
+							...outputData.element,
+							commandDefinition
+						}
+					};
+				};
+			}
+			(out[id]!.overloads as CompilerCommandDefinitionGroup<StackElement>["overloads"]).push(commandDefinition as CompilerCommandDefinition<StackElement>);
 		}
 	}
-	return out;
+	return out as CompilerCommandDefinitions;
 }
 
 export function range(min:number, max:number):number[];

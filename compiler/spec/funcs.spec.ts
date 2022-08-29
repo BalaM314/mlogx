@@ -616,6 +616,7 @@ describe("processCommands", () => {
 		}))
 			.toEqual({
 				"amogus": [{
+					type: "Command",
 					args: [new Arg("sus", "sus", false, false, false), new Arg("number", "susLevel", false, true, false)],
 					description: "Sets the suslevel of the imposter.",
 					name: "amogus",
@@ -624,6 +625,7 @@ describe("processCommands", () => {
 				}],
 				"sus": [
 					{
+						type: "Command",
 						name: "sus",
 						description: "is sus.",
 						args: [
@@ -640,6 +642,7 @@ describe("processCommands", () => {
 						replace: jasmine.any(Function)
 					},
 					{
+						type: "Command",
 						args: [],
 						description: "Does nothing.",
 						name: "sus",

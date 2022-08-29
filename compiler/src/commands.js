@@ -364,7 +364,7 @@ export const commands = processCommands({
         }
     ],
 });
-const compilerCommands = processCompilerCommands({
+export const compilerCommands = processCompilerCommands({
     '&for': {
         stackElement: true,
         overloads: [
@@ -382,6 +382,7 @@ const compilerCommands = processCompilerCommands({
                         throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
                     if ((upperBound - lowerBound) > maxLoops)
                         throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
+                    Log.debug(`Started for loop with bounds ${lowerBound} - ${upperBound}`);
                     return {
                         element: {
                             type: "&for",
@@ -400,7 +401,6 @@ const compilerCommands = processCompilerCommands({
                     };
                 },
                 onend(line, removedStackElement) {
-                    removedStackElement;
                     const compiledCode = [];
                     for (const el of removedStackElement.elements) {
                         compiledCode.push(...removedStackElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedStackElement.variableName, el]])), {
