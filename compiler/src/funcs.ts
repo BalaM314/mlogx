@@ -3,7 +3,7 @@ Copyright © <BalaM314>, 2022.
 This file is part of mlogx.
 The Mindustry Logic Extended Compiler(mlogx) is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
-You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
+You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>.
 
 Contains a lot of utility functions.
 */
@@ -249,7 +249,7 @@ export function splitLineIntoArguments(cleanedLine:string):string[] {
 
 /**Uses a function to transform variables in a command. */
 export function transformVariables(args:string[], commandDefinition:CommandDefinition, transformFunction: (arg:string) => string){
-	return transformCommand(args, commandDefinition, transformFunction, 
+	return transformCommand(args, commandDefinition, transformFunction,
 		(arg:string, commandArg:Arg|undefined) => (
 			commandArg?.isVariable || (acceptsVariable(commandArg)
 			&& isArgOfType(arg, new Arg(GAT.variable)))
@@ -261,7 +261,7 @@ export function transformVariables(args:string[], commandDefinition:CommandDefin
 export function transformCommand(args:string[], commandDefinition:CommandDefinition, transformFunction: (arg:string, commandArg:Arg) => string, filterFunction:(arg:string, commandArg:Arg) => boolean = () => true){
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index - 1]] as [name:string, arg:Arg|undefined])
-		.map(([arg, commandArg]) => 
+		.map(([arg, commandArg]) =>
 			(commandArg && filterFunction(arg, commandArg))
 				? transformFunction(arg, commandArg) : arg
 		);
@@ -277,7 +277,7 @@ export function addNamespacesToLine(args:string[], commandDefinition:CommandDefi
 	if(!hasElement(stack, "namespace")) return args.join(" ");
 	// if(args[0] == "jump"){
 	// 	//special handling for labels todo maybe remove
-	// 	return transformCommand(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack), 
+	// 	return transformCommand(args, commandDefinition, (variable:string) => addNamespaces(variable, namespaceStack),
 	// 		(arg:string, commandArg:Arg|undefined) => commandArg?.type == GenericArgType.jumpAddress
 	// 	).join(" ");
 	// }
@@ -402,7 +402,7 @@ export function getAllPossibleVariablesUsed(compiledLine:string, uncompiledLine:
 export function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
 	return args
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
-		.filter(([arg, commandArg]) => 
+		.filter(([arg, commandArg]) =>
 			isArgOfType(arg, new Arg(GAT.variable)) && acceptsVariable(commandArg) && arg != "_"
 		).map(([arg, commandArg]) => [arg, commandArg.type]);
 }
@@ -540,7 +540,7 @@ export function getCommandDefinitions(cleanedLine:string): CommandDefinition[];
 export function getCommandDefinitions(cleanedLine:string, returnErrors:true): [CommandDefinition[], CommandError[]];
 
 /**Gets all valid command definitions for a command. */
-export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean = false): 
+export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean = false):
 	CommandDefinition[] | [CommandDefinition[], CommandError[]] {
 	const args = splitLineIntoArguments(cleanedLine);
 

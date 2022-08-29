@@ -3,7 +3,7 @@ Copyright © <BalaM314>, 2022.
 This file is part of mlogx.
 The Mindustry Logic Extended Compiler(mlogx) is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
-You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
+You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>.
 
 Contains pure-ish functions related to compiling.
 */
@@ -19,7 +19,7 @@ import {
 	getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel,
 	addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop,
 	prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps,
-	addSourcesToCode, transformCommand, hasDisabledIf, getCompilerCommandDefinitions, 
+	addSourcesToCode, transformCommand, hasDisabledIf, getCompilerCommandDefinitions,
 } from "./funcs.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { Arg, CompilerError, Log } from "./classes.js";
@@ -52,7 +52,7 @@ export function compileMlogxToMlog(
 					lineNumber: 1
 				}});
 				return accumulator;
-			}, {}) : {})
+			},{}) : {})
 		},
 		variableUsages: {}
 	};
@@ -138,7 +138,7 @@ ${formatLineWithPrefix(element.line, settings)}`
 	if(settings.compilerOptions.checkTypes && !hasInvalidStatements)
 		printTypeErrors(typeCheckingData, settings);
 	
-	const outputProgram = 
+	const outputProgram =
 		settings.compilerOptions.removeUnusedJumpLabels ?
 			removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed) :
 			compiledProgram;
@@ -217,7 +217,7 @@ export function printTypeErrors({variableDefinitions, variableUsages, jumpLabels
 		const types = [
 			...new Set(
 				definitions.map(el => el.variableType)
-					.filter(el => 
+					.filter(el =>
 						el != GAT.valid && el != GAT.any &&
 						el != GAT.variable && el != GAT.valid &&
 						el != GAT.null
@@ -253,7 +253,7 @@ ${formatLineWithPrefix(variableUsage.line, settings)}`
 `Variable "${name}" is of type "${variableDefinitions[name][0].variableType}", \
 but the command requires it to be of type ${variableUsage.variableTypes.map(t => `"${t}"`).join(" or ")}
 ${formatLineWithPrefix(variableUsage.line, settings)}
-	First definition: 
+	First definition:
 ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 				);
 			}
@@ -264,7 +264,7 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 	for(const [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)){
 		if(definitions.length > 1){
 			Log.warn(`Jump label "${jumpLabel}" was defined ${definitions.length} times.`);
-			definitions.forEach(definition => 
+			definitions.forEach(definition =>
 				Log.none(
 					formatLineWithPrefix(definition.line, settings)
 				)
@@ -276,7 +276,7 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 	for(const [jumpLabel, usages] of Object.entries(jumpLabelsUsed)){
 		if(!jumpLabelsDefined[jumpLabel]){
 			Log.warn(`Jump label "${jumpLabel}" is missing.`);
-			usages.forEach(usage => 
+			usages.forEach(usage =>
 				Log.none(
 					formatLineWithPrefix(usage.line, settings)
 				)
@@ -323,7 +323,7 @@ export function compileLine(
 		return {
 			compiledCode: [
 				[
-					hasElement(stack, "namespace") ? 
+					hasElement(stack, "namespace") ?
 						`${addNamespacesToVariable(getJumpLabel(cleanedText)!, stack)}:` :
 						settings.compilerOptions.removeComments ? cleanedText : line.text,
 					line

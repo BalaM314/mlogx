@@ -3,7 +3,7 @@ Copyright © <BalaM314>, 2022.
 This file is part of mlogx.
 The Mindustry Logic Extended Compiler(mlogx) is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
-You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
+You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>.
 
 Contains the commands AST.
 */
@@ -106,8 +106,7 @@ export const commands: CommandDefinitions = processCommands({
 		{
 			args: "messageblock:building",
 			description: "Flushes queued print instructions to (messageblock)."
-		},
-		{
+		},{
 			args: "null",
 			description: "Clears queued print instructions."
 		}
@@ -165,8 +164,7 @@ export const commands: CommandDefinitions = processCommands({
 		},{
 			args: "output:*any unit:unit value:type",
 			description: "Gets information about (unit) and outputs to (output), does not need to be on the same team."
-		},
-		{
+		},{
 			args: "output:*any",
 			replace: (args:string[]) => {
 				if(args[1].match(/^([\w@_$-]+?)\.([\w@_$-]+?)$/i)){
@@ -185,8 +183,7 @@ export const commands: CommandDefinitions = processCommands({
 			args: "variable:*any value:valid",
 			description: "Sets the value of (variable) to (value).",
 			getVariablesDefined: (args) => [[args[1], typeofArg(args[2]) == GAT.variable ? GAT.any : typeofArg(args[2])]]
-		},
-		{
+		},{
 			args: "variable:*any type:ctype value:valid",
 			description: "Sets the value of (variable) to (value), and the type of (variable) to (type).",
 			replace: (args:string[]) => {
@@ -203,38 +200,32 @@ export const commands: CommandDefinitions = processCommands({
 					throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GAT).join(", ")}`);
 				}
 			}
-		},
+		}
 	],
 	op: [
 		{
 			args: "operand:operandSingle output:*number arg1:number zero:0?",
 			description: "Performs an operation on (arg1), storing the result in (output).",
 			replace: [ "op %1 %2 %3 0" ]
-		},
-		{
+		},{
 			args: "operand:operandSingle output:*any arg1:valid zero:0?",
 			description: "Performs an operation on (arg1), storing the result in (output).",
 			replace: [ "op %1 %2 %3 0" ]
-		},
-		{
+		},{
 			args: "operand:operandDouble output:*number arg1:number arg2:number",
 			description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
-		},
-		{
+		},{
 			args: "operand:operandDouble output:*any arg1:valid arg2:valid",
 			description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
-		},
-		{
+		},{
 			args: "operand:operandDouble output:*number arg1:number",
 			description: "Performs an operation on (arg1) and (output), storing the result in (output).",
 			replace: [ "op %1 %2 %2 %3" ]
-		},
-		{
+		},{
 			args: "operand:operandDouble output:*any arg1:valid",
 			description: "Performs an operation on (arg1) and (output), storing the result in (output).",
 			replace: [ "op %1 %2 %2 %3" ]
-		},
-		{
+		},{
 			args: "operand:operandSingle arg1:*number",
 			description: "Performs an operation on arg1, mutating it. Example: `op abs xDiff`",
 			replace: [ "op %1 %2 %2 0" ]
@@ -256,8 +247,7 @@ export const commands: CommandDefinitions = processCommands({
 		{
 			args: "jumpAddress:jumpAddress operandTest:operandTest var1:valid? var2:valid?",
 			description: "Jumps to an address or label if a condition is met."
-		},
-		{
+		},{
 			args: "jumpAddress:jumpAddress",
 			description: "Jumps to an address or label always.",
 			replace: [ "jump %1 always 0 0" ]
@@ -267,12 +257,10 @@ export const commands: CommandDefinitions = processCommands({
 		{
 			args: "unitType:type",
 			description: "Binds a unit of (unitType). May return dead units if no live ones exist."
-		},
-		{
+		},{
 			args: "null:null",
 			description: "Unbinds the current unit."
-		},
-		{
+		},{
 			args: "unit:unit",
 			description: "Binds a specific unit."
 		},

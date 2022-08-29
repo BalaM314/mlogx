@@ -181,7 +181,7 @@ ${formatLineWithPrefix(variableUsage.line, settings)}`);
                 Log.warn(`Variable "${name}" is of type "${variableDefinitions[name][0].variableType}", \
 but the command requires it to be of type ${variableUsage.variableTypes.map(t => `"${t}"`).join(" or ")}
 ${formatLineWithPrefix(variableUsage.line, settings)}
-	First definition: 
+	First definition:
 ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`);
             }
         }
