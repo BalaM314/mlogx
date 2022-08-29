@@ -528,6 +528,16 @@ export function isCommand(cleanedLine:string, command:CommandDefinition | Compil
 			});
 			throw new Error(`Too many arguments were present for a command, but this was not properly detected.`);
 		}
+		if(stringArg == undefined){
+			if(commandArg.isOptional) return [true, null];
+			Log.dump({
+				args,
+				commandArguments,
+				maxArgs,
+				minArgs
+			});
+			throw new Error(`Not enough arguments were present for a command, but this was not properly detected.`);
+		}
 		if(commandArg.spread){
 			if(command.args.slice(+arg + 1).filter(arg => arg.spread || arg.isOptional).length > 0){
 				throw new Error(`Command definitions with more than one spread arg or optional args after a spread arg are not yet implemented.`);
