@@ -491,7 +491,7 @@ describe("getCommandDefinitions", () => {
 		]);
 		expect(getCommandDefinitions(`jump label always`, true)).toEqual([
 			[commands.jump[0]],
-			[jasmine.any(Object)]
+			[jasmine.any(Object), jasmine.any(Object)]
 		]);
 	});
 	//TODO add more

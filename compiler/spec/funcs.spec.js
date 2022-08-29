@@ -385,7 +385,7 @@ describe("getCommandDefinitions", () => {
         ]);
         expect(getCommandDefinitions(`jump label always`, true)).toEqual([
             [commands.jump[0]],
-            [jasmine.any(Object)]
+            [jasmine.any(Object), jasmine.any(Object)]
         ]);
     });
     it("should return empty if no valid definitions", () => {

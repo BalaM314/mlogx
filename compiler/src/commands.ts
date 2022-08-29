@@ -11,7 +11,7 @@ Contains the commands AST.
 import { CompilerError, Log } from "./classes.js";
 import { maxLoops, shortOperandMapping } from "./consts.js";
 import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
-import { CommandDefinitions, CompiledLine, GAT } from "./types.js";
+import { CommandDefinitions, CompiledLine, GAT, PortingMode } from "./types.js";
 
 //welcome to AST hell
 /** Contains the arguments for all types.*/
@@ -136,7 +136,13 @@ export const commands: CommandDefinitions = processCommands({
 	radar: [
 		{
 			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*unit",
-			description: "Finds units of specified type within the range of (turret)."
+			description: "Finds units of specified type within the range of (turret).",
+			port(args, mode) {
+				if(mode >= PortingMode.shortenSyntax && args[1] == args[2] && args[2] == args[3])
+					return `${args[0]} ${args[1]} ${args[4]} ${args[5]} ${args[6]} ${args[7]}`;
+				else
+					return args.join(" ");
+			},
 		},{
 			args: "targetClass:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*unit",
 			description: "Finds units of specified type within the range of (turret).",
@@ -160,10 +166,22 @@ export const commands: CommandDefinitions = processCommands({
 	sensor: [
 		{
 			args: "output:*any building:building value:type",
-			description: "Gets information about (building) and outputs to (output), does not need to be linked or on the same team."
+			description: "Gets information about (building) and outputs to (output), does not need to be linked or on the same team.",
+			port(args, mode) {
+				if(args[1] == `${args[2]}.${args[3]}` && mode >= PortingMode.shortenSyntax)
+					return `sensor ${args[1]}`;
+				else
+					return args.join(" ");
+			},
 		},{
 			args: "output:*any unit:unit value:type",
-			description: "Gets information about (unit) and outputs to (output), does not need to be on the same team."
+			description: "Gets information about (unit) and outputs to (output), does not need to be on the same team.",
+			port(args, mode) {
+				if(args[1] == `${args[2]}.${args[3]}` && mode >= PortingMode.shortenSyntax)
+					return `sensor ${args[1]}`;
+				else
+					return args.join(" ");
+			},
 		},{
 			args: "output:*any",
 			replace: (args:string[]) => {
@@ -210,10 +228,25 @@ export const commands: CommandDefinitions = processCommands({
 		{
 			args: "operand:operandSingle output:*number arg1:number zero:0?",
 			description: "Performs an operation on (arg1), storing the result in (output).",
-			replace: [ "op %1 %2 %3 0" ]
+			replace: [ "op %1 %2 %3 0" ],
+			port(args, mode){
+				if(mode >= PortingMode.removeZeroes){
+					if(args[4] == "0") args.splice(4, 1);
+				}
+				if(mode >= PortingMode.shortenSyntax){
+					if(args[2] == args[3]) return `op ${args[1]} ${args[2]}`;
+				}
+				return args.join(" ");
+			},
 		},{
 			args: "operand:operandDouble output:*number arg1:number arg2:number",
-			description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
+			description: "Performs an operation between (arg1) and (arg2), storing the result in (output).",
+			port(args, mode){
+				if(mode >= PortingMode.shortenSyntax){
+					if(args[2] == args[3]) return `op ${args[1]} ${args[2]} ${args[4]}`;
+				}
+				return args.join(" ");
+			},
 		},{
 			args: "operand:operandDouble output:*number arg1:number",
 			description: "Performs an operation on (arg1) and (output), storing the result in (output).",
@@ -238,11 +271,22 @@ export const commands: CommandDefinitions = processCommands({
 	}],
 	jump: [
 		{
-			args: "jumpAddress:jumpAddress operandTest:operandTest var1:valid? var2:valid?",
-			description: "Jumps to an address or label if a condition is met."
+			args: "jumpAddress:jumpAddress always",
+			description: "Jumps to an address or label."
+		},{
+			args: "jumpAddress:jumpAddress operandTest:operandTest var1:valid var2:valid",
+			description: "Jumps to an address or label if a condition is met.",
+			port(args, mode){
+				if(mode >= PortingMode.modernSyntax){
+					if(args[2] == "always") return `jump ${args[1]}`;
+				} else if(mode >= PortingMode.removeZeroes){
+					if(args[2] == "always") return `jump ${args[1]} always`;
+				}
+				return args.join(" ");
+			},
 		},{
 			args: "jumpAddress:jumpAddress",
-			description: "Jumps to an address or label always.",
+			description: "Jumps to an address or label.",
 			replace: [ "jump %1 always 0 0" ]
 		},
 	],
@@ -324,7 +368,15 @@ export const commands: CommandDefinitions = processCommands({
 			]
 		},{
 			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sillyness:0 sortOrder:number output:*any",
-			description: "Today I learned that the default signature of uradar has a random 0 that doesn't mean anything."
+			description: "Today I learned that the default signature of uradar has a random 0 that doesn't mean anything.",
+			port(args, mode) {
+				if(mode >= PortingMode.shortenSyntax && args[1] == args[2] && args[2] == args[3])
+					return `${args[0]} ${args[1]} ${args[4]} ${args[6]} ${args[7]}`;
+				else if(mode >= PortingMode.removeZeroes)
+					return `${args[0]} ${args[1]} ${args[2]} ${args[3]} ${args[4]} ${args[6]} ${args[7]}`;
+				else
+					return args.join(" ");
+			},
 		},{
 			args: "targetClass:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
 			description: "Finds units of specified type within the range of the bound unit.",
@@ -352,7 +404,24 @@ export const commands: CommandDefinitions = processCommands({
 			replace: ["ulocate building %2 %3 _ %4 %5 %6 %7"]
 		},{
 			args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:any buildingGroup:buildingGroup enemy:boolean ore:type outX:*number outY:*number found:*boolean building:*building",
-			description: "The wack default ulocate signature, included for compatibility."
+			description: "The wack default ulocate signature, included for compatibility.",
+			port(args, mode){
+				if(mode >= PortingMode.shortenSyntax){
+					switch(args[1]){
+						case "ore":
+							return `ulocate ore ${args[4]} ${args[5]} ${args[6]} ${args[7]}`;
+						case "spawn":
+							return `ulocate spawn ${args[5]} ${args[6]} ${args[7]}`;
+						case "damaged":
+							return `ulocate damaged ${args[5]} ${args[6]} ${args[7]} ${args[8]}`;
+						case "building":
+							return `ulocate building ${args[2]} ${args[3]} ${args[5]} ${args[6]} ${args[7]}`;
+						default:
+							Log.err(`Cannot port ulocate statement "${args.join(" ")}" because it is invalid.`);
+					}
+				}
+				return args.join(" ");
+			},
 		}
 	],
 });

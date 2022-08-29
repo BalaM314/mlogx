@@ -66,8 +66,8 @@ export enum PortingMode {
 	/** Just removes trailing zeroes. */
 	removeZeroes,
 	/** Goes to syntax with improved argument order. */
-	updateSyntax,
-	/** Switches to the modern op syntax. */
+	shortenSyntax,
+	/** Switches to the modern op syntax. Not yet implemented. */
 	modernSyntax
 }
 
@@ -97,7 +97,7 @@ export interface CommandDefinition {
 export interface PreprocessedCommand {
 	args: string;
 	replace?: string[] | ((args:string[]) => string[]);
-	port?: (args:string[], type:PortingMode) => string;
+	port?: (args:string[], mode:PortingMode) => string;
 	description: string;
 	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][]
 	getVariablesUsed?: (args:string[]) => [name:string, types:ArgType[]][]
