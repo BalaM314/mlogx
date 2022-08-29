@@ -123,7 +123,7 @@ export const commands = processCommands({
             args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*unit",
             description: "Finds units of specified type within the range of (turret).",
             port(args, mode) {
-                if (mode >= PortingMode.shortenSyntax && args[1] == args[2] && args[2] == args[3])
+                if (mode >= PortingMode.shortenSyntax && ((args[1] == args[2] && args[2] == args[3]) || (args[2] == "any" && args[3] == "any")))
                     return `${args[0]} ${args[1]} ${args[4]} ${args[5]} ${args[6]} ${args[7]}`;
                 else
                     return args.join(" ");
@@ -153,7 +153,7 @@ export const commands = processCommands({
             args: "output:*any building:building value:type",
             description: "Gets information about (building) and outputs to (output), does not need to be linked or on the same team.",
             port(args, mode) {
-                if (args[1] == `${args[2]}.${args[3]}` && mode >= PortingMode.shortenSyntax)
+                if (args[1] == `${args[2]}.${args[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
                     return `sensor ${args[1]}`;
                 else
                     return args.join(" ");
@@ -162,7 +162,7 @@ export const commands = processCommands({
             args: "output:*any unit:unit value:type",
             description: "Gets information about (unit) and outputs to (output), does not need to be on the same team.",
             port(args, mode) {
-                if (args[1] == `${args[2]}.${args[3]}` && mode >= PortingMode.shortenSyntax)
+                if (args[1] == `${args[2]}.${args[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
                     return `sensor ${args[1]}`;
                 else
                     return args.join(" ");
@@ -264,7 +264,8 @@ export const commands = processCommands({
     jump: [
         {
             args: "jumpAddress:jumpAddress always",
-            description: "Jumps to an address or label."
+            description: "Jumps to an address or label.",
+            replace: ["jump %1 always 0 0"]
         }, {
             args: "jumpAddress:jumpAddress operandTest:operandTest var1:valid var2:valid",
             description: "Jumps to an address or label if a condition is met.",
@@ -365,7 +366,7 @@ export const commands = processCommands({
             args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sillyness:0 sortOrder:number output:*any",
             description: "Today I learned that the default signature of uradar has a random 0 that doesn't mean anything.",
             port(args, mode) {
-                if (mode >= PortingMode.shortenSyntax && args[1] == args[2] && args[2] == args[3])
+                if (mode >= PortingMode.shortenSyntax && ((args[1] == args[2] && args[2] == args[3]) || (args[2] == "any" && args[3] == "any")))
                     return `${args[0]} ${args[1]} ${args[4]} ${args[6]} ${args[7]}`;
                 else if (mode >= PortingMode.removeZeroes)
                     return `${args[0]} ${args[1]} ${args[2]} ${args[3]} ${args[4]} ${args[6]} ${args[7]}`;
