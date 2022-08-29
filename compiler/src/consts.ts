@@ -83,3 +83,28 @@ export const buildingInternalNames: string[] = [
 export const buildingNameRegex = new RegExp(`^(${buildingInternalNames.map(el => `(${el})`).join("|")})[\\d]+$`);
 
 export const maxLines = 999;
+export const shortOperandMapping: {
+	[shortop:string]: string;
+} = {
+	"+": "add",
+	"-": "sub",
+	"*": "mul",
+	"/": "div",
+	"//": "idiv",
+	"**": "pow",
+	"~=": "equal",
+	"==": "strictEqual",
+	"!=": "notEqual",
+	"<>": "notEqual",
+	"&&": "land",
+	"<": "lessThan",
+	"<=": "lessThanEq",
+	">": "greaterThan",
+	">=": "greaterThanEq",
+	"<<": "shl",
+	">>": "shr",
+	"|": "or",
+	"||": "or",
+	"&": "and",
+	"^": "xor",
+};

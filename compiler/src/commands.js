@@ -1,5 +1,5 @@
 import { CompilerError, Log } from "./classes.js";
-import { maxLoops } from "./consts.js";
+import { maxLoops, shortOperandMapping } from "./consts.js";
 import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
 import { GAT } from "./types.js";
 export const commands = processCommands({
@@ -189,6 +189,10 @@ export const commands = processCommands({
                     throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GAT).join(", ")}`);
                 }
             }
+        }, {
+            args: "variable:*number arg1:number operand:sOperandDouble arg2:number",
+            description: "Alternative op syntax",
+            replace: (args) => [`op ${shortOperandMapping[args[3]]} ${args[1]} ${args[2]} ${args[4]}`]
         }
     ],
     op: [

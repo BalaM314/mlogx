@@ -56,7 +56,9 @@ export enum GAT {
 	jumpAddress="jumpAddress",
 	buildingGroup="buildingGroup",
 	invalid="invalid",
-	ctype="ctype"
+	ctype="ctype",
+	/** short(or symbolic?) operand double */
+	sOperandDouble="sOperandDouble",
 }
 export const GenericArgType = GAT;
 

@@ -21,6 +21,7 @@ export var GAT;
     GAT["buildingGroup"] = "buildingGroup";
     GAT["invalid"] = "invalid";
     GAT["ctype"] = "ctype";
+    GAT["sOperandDouble"] = "sOperandDouble";
 })(GAT || (GAT = {}));
 export const GenericArgType = GAT;
 export var CommandErrorType;

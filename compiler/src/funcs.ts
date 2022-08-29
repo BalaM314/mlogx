@@ -17,7 +17,7 @@ import {
 	TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup,
 	CompilerCommandDefinitionGroup, CompilerCommandDefinition
 } from "./types.js";
-import { buildingNameRegex } from "./consts.js";
+import { buildingNameRegex, shortOperandMapping } from "./consts.js";
 import { ForStackElement } from "./types.js";
 import * as readline from "readline";
 import chalk from "chalk";
@@ -51,10 +51,26 @@ export function typeofArg(arg:string):GAT {
 	}
 	if(arg.match(/:\w+/i)) return GAT.ctype;
 	if(["null"].includes(arg)) return GAT.null;
-	if(["equal", "notEqual", "strictEqual", "greaterThan", "lessThan", "greaterThanEq", "lessThanEq", "always"].includes(arg)) return GAT.operandTest;
-	// if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GenericArgType.targetClass;
-	// if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GenericArgType.buildingGroup;
+	if([
+		"equal", "notEqual", "strictEqual", "greaterThan",
+		"lessThan", "greaterThanEq", "lessThanEq", "always"
+	].includes(arg)) return GAT.operandTest;
+	// if(["any", "enemy", "ally", "player", "attacker", "flying", "boss", "ground"].includes(arg)) return GAT.targetClass;
+	// if(["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(arg)) return GAT.buildingGroup;
 	if(["true", "false"].includes(arg)) return GAT.boolean;
+	if([
+		"add", "sub", "mul", "div", "idiv", "mod", "pow",
+		"equal", "notEqual", "land", "lessThan",
+		"lessThanEq", "greaterThan", "greaterThanEq",
+		"strictEqual", "shl", "shr", "or", "and",
+		"xor", "min", "angle", "len", "noise",
+	].includes(arg)) return GAT.operandDouble;
+	if(arg in shortOperandMapping) return GAT.sOperandDouble;
+	if([
+		"not", "max", "abs", "log", "log10",
+		"floor", "ceil", "sqrt", "rand", "sin",
+		"cos", "tan", "asin", "acos", "atan"
+	].includes(arg)) return GAT.operandSingle;
 	if(arg.match(/^-?\d+((\.\d+)|(e-?\d+))?$/)) return GAT.number;
 	if(arg.match(/^"(?:[^"]|(\\"))*"$/gi)) return GAT.string;
 	if(arg.match(buildingNameRegex)) return GAT.building;
@@ -88,6 +104,8 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 		case GAT.building:
 		case GAT.unit:
 		case GAT.function:
+		case GAT.variable:
+		case GAT.null:
 			return knownType == GAT.variable;
 		case GAT.buildingGroup:
 			return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(argToCheck);
@@ -114,6 +132,8 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 				"strictEqual", "shl", "shr", "or", "and",
 				"xor", "min", "angle", "len", "noise",
 			].includes(argToCheck);
+		case GAT.sOperandDouble:
+			return argToCheck in shortOperandMapping;
 		case GAT.lookupType:
 			return ["building", "unit", "fluid", "item"].includes(argToCheck);
 		case GAT.targetClass:
@@ -125,8 +145,9 @@ export function isArgOfType(argToCheck:string, arg:Arg):boolean {
 			return ["distance", "health", "shield", "armor", "maxHealth"].includes(argToCheck);
 		case GAT.valid:
 			return true;//todo this needs intellijence
+		default:
+			throw new Error(`Somebody added a new generic arg type (${arg.type}) without adding a check for it in isArgOfType().`);
 	}
-	return false;
 }
 
 //#endregion
