@@ -417,7 +417,6 @@ export const compilerCommands = processCompilerCommands({
 						compiledCode.push(
 							...removedStackElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedStackElement.variableName, el]])), {
 								text: replaceCompilerConstants(line[1].text, new Map([
-									// ...compilerConstants.entries(), TODO pass this as an argument, maybe wrapped in "data"?
 									[removedStackElement.variableName, el]
 								])),
 								lineNumber: line[1].lineNumber
@@ -454,7 +453,6 @@ export const compilerCommands = processCompilerCommands({
 						compiledCode.push(
 							...removedStackElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedStackElement.variableName, el]])), {
 								text: replaceCompilerConstants(line[1].text, new Map([
-									// ...compilerConstants.entries(), TODO pass this as an argument, maybe wrapped in "data"?
 									[removedStackElement.variableName, el]
 								])),
 								lineNumber: line[1].lineNumber
