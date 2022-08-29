@@ -263,14 +263,23 @@ export const commands = processCommands({
         }],
     jump: [
         {
-            args: "jumpAddress:jumpAddress always",
+            args: "jumpAddress:jumpAddress always zero:0? zero:0?",
             description: "Jumps to an address or label.",
-            replace: ["jump %1 always 0 0"]
+            replace: ["jump %1 always 0 0"],
+            port(args, mode) {
+                if (mode >= PortingMode.shortenSyntax) {
+                    return `jump ${args[1]}`;
+                }
+                else if (mode >= PortingMode.removeZeroes) {
+                    return `jump ${args[1]} always`;
+                }
+                return args.join(" ");
+            }
         }, {
             args: "jumpAddress:jumpAddress operandTest:operandTest var1:valid var2:valid",
             description: "Jumps to an address or label if a condition is met.",
             port(args, mode) {
-                if (mode >= PortingMode.modernSyntax) {
+                if (mode >= PortingMode.shortenSyntax) {
                     if (args[2] == "always")
                         return `jump ${args[1]}`;
                 }
@@ -411,7 +420,7 @@ export const commands = processCommands({
                         case "damaged":
                             return `ulocate damaged ${args[5]} ${args[6]} ${args[7]} ${args[8]}`;
                         case "building":
-                            return `ulocate building ${args[2]} ${args[3]} ${args[5]} ${args[6]} ${args[7]}`;
+                            return `ulocate building ${args[2]} ${args[3]} ${args[5]} ${args[6]} ${args[7]} ${args[8]}`;
                         default:
                             Log.err(`Cannot port ulocate statement "${args.join(" ")}" because it is invalid.`);
                     }
