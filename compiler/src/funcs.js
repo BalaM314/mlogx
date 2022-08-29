@@ -390,23 +390,43 @@ export function acceptsVariable(arg) {
 export function isCommand(cleanedLine, command) {
     const args = splitLineIntoArguments(cleanedLine);
     const commandArguments = args.slice(1);
-    if (commandArguments.length > command.args.length || commandArguments.length < command.args.filter(arg => !arg.isOptional).length) {
+    const maxArgs = command.args.map(arg => arg.spread ? Infinity : 1).reduce((a, b) => a + b, 0);
+    const minArgs = command.args.filter(arg => !arg.isOptional).length;
+    if (commandArguments.length > maxArgs || commandArguments.length < minArgs) {
         return [false, {
                 type: CommandErrorType.argumentCount,
                 message: `Incorrect number of arguments for command "${args[0]}", see \`mlogx info ${args[0]}\``
             }];
     }
-    for (const arg in commandArguments) {
-        if (!isArgOfType(commandArguments[+arg], command.args[+arg])) {
-            if (command.args[+arg].isGeneric)
+    let numSpreadArgs = 0;
+    for (const arg in command.args) {
+        const commandArg = command.args[+arg];
+        const stringArg = commandArguments[+arg + numSpreadArgs];
+        if (commandArg == undefined) {
+            Log.dump({
+                args,
+                commandArguments,
+                maxArgs,
+                minArgs
+            });
+            throw new Error(`Too many arguments were present for a command, but this was not properly detected.`);
+        }
+        if (commandArg.spread) {
+            if (command.args.slice(+arg + 1).filter(arg => arg.spread || arg.isOptional).length > 0) {
+                throw new Error(`Command definitions with more than one spread arg or optional args after a spread arg are not yet implemented.`);
+            }
+            numSpreadArgs = commandArguments.slice(+arg).length - command.args.slice(+arg + 1).length - 1;
+        }
+        if (!isArgOfType(stringArg, commandArg)) {
+            if (commandArg.isGeneric)
                 return [false, {
                         type: CommandErrorType.type,
-                        message: `Type mismatch: value "${commandArguments[+arg]}" was expected to be of type "${command.args[+arg].isVariable ? "variable" : command.args[+arg].type}", but was of type "${typeofArg(commandArguments[+arg])}"`
+                        message: `Type mismatch: value "${stringArg}" was expected to be of type "${commandArg.isVariable ? "variable" : commandArg.type}", but was of type "${typeofArg(stringArg)}"`
                     }];
             else
                 return [false, {
                         type: CommandErrorType.badStructure,
-                        message: `Incorrect argument: value "${commandArguments[+arg]}" was expected to be "${command.args[+arg].type}", but was "${typeofArg(commandArguments[+arg])}"`
+                        message: `Incorrect argument: value "${stringArg}" was expected to be "${commandArg.type}", but was "${typeofArg(stringArg)}"`
                     }];
         }
     }
@@ -488,23 +508,16 @@ export function askQuestion(question) {
 export async function askYesOrNo(question) {
     return ["y", "yes"].includes(await askQuestion(question));
 }
-function arg(str) {
-    if (!str.includes(":")) {
+export function arg(str) {
+    const matchResult = str.match(/(\.\.\.)?(\w+):(\*)?(\w+)(\?)?/);
+    if (!matchResult) {
+        if (str.includes(":")) {
+            Log.warn(`Possibly bad arg string ${str}, assuming literal meaning`);
+        }
         return new Arg(str, str, false, false, false);
     }
-    const [name, type] = str.split(":");
-    let modifiedType = type;
-    let isVariable = false;
-    let isOptional = false;
-    if (type.startsWith("*")) {
-        isVariable = true;
-        modifiedType = type.substring(1);
-    }
-    if (type.endsWith("?")) {
-        isOptional = true;
-        modifiedType = type.substring(0, type.length - 1);
-    }
-    return new Arg(modifiedType, name, isOptional, true, isVariable);
+    const [_, spread, name, isVariable, type, isOptional] = matchResult;
+    return new Arg(type, name, !!isOptional, true, !!isVariable, !!spread);
 }
 export function processCommands(preprocessedCommands) {
     const out = {};

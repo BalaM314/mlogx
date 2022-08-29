@@ -1,6 +1,6 @@
 import { Arg } from "../src/classes.js";
 import commands from "../src/commands.js";
-import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, } from "../src/funcs.js";
+import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg } from "../src/funcs.js";
 import { GAT } from "../src/types.js";
 import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 describe("templateFunction", () => {
@@ -383,6 +383,10 @@ describe("getCommandDefinitions", () => {
         expect(getCommandDefinitions(`print x`)).toEqual([
             commands.print[0]
         ]);
+        expect(getCommandDefinitions(`jump label always`, true)).toEqual([
+            [commands.jump[0]],
+            [jasmine.any(Object)]
+        ]);
     });
     it("should return empty if no valid definitions", () => {
         expect(getCommandDefinitions(`amogus`)).toEqual([]);
@@ -453,6 +457,23 @@ describe("acceptsVariable", () => {
             .toEqual(false);
         expect(acceptsVariable(new Arg("unitSortCriteria", "thing", true, true, false)))
             .toEqual(false);
+    });
+});
+describe("arg", () => {
+    it("should parse generic args", () => {
+        expect(arg(`amogus`)).toEqual(new Arg("amogus", "amogus", false, false, false, false));
+    });
+    it("should parse args with types", () => {
+        expect(arg(`amogus:number`)).toEqual(new Arg("number", "amogus", false, true, false, false));
+    });
+    it("should parse optional args", () => {
+        expect(arg(`amogus:string?`)).toEqual(new Arg("string", "amogus", true, true, false, false));
+    });
+    it("should parse variable output args", () => {
+        expect(arg(`amogus:*number`)).toEqual(new Arg("number", "amogus", false, true, true, false));
+    });
+    it("should parse spread args", () => {
+        expect(arg(`...amogus:number`)).toEqual(new Arg("number", "amogus", false, true, false, true));
     });
 });
 describe("processCommands", () => {

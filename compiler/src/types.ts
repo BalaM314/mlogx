@@ -162,7 +162,7 @@ export type CompilerCommandDefinitions = {
 }
 
 export type ArgType = GAT | string;
-export type PreprocessedArg = `${"..."|""}${string}:${"*"|""}${string}${"?"|""}`;
+export type PreprocessedArg = `${"..."|""}${string}:${"*"|""}${string}${"?"|""}` | `${string}`;
 
 interface BaseStackElement {
 	line: Line;

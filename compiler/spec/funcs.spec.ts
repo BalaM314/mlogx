@@ -16,7 +16,9 @@ import {
 	cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable,
 	prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives,
 	hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType,
-	isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range,
+	isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg, formatLine,
+	formatLineWithPrefix, getCompilerCommandDefinitions, getCompilerConsts, hasDisabledIf,
+	processCompilerCommands, removeComments, removeTrailingSpaces
 } from "../src/funcs.js";
 import { ArgType, CompilerConst, GAT } from "../src/types.js";
 import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
@@ -487,6 +489,10 @@ describe("getCommandDefinitions", () => {
 		expect(getCommandDefinitions(`print x`)).toEqual([
 			commands.print[0]
 		]);
+		expect(getCommandDefinitions(`jump label always`, true)).toEqual([
+			[commands.jump[0]],
+			[jasmine.any(Object)]
+		]);
 	});
 	//TODO add more
 	it("should return empty if no valid definitions", () => {
@@ -593,6 +599,24 @@ describe("acceptsVariable", () => {
 
 //#endregion
 //#region misc
+
+describe("arg", () => {
+	it("should parse generic args", () => {
+		expect(arg(`amogus`)).toEqual(new Arg("amogus", "amogus", false, false, false, false));
+	});
+	it("should parse args with types", () => {
+		expect(arg(`amogus:number`)).toEqual(new Arg("number", "amogus", false, true, false, false));
+	});
+	it("should parse optional args", () => {
+		expect(arg(`amogus:string?`)).toEqual(new Arg("string", "amogus", true, true, false, false));
+	});
+	it("should parse variable output args", () => {
+		expect(arg(`amogus:*number`)).toEqual(new Arg("number", "amogus", false, true, true, false));
+	});
+	it("should parse spread args", () => {
+		expect(arg(`...amogus:number`)).toEqual(new Arg("number", "amogus", false, true, false, true));
+	});
+});
 
 describe("processCommands", () => {
 	it("should process the commands ast", () => {

@@ -382,7 +382,6 @@ export const compilerCommands = processCompilerCommands({
                         throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
                     if ((upperBound - lowerBound) > maxLoops)
                         throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
-                    Log.debug(`Started for loop with bounds ${lowerBound} - ${upperBound}`);
                     return {
                         element: {
                             type: "&for",
@@ -416,6 +415,7 @@ export const compilerCommands = processCompilerCommands({
                 args: "variable:*any of ...elements:any {",
                 description: "&for in loops allow you to emit the same code multiple times but with a value changed. (variable) is set as a compiler constant and goes through each element of (elements).",
                 onbegin(args, line) {
+                    Log.debug(`Started for of loop with elements [${args.slice(3, -1).join(" ")}] and variable ${args[1]}`);
                     return {
                         element: {
                             type: "&for",
@@ -432,6 +432,18 @@ export const compilerCommands = processCompilerCommands({
                     return {
                         compiledCode: []
                     };
+                },
+                onend(line, removedStackElement) {
+                    const compiledCode = [];
+                    for (const el of removedStackElement.elements) {
+                        compiledCode.push(...removedStackElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedStackElement.variableName, el]])), {
+                                text: replaceCompilerConstants(line[1].text, new Map([
+                                    [removedStackElement.variableName, el]
+                                ])),
+                                lineNumber: line[1].lineNumber
+                            }]));
+                    }
+                    return { compiledCode };
                 },
             }
         ]

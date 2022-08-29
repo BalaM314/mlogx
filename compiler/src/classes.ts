@@ -18,15 +18,16 @@ export class Arg {
 		public name:string = "WIP",
 		public isOptional:boolean = false,
 		public isGeneric:boolean = true,
-		public isVariable:boolean = false
+		public isVariable:boolean = false,
+		public spread:boolean = false
 	){}
 	toString(){
 		if(!this.isGeneric)
 			return `${this.type}`;
 		if(this.isOptional)
-			return `(${this.name}:${this.isVariable ? "*" : ""}${this.type})`;
+			return `(${this.spread ? "..." : ""}${this.name}:${this.isVariable ? "*" : ""}${this.type})`;
 		else
-			return `[${this.name}:${this.isVariable ? "*" : ""}${this.type}]`;
+			return `[${this.spread ? "..." : ""}${this.name}:${this.isVariable ? "*" : ""}${this.type}]`;
 	}
 }
 
