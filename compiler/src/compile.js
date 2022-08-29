@@ -348,3 +348,18 @@ export function addJumpLabels(code) {
     }
     return outputCode;
 }
+export function portCode(program, mode) {
+    return program.map(line => {
+        const cleanedLine = cleanLine(line);
+        const leadingTabsOrSpaces = line.match(/^[ \t]*/) ?? "";
+        const comment = line.match(/#.*$/) ?? "";
+        const commandDefinition = getCommandDefinition(cleanedLine);
+        const args = splitLineIntoArguments(cleanedLine);
+        if (commandDefinition == null) {
+        }
+        else if (commandDefinition.port) {
+            return leadingTabsOrSpaces + commandDefinition.port(args, mode) + comment;
+        }
+        return line;
+    });
+}

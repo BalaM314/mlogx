@@ -24,6 +24,12 @@ export var GAT;
     GAT["sOperandDouble"] = "sOperandDouble";
 })(GAT || (GAT = {}));
 export const GenericArgType = GAT;
+export var PortingMode;
+(function (PortingMode) {
+    PortingMode[PortingMode["removeZeroes"] = 0] = "removeZeroes";
+    PortingMode[PortingMode["updateSyntax"] = 1] = "updateSyntax";
+    PortingMode[PortingMode["modernSyntax"] = 2] = "modernSyntax";
+})(PortingMode || (PortingMode = {}));
 export var CommandErrorType;
 (function (CommandErrorType) {
     CommandErrorType[CommandErrorType["argumentCount"] = 0] = "argumentCount";

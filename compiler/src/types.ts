@@ -62,6 +62,15 @@ export enum GAT {
 }
 export const GenericArgType = GAT;
 
+export enum PortingMode {
+	/** Just removes trailing zeroes. */
+	removeZeroes,
+	/** Goes to syntax with improved argument order. */
+	updateSyntax,
+	/** Switches to the modern op syntax. */
+	modernSyntax
+}
+
 export enum CommandErrorType {
 	argumentCount,
 	type,
@@ -78,6 +87,7 @@ export interface CommandDefinition {
 	type: "Command";
 	args: Arg[];
 	replace?: (args:string[]) => string[];
+	port?: (args:string[], mode:PortingMode) => string;
 	description: string;
 	name: string;
 	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][]
@@ -87,6 +97,7 @@ export interface CommandDefinition {
 export interface PreprocessedCommand {
 	args: string;
 	replace?: string[] | ((args:string[]) => string[]);
+	port?: (args:string[], type:PortingMode) => string;
 	description: string;
 	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][]
 	getVariablesUsed?: (args:string[]) => [name:string, types:ArgType[]][]

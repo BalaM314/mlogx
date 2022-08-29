@@ -11,7 +11,7 @@ Contains pure-ish functions related to compiling.
 
 import {
 	Settings, GAT, CommandDefinition, CommandErrorType, StackElement, Line, TData,
-	TypeCheckingData, CompiledLine, CompilerConsts, CompilerCommandDefinition
+	TypeCheckingData, CompiledLine, CompilerConsts, CompilerCommandDefinition, PortingMode
 } from "./types.js";
 import {
 	cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined,
@@ -477,5 +477,21 @@ export function addJumpLabels(code:string[]):string[] {
 
 	return outputCode;
 
+}
+
+export function portCode(program:string[], mode:PortingMode):string[] {
+	return program.map(line => {
+		const cleanedLine = cleanLine(line);
+		const leadingTabsOrSpaces = line.match(/^[ \t]*/) ?? "";
+		const comment = line.match(/#.*$/) ?? "";
+		const commandDefinition = getCommandDefinition(cleanedLine);
+		const args = splitLineIntoArguments(cleanedLine);
+		if(commandDefinition == null){
+			//TODO implement the removing zeroes thing
+		} else if(commandDefinition.port) {
+			return leadingTabsOrSpaces + commandDefinition.port(args, mode) + comment;
+		}
+		return line;
+	});
 }
 

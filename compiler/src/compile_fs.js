@@ -3,7 +3,7 @@ import * as yup from "yup";
 import path from "path";
 import deepmerge from "deepmerge";
 import { Log, CompilerError } from "./classes.js";
-import { compileMlogxToMlog } from "./compile.js";
+import { compileMlogxToMlog, portCode } from "./compile.js";
 import { compilerMark, settingsSchema } from "./consts.js";
 import { parseIcons, getCompilerConsts, askQuestion } from "./funcs.js";
 export function compileDirectory(directory, stdlibPath, defaultSettings) {
@@ -161,5 +161,25 @@ export async function createProject(name) {
         }
     }), null, "\t"), "utf-8");
     Log.announce(`Successfully created a new project in ${path.join(process.cwd(), name)}`);
+    return true;
+}
+export function portFile(filePath, mode) {
+    try {
+        fs.accessSync(filePath, fs.constants.W_OK);
+    }
+    catch (err) {
+        if (err.message.startsWith("ENOENT")) {
+            Log.err(`Filepath "${filePath}" does not exist or cannot be written to.`);
+        }
+        return false;
+    }
+    if (filePath.endsWith(".mlogx")) {
+        Log.err(`File ${filePath} is already mlogx. If you would like to port it again, please rename it to .mlog`);
+        return false;
+    }
+    const program = fs.readFileSync(filePath, "utf-8").split(/\r?\n/g);
+    const portedProgram = portCode(program, mode);
+    fs.writeFileSync(filePath.endsWith(".mlog") ? filePath + "x" : filePath + ".mlogx", portedProgram.join("\r\n"), "utf-8");
+    Log.announce(`Ported file ${filePath} to mlogx.`);
     return true;
 }
