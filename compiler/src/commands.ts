@@ -208,21 +208,10 @@ export const commands: CommandDefinitions = processCommands({
 			description: "Performs an operation on (arg1), storing the result in (output).",
 			replace: [ "op %1 %2 %3 0" ]
 		},{
-			args: "operand:operandSingle output:*any arg1:valid zero:0?",
-			description: "Performs an operation on (arg1), storing the result in (output).",
-			replace: [ "op %1 %2 %3 0" ]
-		},{
 			args: "operand:operandDouble output:*number arg1:number arg2:number",
 			description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
 		},{
-			args: "operand:operandDouble output:*any arg1:valid arg2:valid",
-			description: "Performs an operation between (arg1) and (arg2), storing the result in (output)."
-		},{
 			args: "operand:operandDouble output:*number arg1:number",
-			description: "Performs an operation on (arg1) and (output), storing the result in (output).",
-			replace: [ "op %1 %2 %2 %3" ]
-		},{
-			args: "operand:operandDouble output:*any arg1:valid",
 			description: "Performs an operation on (arg1) and (output), storing the result in (output).",
 			replace: [ "op %1 %2 %2 %3" ]
 		},{
