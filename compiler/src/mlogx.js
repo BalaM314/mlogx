@@ -1,11 +1,12 @@
 import { Log } from "./classes.js";
 import commands from "./commands.js";
-import { addJumpLabels } from "./compile.js";
+import { addJumpLabels, portCode } from "./compile.js";
 import { Application } from "cli-app";
 import chalk from "chalk";
 import path from "path";
 import * as fs from "fs";
 import { createProject, compileDirectory, compileFile } from "./compile_fs.js";
+import { PortingMode } from "./types.js";
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
     const command = opts.positionalArgs[0];
@@ -171,3 +172,36 @@ mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded j
             required: true
         }],
 }, ["generateLabels", "gen-labels", "genLabels", "gl"]);
+mlogx.command("port", "Ports MLOG code.", (opts) => {
+    const sourcePath = opts.positionalArgs[0];
+    const outputPath = opts.namedArgs.output ?? (sourcePath.endsWith(".mlog") ? sourcePath + "x" : sourcePath + ".mlogx");
+    try {
+        fs.accessSync(sourcePath, fs.constants.W_OK);
+    }
+    catch (err) {
+        if (err.message.startsWith("ENOENT")) {
+            Log.err(`Filepath "${sourcePath}" does not exist or cannot be written to.`);
+        }
+        return 1;
+    }
+    if (sourcePath.endsWith(".mlogx")) {
+        Log.err(`File ${sourcePath} is already mlogx. If you would like to port it again, please rename it to .mlog`);
+        return 1;
+    }
+    const program = fs.readFileSync(sourcePath, "utf-8").split(/\r?\n/g);
+    const portedProgram = portCode(program, PortingMode.shortenSyntax);
+    fs.writeFileSync(outputPath, portedProgram.join("\r\n"), "utf-8");
+    Log.announce(`Ported file ${sourcePath} to mlogx.`);
+    return 0;
+}, false, {
+    namedArgs: {
+        output: {
+            description: "Output file path"
+        }
+    },
+    positionalArgs: [{
+            name: "source",
+            description: "File containing the MLOG code to be ported",
+            required: true
+        }]
+});

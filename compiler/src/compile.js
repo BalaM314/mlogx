@@ -356,6 +356,7 @@ export function portCode(program, mode) {
         const commandDefinition = getCommandDefinition(cleanedLine);
         const args = splitLineIntoArguments(cleanedLine);
         if (commandDefinition == null) {
+            Log.warn(`No known command definition for line ${cleanedLine}`);
         }
         else if (commandDefinition.port) {
             return leadingTabsOrSpaces + commandDefinition.port(args, mode) + comment;

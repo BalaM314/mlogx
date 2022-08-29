@@ -487,6 +487,7 @@ export function portCode(program:string[], mode:PortingMode):string[] {
 		const commandDefinition = getCommandDefinition(cleanedLine);
 		const args = splitLineIntoArguments(cleanedLine);
 		if(commandDefinition == null){
+			Log.warn(`No known command definition for line ${cleanedLine}`);
 			//TODO implement the removing zeroes thing
 		} else if(commandDefinition.port) {
 			return leadingTabsOrSpaces + commandDefinition.port(args, mode) + comment;
