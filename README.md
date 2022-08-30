@@ -45,5 +45,6 @@ Features:
 * [x] Functions
 * [x] Console output highlighting
 * [x] Porting tool
+* [x] Infix op syntax
 * [ ] More functions
 * [ ] Inline functions

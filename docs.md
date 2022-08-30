@@ -92,6 +92,10 @@ For two-argument operations.
 
 For single-argument operations. Mutates the variable.
 
+`set reactorSafe reactor1.heat <= 0.2` => `op lessThanEq reactorSafe reactor1.heat 0.2`
+
+Somewhat modern op syntax.
+
 ### jump shorthand
 `jump label` => `jump label always 0 0`
 
