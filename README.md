@@ -40,10 +40,10 @@ Features:
 * [x] Static type checking
 * [x] NPM package
 * [x] `--watch` option
-* [x] Namespaces
+* [?] Namespaces
 * [x] Loop unrolling syntax
 * [x] Functions
 * [x] Console output highlighting
+* [x] Porting tool
 * [ ] More functions
-* [ ] More extra instructions
 * [ ] Inline functions

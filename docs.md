@@ -10,7 +10,7 @@ Prerequisites: Node.JS and npm(which should be bundled with node).
 
 1. `npm i -g mlogx`
 
-Run `mlogx` with no arguments. You should get the message "Please specify a project or directory to compile in.".
+Restart your terminal window, then run `mlogx --version` . You should get the message "MLOGX compiler version ...". If you get the error "'mlogx' is not recognized...", installation did not work.
 
 ## Usage
 
@@ -42,6 +42,9 @@ mlogx remembers the type of all variables, so you will get an error if you:
 * set a variable with two different types
 * use a jump label that doesn't exist
 * define a jump label twice
+
+## Porting tool
+Run `mlogx port [file]` to port a .mlog file to .mlogx. This will apply shorthands and remove trailing zeroes from commands.
 
 ## List of custom instructions
 
@@ -299,6 +302,19 @@ namespace amogus {
 }
 print x #will output 5
 ```
+
+## &if statements
+
+Equivalent to #ifdef from C. Outputs code only if a value is true.
+```
+&if false {
+  print "This doesn't get outputted"
+}
+&if true {
+  print "This does get outputted"
+}
+```
+Only useful if the condition is a compiler const.
 
 ## Inline functions
 TODO
