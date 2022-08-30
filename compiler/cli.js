@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
 Copyright © <BalaM314>, 2022.
 This file is part of mlogx.
@@ -5,28 +7,8 @@ The Mindustry Logic Extended Compiler(mlogx) is free software: you can redistrib
 mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>. 
 
-Exports all the things.
+Runs the app.
 */
 
-import { fileURLToPath } from 'url'
-import { Log } from './src/classes.js';
-import { mlogx } from './src/mlogx.js';
-
-export * from "./src/classes.js";
-export * from "./src/commands.js";
-export * from "./src/compile_fs.js";
-export * from "./src/compile.js";
-export * from "./src/consts.js";
-export * from "./src/funcs.js";
-export { mlogx as app } from "./src/mlogx.js";
-export * from "./src/types.js";
-
-
-
-
-const __filename = fileURLToPath(import.meta.url)
-
-if (process.argv?.[1] == __filename) {
-	Log.warn(`Running index.js is deprecated, please run cli.js instead.`);
-  mlogx.run(process.argv);
-}
+import { mlogx } from "./src/mlogx.js";
+mlogx.run(process.argv);
