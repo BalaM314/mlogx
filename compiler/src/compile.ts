@@ -10,7 +10,7 @@ Contains pure-ish functions related to compiling.
 
 
 import {
-	Settings, GAT, CommandDefinition, CommandErrorType, StackElement, Line, TData,
+	Settings, CommandDefinition, CommandErrorType, StackElement, Line, TData,
 	TypeCheckingData, CompiledLine, CompilerConsts, CompilerCommandDefinition, PortingMode
 } from "./types.js";
 import {
@@ -218,9 +218,8 @@ export function printTypeErrors({variableDefinitions, variableUsages, jumpLabels
 			...new Set(
 				definitions.map(el => el.variableType)
 					.filter(el =>
-						el != GAT.valid && el != GAT.any &&
-						el != GAT.variable && el != GAT.valid &&
-						el != GAT.null
+						el != "any" && el != "variable" &&
+						el != "null"
 					).map(el => el == "boolean" ? "number" : el)
 			)
 		];
@@ -458,7 +457,7 @@ export function addJumpLabels(code:string[]):string[] {
 					//Replace arguments
 					(arg:string) => jumps[arg] ?? (() => {throw new Error(`Unknown jump label ${arg}`);})(),
 					//But only if the argument is a jump address
-					(arg:string, carg:Arg) => carg.isGeneric && carg.type == GAT.jumpAddress
+					(arg:string, carg:Arg) => carg.isGeneric && carg.type == "jumpAddress"
 				).join(" ")
 			);
 		} else {

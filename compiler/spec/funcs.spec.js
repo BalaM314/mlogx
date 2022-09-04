@@ -1,7 +1,7 @@
 import { Arg } from "../src/classes.js";
 import commands from "../src/commands.js";
-import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgOfType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg } from "../src/funcs.js";
-import { GAT } from "../src/types.js";
+import { GenericArgs } from "../src/consts.js";
+import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgValidForType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg, isArgValidFor } from "../src/funcs.js";
 import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 describe("templateFunction", () => {
     it("should ", () => {
@@ -10,7 +10,7 @@ describe("templateFunction", () => {
 });
 describe("isGenericArg", () => {
     it("should determine if an arg is generic", () => {
-        for (const genericArg of Object.values(GAT)) {
+        for (const genericArg of Object.keys(GenericArgs)) {
             expect(isGenericArg(genericArg)).toBe(true);
         }
     });
@@ -18,50 +18,87 @@ describe("isGenericArg", () => {
 describe("typeofArg", () => {
     it("should determine the type of an arg", () => {
         const args = [
-            ["@unit", GAT.unit],
-            ["@thisx", GAT.number],
-            ["@this", GAT.building],
-            ["greaterThanEq", GAT.operandTest],
-            ["-50.2", GAT.number],
-            [`"amogus"`, GAT.string],
-            [`:number`, GAT.ctype],
+            ["@unit", "unit"],
+            ["@thisx", "number"],
+            ["@this", "building"],
+            ["greaterThanEq", "operandTest"],
+            ["-50.2", "number"],
+            [`"amogus"`, "string"],
+            [`:number`, "ctype"],
         ];
         for (const [arg, expectedOutput] of args) {
-            expect(typeofArg(arg)).toBe(expectedOutput);
+            expect(typeofArg(arg)).withContext(`${arg} should be of type ${expectedOutput}`).toBe(expectedOutput);
         }
     });
 });
-describe("isArgOfType", () => {
+describe("isArgValidForType", () => {
     it("should determine if an arg is of specified type", () => {
         const correctTypes = [
-            ["@unit", GAT.unit],
-            ["@thisx", GAT.number],
-            ["@this", GAT.building],
-            ["greaterThanEq", GAT.operandTest],
-            ["-50.2", GAT.number],
-            [`"amogus"`, GAT.string],
-            ["sussyFlarogus", GAT.unit],
-            [`:number`, GAT.ctype],
-            [`add`, GAT.operandDouble],
-            [`cos`, GAT.operandSingle]
+            ["@unit", "unit"],
+            ["@thisx", "number"],
+            ["@this", "building"],
+            ["greaterThanEq", "operandTest"],
+            ["-50.2", "number"],
+            [`"amogus"`, "string"],
+            ["sussyFlarogus", "unit"],
+            [`:number`, "ctype"],
+            [`add`, "operandDouble"],
+            [`cos`, "operandSingle"],
         ];
         for (const [arg, expectedType] of correctTypes) {
-            expect(isArgOfType(arg, new Arg(expectedType))).toBe(true);
+            expect(isArgValidForType(arg, expectedType)).withContext(`${arg} should be of type ${expectedType}`).toBe(true);
         }
     });
     it("should determine if an arg is not of specified type", () => {
         const wrongTypes = [
-            ["@unit", GAT.building],
-            ["@thisx", GAT.operandTest],
-            ["@this", GAT.string],
-            ["greaterThanEq", GAT.buildingGroup],
-            ["-50.2", GAT.unit],
-            [`"amogus"`, GAT.number],
-            [`:number`, GAT.variable],
+            ["@unit", "building"],
+            ["@thisx", "operandTest"],
+            ["@this", "string"],
+            ["greaterThanEq", "buildingGroup"],
+            ["-50.2", "unit"],
+            [`"amogus"`, "number"],
+            [`:number`, "variable"],
         ];
         for (const [arg, unexpectedType] of wrongTypes) {
-            expect(isArgOfType(arg, new Arg(unexpectedType))).toBe(false);
+            expect(isArgValidForType(arg, unexpectedType)).withContext(`${arg} should not be of type ${unexpectedType}`).toBe(false);
         }
+    });
+});
+describe("isArgValidFor", () => {
+    it("should determine if an arg is valid for Arg", () => {
+        const correctTypes = [
+            ["@unit", "unit"],
+            ["@thisx", "number"],
+            ["@this", "building"],
+            ["greaterThanEq", "operandTest"],
+            ["-50.2", "number"],
+            [`"amogus"`, "string"],
+            ["sussyFlarogus", "unit"],
+            [`:number`, "ctype"],
+            [`add`, "operandDouble"],
+            [`cos`, "operandSingle"],
+        ];
+        for (const [arg, expectedType] of correctTypes) {
+            expect(isArgValidFor(arg, new Arg(expectedType))).toBe(true);
+        }
+        expect(isArgValidFor("amogus", new Arg("amogus"))).toBe(true);
+        expect(isArgValidFor("x", new Arg("number"))).toBe(true);
+    });
+    it("should determine if an arg is not of specified type", () => {
+        const wrongTypes = [
+            ["@unit", "building"],
+            ["@thisx", "operandTest"],
+            ["@this", "string"],
+            ["greaterThanEq", "buildingGroup"],
+            ["-50.2", "unit"],
+            [`"amogus"`, "number"],
+            [`:number`, "variable"],
+        ];
+        for (const [arg, unexpectedType] of wrongTypes) {
+            expect(isArgValidFor(arg, new Arg(unexpectedType))).toBe(false);
+        }
+        expect(isArgValidFor("amogus", new Arg("sus"))).toBe(false);
+        expect(isArgValidFor("x", new Arg("operandTest"))).toBe(false);
     });
 });
 describe("removeTrailingSpaces", () => {

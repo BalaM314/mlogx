@@ -1,4 +1,4 @@
-import { GAT, CommandErrorType } from "./types.js";
+import { CommandErrorType } from "./types.js";
 import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand, hasDisabledIf, getCompilerCommandDefinitions, } from "./funcs.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { CompilerError, Log } from "./classes.js";
@@ -157,9 +157,8 @@ export function printTypeErrors({ variableDefinitions, variableUsages, jumpLabel
     for (const [name, definitions] of Object.entries(variableDefinitions)) {
         const types = [
             ...new Set(definitions.map(el => el.variableType)
-                .filter(el => el != GAT.valid && el != GAT.any &&
-                el != GAT.variable && el != GAT.valid &&
-                el != GAT.null).map(el => el == "boolean" ? "number" : el))
+                .filter(el => el != "any" && el != "variable" &&
+                el != "null").map(el => el == "boolean" ? "number" : el))
         ];
         if (types.length > 1) {
             Log.warn(`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
@@ -333,7 +332,7 @@ export function addJumpLabels(code) {
             const label = getJumpLabelUsed(line);
             if (label == undefined)
                 throw new Error("invalid jump statement");
-            transformedCode.push(transformCommand(splitLineIntoArguments(line), commands.jump[0], (arg) => jumps[arg] ?? (() => { throw new Error(`Unknown jump label ${arg}`); })(), (arg, carg) => carg.isGeneric && carg.type == GAT.jumpAddress).join(" "));
+            transformedCode.push(transformCommand(splitLineIntoArguments(line), commands.jump[0], (arg) => jumps[arg] ?? (() => { throw new Error(`Unknown jump label ${arg}`); })(), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
         }
         else {
             transformedCode.push(line);

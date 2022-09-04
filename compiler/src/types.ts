@@ -9,6 +9,7 @@ Contains type definitions and enums.
 */
 
 import { Arg } from "./classes.js";
+import { GenericArgs } from "./consts.js";
 
 export interface Settings {
 	name: string;
@@ -34,33 +35,6 @@ export type PartialRecursive<T> = {
 	[P in keyof T]?: (T[P] extends Record<string, unknown> ? PartialRecursive<T[P]> : T[P]) | undefined;
 };
 
-/**Generic Arg Type */
-export enum GAT {
-	variable="variable",
-	number="number",
-	string="string",
-	boolean="boolean",
-	type="type",
-	building="building",
-	unit="unit",
-	function="function",
-	any="any",
-	null="null",
-	operandTest="operandTest",
-	targetClass="targetClass",
-	unitSortCriteria="unitSortCriteria",
-	valid="valid",
-	operandDouble="operandDouble",
-	operandSingle="operandSingle",
-	lookupType="lookupType",
-	jumpAddress="jumpAddress",
-	buildingGroup="buildingGroup",
-	invalid="invalid",
-	ctype="ctype",
-	/** short(or symbolic?) operand double */
-	sOperandDouble="sOperandDouble",
-}
-export const GenericArgType = GAT;
 
 export enum PortingMode {
 	/** Just removes trailing zeroes. */
@@ -174,8 +148,19 @@ export type CompilerCommandDefinitions = {
 	[ID in keyof StackElementMapping]: CompilerCommandDefinitionGroup<StackElementMapping[ID]>
 }
 
-export type ArgType = GAT | string;
+export type nGAT = keyof typeof GenericArgs;
+export type ArgType = nGAT | string;
 export type PreprocessedArg = `${"..."|""}${string}:${"*"|""}${string}${"?"|""}` | `${string}`;
+
+
+export interface PreprocessedArgKey {
+	validator: RegExp | (string | RegExp)[] | ((arg:string) => boolean);
+	alsoAccepts?: string[];
+}
+export interface ArgKey {
+	validator: (string | RegExp)[] | ((arg:string) => boolean);
+	alsoAccepts: string[];
+}
 
 interface BaseStackElement {
 	line: Line;

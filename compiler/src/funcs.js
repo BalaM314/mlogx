@@ -1,154 +1,76 @@
 import { Arg, Log } from "./classes.js";
 import { commands, compilerCommands } from "./commands.js";
-import { CommandErrorType, GAT } from "./types.js";
-import { buildingNameRegex, shortOperandMapping } from "./consts.js";
+import { CommandErrorType } from "./types.js";
+import { GenericArgs } from "./consts.js";
 import * as readline from "readline";
 import chalk from "chalk";
 export function isGenericArg(val) {
-    return GAT[val] != undefined;
+    return val in GenericArgs;
 }
 export function typeofArg(arg) {
     if (arg == "")
-        return GAT.invalid;
+        return "invalid";
     if (arg == undefined)
-        return GAT.invalid;
-    if (arg.match(/@[a-z-]+/i)) {
-        if (arg == "@unit")
-            return GAT.unit;
-        if (arg == "@thisx")
-            return GAT.number;
-        if (arg == "@thisy")
-            return GAT.number;
-        if (arg == "@this")
-            return GAT.building;
-        if (arg == "@ipt")
-            return GAT.number;
-        if (arg == "@links")
-            return GAT.number;
-        if (arg == "@time")
-            return GAT.number;
-        if (arg == "@tick")
-            return GAT.number;
-        if (arg == "@mapw")
-            return GAT.number;
-        if (arg == "@maph")
-            return GAT.number;
-        if (arg == "@counter")
-            return GAT.variable;
-        return GAT.type;
+        return "invalid";
+    for (const [name, argKey] of Object.entries(GenericArgs)) {
+        if (name == "any")
+            continue;
+        if (typeof argKey.validator == "function") {
+            if (argKey.validator(arg))
+                return name;
+        }
+        else {
+            for (const argString of argKey.validator) {
+                if (argString instanceof RegExp) {
+                    if (argString.test(arg))
+                        return name;
+                }
+                else {
+                    if (argString == arg)
+                        return name;
+                }
+            }
+        }
     }
-    if (arg.match(/:\w+/i))
-        return GAT.ctype;
-    if (["null"].includes(arg))
-        return GAT.null;
-    if ([
-        "equal", "notEqual", "strictEqual", "greaterThan",
-        "lessThan", "greaterThanEq", "lessThanEq", "always"
-    ].includes(arg))
-        return GAT.operandTest;
-    if (["true", "false"].includes(arg))
-        return GAT.boolean;
-    if ([
-        "add", "sub", "mul", "div", "idiv", "mod", "pow",
-        "equal", "notEqual", "land", "lessThan",
-        "lessThanEq", "greaterThan", "greaterThanEq",
-        "strictEqual", "shl", "shr", "or", "and",
-        "xor", "min", "angle", "len", "noise",
-    ].includes(arg))
-        return GAT.operandDouble;
-    if (arg in shortOperandMapping)
-        return GAT.sOperandDouble;
-    if ([
-        "not", "max", "abs", "log", "log10",
-        "floor", "ceil", "sqrt", "rand", "sin",
-        "cos", "tan", "asin", "acos", "atan"
-    ].includes(arg))
-        return GAT.operandSingle;
-    if (arg.match(/^-?\d+((\.\d+)|(e-?\d+))?$/))
-        return GAT.number;
-    if (arg.match(/^"(?:[^"]|(\\"))*"$/gi))
-        return GAT.string;
-    if (arg.match(buildingNameRegex))
-        return GAT.building;
-    if (arg.match(/^[^"]+$/i))
-        return GAT.variable;
-    return GAT.invalid;
+    return "invalid";
 }
-export function isArgOfType(argToCheck, arg) {
-    if (arg.type === GAT.any)
-        return true;
-    if (arg.type === GAT.valid)
-        return true;
+export function isArgValidForType(argToCheck, arg, checkAlsoAccepts = true) {
     if (argToCheck == "")
         return false;
     if (argToCheck == undefined)
         return false;
-    if (!isGenericArg(arg.type)) {
-        return argToCheck === arg.type;
+    if (!isGenericArg(arg)) {
+        return argToCheck === arg;
     }
-    const knownType = typeofArg(argToCheck);
-    if (arg.isVariable)
-        return knownType == GAT.variable;
-    if (knownType == arg.type)
-        return true;
-    switch (arg.type) {
-        case GAT.ctype:
-            return /:[\w-$]+/.test(argToCheck);
-        case GAT.number:
-            return knownType == GAT.boolean || knownType == GAT.variable;
-        case GAT.jumpAddress:
-            return knownType == GAT.number || knownType == GAT.variable;
-        case GAT.boolean:
-            return knownType == GAT.number || knownType == GAT.variable;
-        case GAT.type:
-        case GAT.string:
-        case GAT.building:
-        case GAT.unit:
-        case GAT.function:
-        case GAT.variable:
-        case GAT.null:
-            return knownType == GAT.variable;
-        case GAT.buildingGroup:
-            return ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"].includes(argToCheck);
-        case GAT.operandTest:
-            return [
-                "equal", "notEqual", "strictEqual", "greaterThan",
-                "lessThan", "greaterThanEq", "lessThanEq", "always"
-            ].includes(argToCheck);
-        case GAT.operandSingle:
-            return [
-                "not", "max", "abs", "log", "log10",
-                "floor", "ceil", "sqrt", "rand", "sin",
-                "cos", "tan", "asin", "acos", "atan"
-            ].includes(argToCheck);
-        case GAT.operandDouble:
-            if (["atan2", "dst"].includes(argToCheck)) {
-                Log.warn(`${argToCheck} is deprecated.`);
+    const argKey = GenericArgs[arg];
+    if (checkAlsoAccepts) {
+        for (const otherType of argKey.alsoAccepts) {
+            if (isArgValidForType(argToCheck, otherType, false))
                 return true;
-            }
-            return [
-                "add", "sub", "mul", "div", "idiv", "mod", "pow",
-                "equal", "notEqual", "land", "lessThan",
-                "lessThanEq", "greaterThan", "greaterThanEq",
-                "strictEqual", "shl", "shr", "or", "and",
-                "xor", "min", "angle", "len", "noise",
-            ].includes(argToCheck);
-        case GAT.sOperandDouble:
-            return argToCheck in shortOperandMapping;
-        case GAT.lookupType:
-            return ["building", "unit", "fluid", "item"].includes(argToCheck);
-        case GAT.targetClass:
-            return [
-                "any", "enemy", "ally", "player", "attacker",
-                "flying", "boss", "ground"
-            ].includes(argToCheck);
-        case GAT.unitSortCriteria:
-            return ["distance", "health", "shield", "armor", "maxHealth"].includes(argToCheck);
-        case GAT.valid:
-            return true;
-        default:
-            throw new Error(`Somebody added a new generic arg type (${arg.type}) without adding a check for it in isArgOfType().`);
+        }
     }
+    if (typeof argKey.validator == "function") {
+        return argKey.validator(argToCheck);
+    }
+    else {
+        for (const argString of argKey.validator) {
+            if (argString instanceof RegExp) {
+                if (argString.test(argToCheck))
+                    return true;
+            }
+            else {
+                if (argString == argToCheck)
+                    return true;
+            }
+        }
+        return false;
+    }
+}
+export function isArgValidFor(str, arg) {
+    if (arg.isVariable) {
+        return isArgValidForType(str, "variable");
+    }
+    return isArgValidForType(str, arg.type);
 }
 export function cleanLine(line) {
     return removeTrailingSpaces(removeComments(line));
@@ -257,7 +179,7 @@ export function splitLineIntoArguments(cleanedLine) {
 }
 export function transformVariables(args, commandDefinition, transformFunction) {
     return transformCommand(args, commandDefinition, transformFunction, (arg, commandArg) => (commandArg?.isVariable || (acceptsVariable(commandArg)
-        && isArgOfType(arg, new Arg(GAT.variable)))) && arg !== "_");
+        && isArgValidForType(arg, "variable"))) && arg !== "_");
 }
 export function transformCommand(args, commandDefinition, transformFunction, filterFunction = () => true) {
     return args
@@ -353,7 +275,7 @@ export function getAllPossibleVariablesUsed(compiledLine, uncompiledLine = compi
 export function getVariablesUsed(args, commandDefinition) {
     return args
         .map((arg, index) => [arg, commandDefinition.args[index]])
-        .filter(([arg, commandArg]) => isArgOfType(arg, new Arg(GAT.variable)) && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
+        .filter(([arg, commandArg]) => isArgValidForType(arg, "variable") && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 export function getJumpLabelUsed(line) {
     const args = splitLineIntoArguments(line);
@@ -383,16 +305,14 @@ export function areAnyOfInputsCompatibleWithType(inputs, output) {
 export function typesAreCompatible(input, output) {
     if (input == output)
         return true;
-    if (output == GAT.any)
+    if (output == "any")
         return true;
-    if (output == GAT.valid)
-        return true;
-    if (output == GAT.null)
+    if (output == "null")
         return true;
     switch (input) {
-        case GAT.any: return true;
-        case GAT.number: return output == GAT.boolean;
-        case GAT.boolean: return output == GAT.number;
+        case "any": return true;
+        case "number": return output == "boolean";
+        case "boolean": return output == "number";
         default: return false;
     }
 }
@@ -403,10 +323,9 @@ export function acceptsVariable(arg) {
         return false;
     if (arg.isGeneric)
         return [
-            GAT.boolean, GAT.building,
-            GAT.number, GAT.string,
-            GAT.type, GAT.unit,
-            GAT.valid
+            "boolean", "building",
+            "number", "string",
+            "type", "unit"
         ].includes(arg.type);
     else
         return false;
@@ -452,7 +371,7 @@ export function isCommand(cleanedLine, command) {
             }
             numSpreadArgs = commandArguments.slice(+arg).length - command.args.slice(+arg + 1).length - 1;
         }
-        if (!isArgOfType(stringArg, commandArg)) {
+        if (!isArgValidFor(stringArg, commandArg)) {
             if (commandArg.isGeneric)
                 return [false, {
                         type: CommandErrorType.type,

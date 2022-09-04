@@ -1,10 +1,10 @@
 import { CompilerError, Log } from "./classes.js";
-import { maxLoops, shortOperandMapping } from "./consts.js";
+import { GenericArgs, maxLoops, shortOperandMapping } from "./consts.js";
 import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
-import { GAT, PortingMode } from "./types.js";
+import { PortingMode } from "./types.js";
 export const commands = processCommands({
     call: [{
-            args: "function:function",
+            args: "function:variable",
             replace: [
                 "op add @counter _stack1 1",
                 "jump %1 always"
@@ -80,7 +80,7 @@ export const commands = processCommands({
         },
     ],
     print: [{
-            args: "message:valid",
+            args: "message:any",
             description: "Prints (message) to the message buffer."
         }],
     drawflush: [{
@@ -111,7 +111,7 @@ export const commands = processCommands({
             args: "shootp turret:building unit:unit shoot:boolean",
             description: "Sets the shoot position of (turret) to (unit) with velocity prediction and shoots if (shoot)."
         }, {
-            args: "config building:building config:valid",
+            args: "config building:building config:any",
             description: "Sets the config of (building) to (config)."
         }, {
             args: "color illuminator:building r:number g:number b:number",
@@ -185,26 +185,26 @@ export const commands = processCommands({
     ],
     set: [
         {
-            args: "variable:*any value:valid",
+            args: "variable:*any value:any",
             description: "Sets the value of (variable) to (value).",
-            getVariablesDefined: (args) => [[args[1], typeofArg(args[2]) == GAT.variable ? GAT.any : typeofArg(args[2])]]
+            getVariablesDefined: (args) => [[args[1], typeofArg(args[2]) == "variable" ? "any" : typeofArg(args[2])]]
         }, {
-            args: "variable:*any type:ctype value:valid",
+            args: "variable:*any type:ctype value:any",
             description: "Sets the value of (variable) to (value), and the type of (variable) to (type).",
             replace: (args) => {
-                if (args[2].slice(1) in GAT) {
+                if (args[2].slice(1) in GenericArgs) {
                     return [`set ${args[1]} ${args[3]}`];
                 }
                 else {
-                    throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GAT).join(", ")}`);
+                    throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GenericArgs).join(", ")}`);
                 }
             },
             getVariablesDefined: (args) => {
-                if (args[2].slice(1) in GAT) {
+                if (args[2].slice(1) in GenericArgs) {
                     return [[args[1], args[2].slice(1)]];
                 }
                 else {
-                    throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GAT).join(", ")}`);
+                    throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GenericArgs).join(", ")}`);
                 }
             }
         }, {
@@ -276,7 +276,7 @@ export const commands = processCommands({
                 return args.join(" ");
             }
         }, {
-            args: "jumpAddress:jumpAddress operandTest:operandTest var1:valid var2:valid",
+            args: "jumpAddress:jumpAddress operandTest:operandTest var1:any var2:any",
             description: "Jumps to an address or label if a condition is met.",
             port(args, mode) {
                 if (mode >= PortingMode.shortenSyntax) {
@@ -354,7 +354,7 @@ export const commands = processCommands({
             args: "flag flag:number",
             description: "Sets the flag of the bound unit."
         }, {
-            args: "build x:number y:number buildingType:type rotation:number config:valid",
+            args: "build x:number y:number buildingType:type rotation:number config:any",
             description: "Tells the unit to build (block) with (rotation) and (config) at (x,y)."
         }, {
             args: "getBlock x:number y:number buildingType:*type building:*building",

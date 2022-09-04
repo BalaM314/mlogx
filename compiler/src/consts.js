@@ -1,4 +1,3 @@
-import { GAT } from "./types.js";
 import * as yup from "yup";
 export const compilerMark = [
     `print "Made with mlogx"`,
@@ -21,22 +20,6 @@ export const settingsSchema = yup.object({
     }).required(),
     compilerConstants: yup.object().default({})
 }).required();
-export const requiredVarCode = {
-    "cookie": [[
-            `op mul cookie @thisx @maph`,
-            `op add cookie @thisy cookie`
-        ], GAT.number]
-};
-export const maxLoops = 200;
-export const processorVariables = {
-    "@counter": [{
-            variableType: GAT.number,
-            line: {
-                text: "[processor variable]",
-                lineNumber: 0
-            }
-        }]
-};
 export const buildingInternalNames = [
     "press", "smelter", "crucible", "kiln", "compressor",
     "weaver", "mixer", "melter", "separator", "disassembler",
@@ -58,6 +41,117 @@ export const buildingInternalNames = [
     "cell", "bank", "display"
 ];
 export const buildingNameRegex = new RegExp(`^(${buildingInternalNames.map(el => `(${el})`).join("|")})[\\d]+$`);
+export const GenericArgs = ((stuff) => Object.fromEntries(Object.entries(stuff)
+    .map(([key, obj]) => [key, {
+        alsoAccepts: obj.alsoAccepts ?? [],
+        validator: obj.validator instanceof RegExp ? [obj.validator] : obj.validator
+    }])))({
+    number: {
+        validator: [
+            /^-?\d+((\.\d+)|(e-?\d+))?$/,
+            "@thisx", "@thisy", "@ipt", "@links",
+            "@time", "@tick", "@mapw", "@maph",
+        ],
+        alsoAccepts: ["variable", "boolean"]
+    },
+    string: {
+        validator: /^"(?:[^"]|(\\"))*"$/,
+        alsoAccepts: ["variable"]
+    },
+    boolean: {
+        validator: ["true", "false"],
+        alsoAccepts: ["variable", "number"]
+    },
+    type: {
+        validator: (arg) => arg.startsWith("@") && !["@unit", "@thisx", "@thisy", "@this", "@ipt", "@links", "@time", "@tick", "@mapw", "@maph", "@counter"].includes(arg),
+        alsoAccepts: ["variable"]
+    },
+    building: {
+        validator: [buildingNameRegex, "@this"],
+        alsoAccepts: ["variable"]
+    },
+    unit: {
+        validator: ["@unit"],
+        alsoAccepts: ["variable"]
+    },
+    any: {
+        validator: /.+/,
+        alsoAccepts: []
+    },
+    null: {
+        validator: ["null"],
+        alsoAccepts: []
+    },
+    operandTest: {
+        validator: [
+            "equal", "notEqual", "strictEqual", "greaterThan",
+            "lessThan", "greaterThanEq", "lessThanEq", "always"
+        ]
+    },
+    targetClass: {
+        validator: [
+            "any", "enemy", "ally", "player", "attacker",
+            "flying", "boss", "ground"
+        ]
+    },
+    unitSortCriteria: {
+        validator: ["distance", "health", "shield", "armor", "maxHealth"]
+    },
+    operandDouble: {
+        validator: [
+            "add", "sub", "mul", "div", "idiv", "mod", "pow",
+            "equal", "notEqual", "land", "lessThan",
+            "lessThanEq", "greaterThan", "greaterThanEq",
+            "strictEqual", "shl", "shr", "or", "and",
+            "xor", "min", "angle", "len", "noise",
+        ]
+    },
+    operandSingle: {
+        validator: [
+            "not", "max", "abs", "log", "log10",
+            "floor", "ceil", "sqrt", "rand", "sin",
+            "cos", "tan", "asin", "acos", "atan"
+        ]
+    },
+    lookupType: {
+        validator: ["building", "unit", "fluid", "item"]
+    },
+    jumpAddress: {
+        validator: /^[^":]+$/,
+        alsoAccepts: ["number"]
+    },
+    buildingGroup: {
+        validator: ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"]
+    },
+    invalid: {
+        validator: []
+    },
+    ctype: {
+        validator: /:[\w-$]+/
+    },
+    sOperandDouble: {
+        validator: (arg) => arg in shortOperandMapping
+    },
+    variable: {
+        validator: /^[^"]+$/
+    },
+});
+export const requiredVarCode = {
+    "cookie": [[
+            `op mul cookie @thisx @maph`,
+            `op add cookie @thisy cookie`
+        ], "number"]
+};
+export const maxLoops = 200;
+export const processorVariables = {
+    "@counter": [{
+            variableType: "number",
+            line: {
+                text: "[processor variable]",
+                lineNumber: 0
+            }
+        }]
+};
 export const maxLines = 999;
 export const shortOperandMapping = {
     "+": "add",
