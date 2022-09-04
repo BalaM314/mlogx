@@ -9,7 +9,7 @@ Contains type definitions and enums.
 */
 
 import { Arg } from "./classes.js";
-import { GenericArgs } from "./consts.js";
+import { GenericArgs } from "./generic_args.js";
 
 export interface Settings {
 	name: string;

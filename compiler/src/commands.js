@@ -1,6 +1,7 @@
 import { CompilerError, Log } from "./classes.js";
-import { GenericArgs, maxLoops, MindustryContent, shortOperandMapping } from "./consts.js";
+import { maxLoops, MindustryContent, shortOperandMapping } from "./consts.js";
 import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
+import { GenericArgs } from "./generic_args.js";
 import { PortingMode } from "./types.js";
 export const commands = processCommands({
     call: [{
@@ -259,16 +260,13 @@ export const commands = processCommands({
         {
             args: "item output:*itemType n:number",
             description: "Looks up the (n)th item."
-        },
-        {
+        }, {
             args: "block output:*buildingType n:number",
             description: "Looks up the (n)th building."
-        },
-        {
+        }, {
             args: "liquid output:*unitType n:number",
             description: "Looks up the (n)th fluid."
-        },
-        {
+        }, {
             args: "unit output:*unitType n:number",
             description: "Looks up the (n)th unit."
         },

@@ -1,13 +1,13 @@
-import { Log } from "./classes.js";
-import commands from "./commands.js";
-import { addJumpLabels, portCode } from "./compile.js";
-import { Application } from "cli-app";
 import chalk from "chalk";
 import path from "path";
 import * as fs from "fs";
+import { Application } from "cli-app";
+import { Log } from "./classes.js";
+import { commands } from "./commands.js";
+import { addJumpLabels, portCode } from "./compile.js";
 import { createProject, compileDirectory, compileFile } from "./compile_fs.js";
 import { PortingMode } from "./types.js";
-import { GenericArgs } from "./consts.js";
+import { GenericArgs } from "./generic_args.js";
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
     const name = opts.positionalArgs[0];

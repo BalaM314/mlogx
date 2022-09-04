@@ -12,7 +12,10 @@ import { compileLine, compileMlogxToMlog } from "../src/compile.js";
 import { settingsSchema } from "../src/consts.js";
 import { range } from "../src/funcs.js";
 import { ForStackElement, Settings, StackElement } from "../src/types.js";
-import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
+import {
+	allMlogCommands, allMlogxCommands, allShorthandCommands,
+	namespaceTests, startNamespace, testPrograms
+} from "./samplePrograms.js";
 import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 
 

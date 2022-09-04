@@ -1,7 +1,7 @@
 import { Arg } from "../src/classes.js";
 import commands from "../src/commands.js";
-import { GenericArgs } from "../src/consts.js";
 import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgValidForType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg, isArgValidFor } from "../src/funcs.js";
+import { GenericArgs } from "../src/generic_args.js";
 import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 describe("templateFunction", () => {
     it("should ", () => {

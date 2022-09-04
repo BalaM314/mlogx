@@ -17,10 +17,10 @@ import {
 	TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup,
 	CompilerCommandDefinitionGroup, CompilerCommandDefinition, GAT, ArgKey
 } from "./types.js";
-import { GenericArgs } from "./consts.js";
 import { ForStackElement } from "./types.js";
 import * as readline from "readline";
 import chalk from "chalk";
+import { GenericArgs } from "./generic_args.js";
 
 
 

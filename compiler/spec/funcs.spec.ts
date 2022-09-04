@@ -9,7 +9,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { Arg } from "../src/classes.js";
 import commands from "../src/commands.js";
-import { GenericArgs } from "../src/consts.js";
+import {  } from "../src/consts.js";
 import {
 	processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed,
 	getParameters, getVariablesUsed, isArgValidForType, removeUnusedJumps, replaceCompilerConstants,
@@ -21,6 +21,7 @@ import {
 	formatLineWithPrefix, getCompilerCommandDefinitions, getCompilerConsts, hasDisabledIf,
 	processCompilerCommands, removeComments, removeTrailingSpaces, isArgValidFor, isArgValidForValidator
 } from "../src/funcs.js";
+import { GenericArgs } from "../src/generic_args.js";
 import { ArgType, CompilerConst } from "../src/types.js";
 import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 

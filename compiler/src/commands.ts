@@ -9,8 +9,13 @@ Contains the commands AST.
 */
 
 import { CompilerError, Log } from "./classes.js";
-import { GenericArgs, maxLoops, MindustryContent, shortOperandMapping } from "./consts.js";
-import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
+import { maxLoops, MindustryContent, shortOperandMapping } from "./consts.js";
+import {
+	addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands,
+	processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments,
+	topForLoop, typeofArg
+} from "./funcs.js";
+import { GenericArgs } from "./generic_args.js";
 import { CommandDefinitions, CompiledLine, GAT, PortingMode } from "./types.js";
 
 //welcome to AST hell
@@ -266,16 +271,13 @@ export const commands: CommandDefinitions = processCommands({
 		{
 			args: "item output:*itemType n:number",
 			description: "Looks up the (n)th item."
-		},
-		{
+		},{
 			args: "block output:*buildingType n:number",
 			description: "Looks up the (n)th building."
-		},
-		{
+		},{
 			args: "liquid output:*unitType n:number",
 			description: "Looks up the (n)th fluid."
-		},
-		{
+		},{
 			args: "unit output:*unitType n:number",
 			description: "Looks up the (n)th unit."
 		},

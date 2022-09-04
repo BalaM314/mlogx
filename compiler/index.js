@@ -18,15 +18,14 @@ export * from "./src/compile_fs.js";
 export * from "./src/compile.js";
 export * from "./src/consts.js";
 export * from "./src/funcs.js";
+export * from "./src/generic_args.js";
 export { mlogx as app } from "./src/mlogx.js";
 export * from "./src/types.js";
 
 
 
 
-const __filename = fileURLToPath(import.meta.url)
-
-if (process.argv?.[1] == __filename) {
+if(process.argv[1] == fileURLToPath(import.meta.url)) {
 	Log.warn(`Running index.js is deprecated, please run cli.js instead.`);
   mlogx.run(process.argv);
 }

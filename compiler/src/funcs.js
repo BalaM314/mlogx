@@ -1,9 +1,9 @@
 import { Arg, Log } from "./classes.js";
 import { commands, compilerCommands } from "./commands.js";
 import { CommandErrorType } from "./types.js";
-import { GenericArgs } from "./consts.js";
 import * as readline from "readline";
 import chalk from "chalk";
+import { GenericArgs } from "./generic_args.js";
 export function isGenericArg(val) {
     return GenericArgs.has(val);
 }
