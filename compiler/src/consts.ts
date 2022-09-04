@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains various constants.
 */
 
-import { ArgKey, ArgType, Line, nGAT, PreprocessedArgKey } from "./types.js";
+import { ArgKey, ArgType, Line, GAT, PreprocessedArgKey } from "./types.js";
 import * as yup from "yup";
 
 export const compilerMark = [
@@ -163,7 +163,7 @@ export const GenericArgs = (
 ]));
 
 export const requiredVarCode: {
-	[index: string]: [string[], nGAT];
+	[index: string]: [string[], GAT];
 } = {
 	"cookie": [[
 		`op mul cookie @thisx @maph`,

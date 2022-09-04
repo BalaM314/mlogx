@@ -15,7 +15,7 @@ import {
 	CompilerCommandDefinitions, CompilerConst, CompilerConsts, Line, NamespaceStackElement,
 	PreprocessedCommandDefinitions, PreprocessedCompilerCommandDefinitions, Settings, StackElement,
 	TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup,
-	CompilerCommandDefinitionGroup, CompilerCommandDefinition, nGAT, ArgKey
+	CompilerCommandDefinitionGroup, CompilerCommandDefinition, GAT, ArgKey
 } from "./types.js";
 import { GenericArgs } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -27,12 +27,12 @@ import chalk from "chalk";
 //#region argfunctions
 
 /**Returns if an argument is generic or not. */
-export function isGenericArg(val:string): val is nGAT {
-	return GenericArgs.has(val as nGAT);
+export function isGenericArg(val:string): val is GAT {
+	return GenericArgs.has(val as GAT);
 }
 
 /**Estimates the type of an argument. May not be right.*/
-export function typeofArg(arg:string):nGAT {
+export function typeofArg(arg:string):GAT {
 	if(arg == "") return "invalid";
 	if(arg == undefined) return "invalid";
 	for(const [name, argKey] of GenericArgs.entries()){
@@ -79,7 +79,7 @@ export function isArgValidForType(argToCheck:string, arg:ArgType, checkAlsoAccep
 
 	//Check if the string is valid for any excluded arg
 	for(const excludedArg of argKey.exclude){
-		const excludedArgKey = GenericArgs.get(excludedArg as nGAT);
+		const excludedArgKey = GenericArgs.get(excludedArg as GAT);
 		if(!excludedArgKey) throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies exclude option ${excludedArg} which is not a known generic arg type`);
 		//If it is valid, return false
 		if(isArgValidForValidator(argToCheck, excludedArgKey.validator)) return false;

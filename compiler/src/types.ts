@@ -193,8 +193,8 @@ export type CompilerCommandDefinitions = {
 }
 
 export type keyofMap<M extends Map<unknown, unknown>> = M extends Map<infer K, unknown> ? K : never;
-export type nGAT = keyofMap<typeof GenericArgs>;
-export type ArgType = nGAT | string;
+export type GAT = keyofMap<typeof GenericArgs>;
+export type ArgType = GAT | string;
 export type PreprocessedArg = `${"..."|""}${string}:${"*"|""}${string}${"?"|""}` | `${string}`;
 
 
