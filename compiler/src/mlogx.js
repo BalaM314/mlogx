@@ -7,26 +7,36 @@ import path from "path";
 import * as fs from "fs";
 import { createProject, compileDirectory, compileFile } from "./compile_fs.js";
 import { PortingMode } from "./types.js";
+import { GenericArgs } from "./consts.js";
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
-    const command = opts.positionalArgs[0];
-    if (command.includes(" ")) {
+    const name = opts.positionalArgs[0];
+    if (name.includes(" ")) {
         Log.err(`Commands cannot contain spaces.`);
         return 1;
     }
-    if (!commands[command]) {
-        Log.err(`Unknown command "${command}"`);
-        return 1;
-    }
-    else {
-        Log.none(chalk.white(`Info for command "${command}"
+    if (commands[name]) {
+        Log.none(chalk.white(`Info for command "${name}"
 Usage:
 
-${commands[command].map(commandDefinition => command + " " + commandDefinition.args
+${commands[name].map(commandDefinition => name + " " + commandDefinition.args
             .map(arg => arg.toString())
             .join(" ") + "\n" + commandDefinition.description).join("\n\n")}
 `));
         return 0;
+    }
+    else if (GenericArgs.has(name)) {
+        const arg = GenericArgs.get(name);
+        Log.none(chalk.white(`Info for generic arg type ${name}:
+
+Accepts:
+${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof RegExp ? `* Any string matching the regex /${thing.source}/` : `* "${thing}"`).join("\n") : `Anything accepted by the function ${arg.validator.toString()}`}
+`));
+        return 0;
+    }
+    else {
+        Log.err(`Unknown command or generic arg type "${name}"`);
+        return 1;
     }
 }, false, {
     namedArgs: {},
