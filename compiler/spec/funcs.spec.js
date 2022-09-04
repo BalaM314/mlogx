@@ -181,6 +181,7 @@ describe("splitLineIntoArguments", () => {
 describe("transformVariables", () => {
     it("should only edit variables", () => {
         expect(transformVariables(["set", "x", "5"], commands["set"][0], x => `_transformed_${x}`)).toEqual(["set", "_transformed_x", "5"]);
+        expect(transformVariables(["print", "x"], commands["print"][0], x => `_transformed_${x}`)).toEqual(["print", "_transformed_x"]);
         expect(transformVariables(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3], x => `_transformed_${x}`)).toEqual(["ulocate", "building", "core", "true", "_transformed_outX", "_transformed_outY", "_transformed_found", "_transformed_building"]);
     });
 });

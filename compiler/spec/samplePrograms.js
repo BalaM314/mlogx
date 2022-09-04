@@ -76,6 +76,7 @@ export const allShorthandCommands = [
 export const startNamespace = `namespace testname {`;
 export const namespaceTests = [
     [`set x 5`, [makeNamespaceEl("nametest")], `set _nametest_x 5`],
+    [`print x`, [makeNamespaceEl("nametest")], `print _nametest_x`],
     [`radar enemy distance scatter1 0 unit`, [makeNamespaceEl("nametest")], `radar enemy any any distance scatter1 0 _nametest_unit`],
     [`radar enemy distance scatter1 0 unit`, [makeNamespaceEl("nametest"), makeNamespaceEl("othername")], `radar enemy any any distance scatter1 0 _nametest_othername_unit`],
 ];
