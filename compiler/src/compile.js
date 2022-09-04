@@ -192,7 +192,7 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`);
         }
     }
     for (const [jumpLabel, usages] of Object.entries(jumpLabelsUsed)) {
-        if (!jumpLabelsDefined[jumpLabel]) {
+        if (!jumpLabelsDefined[jumpLabel] && isNaN(parseInt(jumpLabel))) {
             Log.warn(`Jump label "${jumpLabel}" is missing.`);
             usages.forEach(usage => Log.none(formatLineWithPrefix(usage.line, settings)));
         }
