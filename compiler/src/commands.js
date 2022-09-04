@@ -424,7 +424,7 @@ export const commands = processCommands({
             description: "Finds buildings of specified group near the bound unit.",
             replace: ["ulocate building %2 %3 _ %4 %5 %6 %7"]
         }, {
-            args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:any buildingGroup:buildingGroup enemy:boolean ore:itemType outX:*number outY:*number found:*boolean building:*building",
+            args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:locateable buildingGroup:buildingGroup enemy:boolean ore:itemType outX:*number outY:*number found:*boolean building:*building",
             description: "The wack default ulocate signature, included for compatibility.",
             port(args, mode) {
                 if (mode >= PortingMode.shortenSyntax) {

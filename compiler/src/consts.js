@@ -45,7 +45,8 @@ export const GenericArgs = ((stuff) => new Map(Array.from(stuff.entries())
     .map(([key, obj]) => [key, {
         alsoAccepts: obj.alsoAccepts ?? [],
         validator: obj.validator instanceof RegExp ? [obj.validator] : obj.validator,
-        exclude: obj.exclude ?? []
+        exclude: obj.exclude ?? [],
+        doNotGuess: obj.doNotGuess ?? false
     }])))(new Map([
     ["number", {
             validator: [
@@ -129,7 +130,8 @@ export const GenericArgs = ((stuff) => new Map(Array.from(stuff.entries())
         }],
     ["jumpAddress", {
             validator: /^[^":]+$/,
-            alsoAccepts: ["number"]
+            alsoAccepts: ["number"],
+            doNotGuess: true,
         }],
     ["invalid", {
             validator: []
@@ -144,16 +146,24 @@ export const GenericArgs = ((stuff) => new Map(Array.from(stuff.entries())
             validator: [
                 "any", "enemy", "ally", "player", "attacker",
                 "flying", "boss", "ground"
-            ]
+            ],
+            doNotGuess: true,
         }],
     ["unitSortCriteria", {
-            validator: ["distance", "health", "shield", "armor", "maxHealth"]
+            validator: ["distance", "health", "shield", "armor", "maxHealth"],
+            doNotGuess: true,
         }],
     ["buildingGroup", {
-            validator: ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"]
+            validator: ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"],
+            doNotGuess: true,
+        }],
+    ["locateable", {
+            validator: ["building", "ore", "spawn", "damaged"],
+            doNotGuess: true,
         }],
     ["lookupType", {
-            validator: ["building", "unit", "fluid", "item"]
+            validator: ["building", "unit", "fluid", "item"],
+            doNotGuess: true,
         }],
     ["variable", {
             validator: [/^@?[^"@[\]{}/\\:]+$/, "@counter"],
@@ -161,7 +171,8 @@ export const GenericArgs = ((stuff) => new Map(Array.from(stuff.entries())
         }],
     ["any", {
             validator: /.+/,
-            alsoAccepts: []
+            alsoAccepts: ["variable"],
+            doNotGuess: true,
         }],
 ]));
 export const requiredVarCode = {

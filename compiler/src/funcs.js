@@ -13,7 +13,7 @@ export function typeofArg(arg) {
     if (arg == undefined)
         return "invalid";
     for (const [name, argKey] of GenericArgs.entries()) {
-        if (name == "any")
+        if (argKey.doNotGuess)
             continue;
         if (typeof argKey.validator == "function") {
             if (argKey.validator(arg))

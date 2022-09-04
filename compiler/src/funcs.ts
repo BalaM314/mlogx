@@ -36,7 +36,7 @@ export function typeofArg(arg:string):GAT {
 	if(arg == "") return "invalid";
 	if(arg == undefined) return "invalid";
 	for(const [name, argKey] of GenericArgs.entries()){
-		if(name == "any") continue;
+		if(argKey.doNotGuess) continue;
 		if(typeof argKey.validator == "function"){
 			if(argKey.validator(arg)) return name;
 		} else {

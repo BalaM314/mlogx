@@ -208,6 +208,8 @@ export interface PreprocessedArgKey {
 	 * Example: if a string is valid for unit, it should not be valid for a variable.
 	 */
 	exclude?: string[];
+	/**If this is true, typeofArg() will not estimate this as the type of an arg. Useful for things like jumpAddress. */
+	doNotGuess?: true;
 }
 export interface ArgKey {
 	/**Checks if a string is valid for this arg. Can be an array of strings or regexes or a function. */
@@ -219,6 +221,8 @@ export interface ArgKey {
 	 * Example: if a string is valid for unit, it should not be valid for a variable.
 	 */
 	exclude: string[];
+	/**If this is true, typeofArg() will not estimate this as the type of an arg. Useful for things like jumpAddress. */
+	doNotGuess: boolean;
 }
 
 interface BaseStackElement {
