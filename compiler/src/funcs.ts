@@ -440,14 +440,15 @@ export function typesAreCompatible(input:ArgType, output:ArgType):boolean {
 export function acceptsVariable(arg: Arg|undefined):boolean {
 	if(arg == undefined) return false;
 	if(arg.isVariable) return false;
-	if(arg.isGeneric)
-		return [
-			"boolean", "building",
-			"number", "string",
-			"type", "unit"
-		].includes(arg.type);
-	else
+	if(arg.isGeneric){
+		if(!GenericArgs.has(arg.type as GAT)){
+			Log.dump(arg);
+			throw new Error(`Impossible.`);
+		}
+		return GenericArgs.get(arg.type as GAT)!.alsoAccepts.includes("variable");
+	} else {
 		return false;
+	}
 }
 
 //#endregion

@@ -333,14 +333,16 @@ export function acceptsVariable(arg) {
         return false;
     if (arg.isVariable)
         return false;
-    if (arg.isGeneric)
-        return [
-            "boolean", "building",
-            "number", "string",
-            "type", "unit"
-        ].includes(arg.type);
-    else
+    if (arg.isGeneric) {
+        if (!GenericArgs.has(arg.type)) {
+            Log.dump(arg);
+            throw new Error(`Impossible.`);
+        }
+        return GenericArgs.get(arg.type).alsoAccepts.includes("variable");
+    }
+    else {
         return false;
+    }
 }
 export function isCommand(cleanedLine, command) {
     const args = splitLineIntoArguments(cleanedLine);
