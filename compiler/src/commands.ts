@@ -488,7 +488,6 @@ export const compilerCommands = processCompilerCommands({
 				args: "variable:*any of ...elements:any {",
 				description: "&for in loops allow you to emit the same code multiple times but with a value changed. (variable) is set as a compiler constant and goes through each element of (elements).",
 				onbegin(args, line) {
-					Log.debug(`Started for of loop with elements [${args.slice(3, -1).join(" ")}] and variable ${args[1]}`);
 					return {
 						element: {
 							type: "&for",

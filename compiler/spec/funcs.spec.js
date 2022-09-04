@@ -525,7 +525,7 @@ describe("processCommands", () => {
                     args: "building buildingGroup:buildingGroup enemy:boolean outX:*number outY:*number found:*boolean building:*building",
                     description: "is sus.",
                     replace: ["sus building %2 %3 _ %4 %5 %6 %7"],
-                    port(args, mode) {
+                    port(args) {
                         return args.join(" ");
                     },
                 }, {

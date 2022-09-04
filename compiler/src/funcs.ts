@@ -15,9 +15,9 @@ import {
 	CompilerCommandDefinitions, CompilerConst, CompilerConsts, Line, NamespaceStackElement,
 	PreprocessedCommandDefinitions, PreprocessedCompilerCommandDefinitions, Settings, StackElement,
 	TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup,
-	CompilerCommandDefinitionGroup, CompilerCommandDefinition, nGAT, keyofMap, ArgKey
+	CompilerCommandDefinitionGroup, CompilerCommandDefinition, nGAT, ArgKey
 } from "./types.js";
-import { buildingNameRegex, shortOperandMapping, GenericArgs } from "./consts.js";
+import { GenericArgs } from "./consts.js";
 import { ForStackElement } from "./types.js";
 import * as readline from "readline";
 import chalk from "chalk";

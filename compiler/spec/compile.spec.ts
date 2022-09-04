@@ -7,7 +7,6 @@ You should have received a copy of the GNU Lesser General Public License along w
 */
 
 
-import { Log } from "../src/classes.js";
 import { compilerCommands } from "../src/commands.js";
 import { compileLine, compileMlogxToMlog } from "../src/compile.js";
 import { settingsSchema } from "../src/consts.js";
