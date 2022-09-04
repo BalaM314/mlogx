@@ -5,14 +5,14 @@ import { GenericArgs } from "./consts.js";
 import * as readline from "readline";
 import chalk from "chalk";
 export function isGenericArg(val) {
-    return val in GenericArgs;
+    return GenericArgs.has(val);
 }
 export function typeofArg(arg) {
     if (arg == "")
         return "invalid";
     if (arg == undefined)
         return "invalid";
-    for (const [name, argKey] of Object.entries(GenericArgs)) {
+    for (const [name, argKey] of GenericArgs.entries()) {
         if (name == "any")
             continue;
         if (typeof argKey.validator == "function") {
@@ -34,26 +34,12 @@ export function typeofArg(arg) {
     }
     return "invalid";
 }
-export function isArgValidForType(argToCheck, arg, checkAlsoAccepts = true) {
-    if (argToCheck == "")
-        return false;
-    if (argToCheck == undefined)
-        return false;
-    if (!isGenericArg(arg)) {
-        return argToCheck === arg;
-    }
-    const argKey = GenericArgs[arg];
-    if (checkAlsoAccepts) {
-        for (const otherType of argKey.alsoAccepts) {
-            if (isArgValidForType(argToCheck, otherType, false))
-                return true;
-        }
-    }
-    if (typeof argKey.validator == "function") {
-        return argKey.validator(argToCheck);
+export function isArgValidForValidator(argToCheck, validator) {
+    if (typeof validator == "function") {
+        return validator(argToCheck);
     }
     else {
-        for (const argString of argKey.validator) {
+        for (const argString of validator) {
             if (argString instanceof RegExp) {
                 if (argString.test(argToCheck))
                     return true;
@@ -65,6 +51,32 @@ export function isArgValidForType(argToCheck, arg, checkAlsoAccepts = true) {
         }
         return false;
     }
+}
+export function isArgValidForType(argToCheck, arg, checkAlsoAccepts = true) {
+    if (argToCheck == "")
+        return false;
+    if (argToCheck == undefined)
+        return false;
+    if (!isGenericArg(arg)) {
+        return argToCheck === arg;
+    }
+    const argKey = GenericArgs.get(arg);
+    if (!argKey)
+        throw new Error("impossible.");
+    for (const excludedArg of argKey.exclude) {
+        const excludedArgKey = GenericArgs.get(excludedArg);
+        if (!excludedArgKey)
+            throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies exclude option ${excludedArg} which is not a known generic arg type`);
+        if (isArgValidForValidator(argToCheck, excludedArgKey.validator))
+            return false;
+    }
+    if (checkAlsoAccepts) {
+        for (const otherType of argKey.alsoAccepts) {
+            if (isArgValidForType(argToCheck, otherType, false))
+                return true;
+        }
+    }
+    return isArgValidForValidator(argToCheck, argKey.validator);
 }
 export function isArgValidFor(str, arg) {
     if (arg.isVariable) {

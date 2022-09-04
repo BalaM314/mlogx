@@ -148,7 +148,8 @@ export type CompilerCommandDefinitions = {
 	[ID in keyof StackElementMapping]: CompilerCommandDefinitionGroup<StackElementMapping[ID]>
 }
 
-export type nGAT = keyof typeof GenericArgs;
+export type keyofMap<M extends Map<unknown, unknown>> = M extends Map<infer K, unknown> ? K : never;
+export type nGAT = keyofMap<typeof GenericArgs>;
 export type ArgType = nGAT | string;
 export type PreprocessedArg = `${"..."|""}${string}:${"*"|""}${string}${"?"|""}` | `${string}`;
 
@@ -156,10 +157,12 @@ export type PreprocessedArg = `${"..."|""}${string}:${"*"|""}${string}${"?"|""}`
 export interface PreprocessedArgKey {
 	validator: RegExp | (string | RegExp)[] | ((arg:string) => boolean);
 	alsoAccepts?: string[];
+	exclude?: string[];
 }
 export interface ArgKey {
 	validator: (string | RegExp)[] | ((arg:string) => boolean);
 	alsoAccepts: string[];
+	exclude: string[];
 }
 
 interface BaseStackElement {

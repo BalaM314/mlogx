@@ -60,71 +60,55 @@ export const buildingNameRegex = new RegExp(`^(${buildingInternalNames.map(el =>
 export const GenericArgs = (
 	//Typescript can be black magic sometimes
 	//Use the provided values of indexes, but a specific type for the values.
-	(<T extends string>(stuff: {
-		[K in T]: PreprocessedArgKey;
-	}) =>
-		Object.fromEntries<ArgKey>(
-			Object.entries<PreprocessedArgKey>(stuff)
+	(<T extends string>(stuff: Map<T, PreprocessedArgKey>) =>
+		new Map<T, ArgKey>(
+			Array.from(stuff.entries())
 				.map(([key, obj]) => [key, {
 					alsoAccepts: obj.alsoAccepts ?? [],
-					validator: obj.validator instanceof RegExp ? [ obj.validator ] : obj.validator
+					validator: obj.validator instanceof RegExp ? [ obj.validator ] : obj.validator,
+					exclude: obj.exclude ?? []
 				}])
-		)) as <T extends string>(stuff: {
-			[K in T]: PreprocessedArgKey;
-		}) => { [K in T]: ArgKey }
-)({
-	number: {
+		)) as <T extends string>(stuff: Map<T, PreprocessedArgKey>) => Map<T, ArgKey>
+)(new Map([
+	["number", {
 		validator: [
 			/^-?\d+((\.\d+)|(e-?\d+))?$/,
 			"@thisx", "@thisy", "@ipt", "@links",
 			"@time", "@tick", "@mapw", "@maph",
 		],
 		alsoAccepts: ["variable", "boolean"]
-	},
-	string: {
+	}],
+	["string", {
 		validator: /^"(?:[^"]|(\\"))*"$/,
 		alsoAccepts: ["variable"]
-	},
-	boolean: {
+	}],
+	["boolean", {
 		validator: ["true", "false"],
 		alsoAccepts: ["variable", "number"]
-	},
-	type: {
+	}],
+	["type", {
 		validator: (arg:string) => arg.startsWith("@") && !["@unit", "@thisx", "@thisy", "@this", "@ipt", "@links", "@time", "@tick", "@mapw", "@maph", "@counter"].includes(arg),
 		alsoAccepts: ["variable"]
-	},
-	building: {
+	}],
+	["building", {
 		validator: [buildingNameRegex, "@this"],
 		alsoAccepts: ["variable"]
-	},
-	unit: {
+	}],
+	["unit", {
 		validator: ["@unit"],
 		alsoAccepts: ["variable"]
-	},
-	any: {
-		validator: /.+/,
-		alsoAccepts: []
-	},
-	null: {
+	}],
+	["null", {
 		validator: ["null"],
 		alsoAccepts: []
-	},
-	operandTest: {
+	}],
+	["operandTest", {
 		validator: [
 			"equal", "notEqual", "strictEqual", "greaterThan",
 			"lessThan", "greaterThanEq", "lessThanEq", "always"
 		]
-	},
-	targetClass: {
-		validator: [
-			"any", "enemy", "ally", "player", "attacker",
-			"flying", "boss", "ground"
-		]
-	},
-	unitSortCriteria: {
-		validator: ["distance", "health", "shield", "armor", "maxHealth"]
-	},
-	operandDouble: {
+	}],
+	["operandDouble", {
 		validator: [
 			"add", "sub", "mul", "div", "idiv", "mod", "pow",
 			"equal", "notEqual", "land", "lessThan",
@@ -132,38 +116,51 @@ export const GenericArgs = (
 			"strictEqual", "shl", "shr", "or", "and",
 			"xor", "min", "angle", "len", "noise",
 		]
-	},
-	operandSingle: {
+	}],
+	["operandSingle", {
 		validator: [
 			"not", "max", "abs", "log", "log10",
 			"floor", "ceil", "sqrt", "rand", "sin",
 			"cos", "tan", "asin", "acos", "atan"
 		]
-	},
-	lookupType: {
-		validator: ["building", "unit", "fluid", "item"]
-	},
-	jumpAddress: {
+	}],
+	["jumpAddress", {
 		validator: /^[^":]+$/,
 		alsoAccepts: ["number"]
-	},
-	buildingGroup: {
-		validator: ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"]
-	},
-	invalid: {
+	}],
+	["invalid", {
 		validator: []
-	},
-	ctype: {
+	}],
+	["ctype", {
 		validator: /:[\w-$]+/
-	},
-	/** short(or symbolic?) operand double */
-	sOperandDouble: {
+	}],
+	["sOperandDouble", { //short (or symbol) operand double
 		validator: (arg:string) => arg in shortOperandMapping
-	},
-	variable: {
-		validator: /^[^"]+$/
-	},
-});
+	}],
+	["targetClass", {
+		validator: [
+			"any", "enemy", "ally", "player", "attacker",
+			"flying", "boss", "ground"
+		]
+	}],
+	["unitSortCriteria", {
+		validator: ["distance", "health", "shield", "armor", "maxHealth"]
+	}],
+	["buildingGroup", {
+		validator: ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"]
+	}],
+	["lookupType", {
+		validator: ["building", "unit", "fluid", "item"]
+	}],
+	["variable", {
+		validator: [/^[^"@()[\]{}/\\:]+$/, "@counter"],
+		exclude: ["number", "string", "boolean", "type", "building", "unit", "null", "ctype"]
+	}],
+	["any", {
+		validator: /.+/,
+		alsoAccepts: []
+	}],
+]));
 
 export const requiredVarCode: {
 	[index: string]: [string[], nGAT];

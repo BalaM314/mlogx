@@ -524,14 +524,16 @@ describe("processCommands", () => {
                 {
                     args: "building buildingGroup:buildingGroup enemy:boolean outX:*number outY:*number found:*boolean building:*building",
                     description: "is sus.",
-                    replace: ["sus building %2 %3 _ %4 %5 %6 %7"]
+                    replace: ["sus building %2 %3 _ %4 %5 %6 %7"],
+                    port(args, mode) {
+                        return args.join(" ");
+                    },
                 }, {
                     args: "",
                     description: "Does nothing."
                 }
             ],
-        }))
-            .toEqual({
+        })).toEqual({
             "amogus": [{
                     type: "Command",
                     args: [new Arg("sus", "sus", false, false, false), new Arg("number", "susLevel", false, true, false)],
@@ -539,6 +541,7 @@ describe("processCommands", () => {
                     name: "amogus",
                     getVariablesDefined: undefined,
                     getVariablesUsed: undefined,
+                    port: undefined
                 }],
             "sus": [
                 {
@@ -556,7 +559,8 @@ describe("processCommands", () => {
                     ],
                     getVariablesDefined: undefined,
                     getVariablesUsed: undefined,
-                    replace: jasmine.any(Function)
+                    replace: jasmine.any(Function),
+                    port: jasmine.any(Function)
                 }, {
                     type: "Command",
                     args: [],
@@ -564,6 +568,7 @@ describe("processCommands", () => {
                     name: "sus",
                     getVariablesDefined: undefined,
                     getVariablesUsed: undefined,
+                    port: undefined
                 }
             ]
         });

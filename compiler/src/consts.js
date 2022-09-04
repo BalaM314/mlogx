@@ -41,101 +41,103 @@ export const buildingInternalNames = [
     "cell", "bank", "display"
 ];
 export const buildingNameRegex = new RegExp(`^(${buildingInternalNames.map(el => `(${el})`).join("|")})[\\d]+$`);
-export const GenericArgs = ((stuff) => Object.fromEntries(Object.entries(stuff)
+export const GenericArgs = ((stuff) => new Map(Array.from(stuff.entries())
     .map(([key, obj]) => [key, {
         alsoAccepts: obj.alsoAccepts ?? [],
-        validator: obj.validator instanceof RegExp ? [obj.validator] : obj.validator
-    }])))({
-    number: {
-        validator: [
-            /^-?\d+((\.\d+)|(e-?\d+))?$/,
-            "@thisx", "@thisy", "@ipt", "@links",
-            "@time", "@tick", "@mapw", "@maph",
-        ],
-        alsoAccepts: ["variable", "boolean"]
-    },
-    string: {
-        validator: /^"(?:[^"]|(\\"))*"$/,
-        alsoAccepts: ["variable"]
-    },
-    boolean: {
-        validator: ["true", "false"],
-        alsoAccepts: ["variable", "number"]
-    },
-    type: {
-        validator: (arg) => arg.startsWith("@") && !["@unit", "@thisx", "@thisy", "@this", "@ipt", "@links", "@time", "@tick", "@mapw", "@maph", "@counter"].includes(arg),
-        alsoAccepts: ["variable"]
-    },
-    building: {
-        validator: [buildingNameRegex, "@this"],
-        alsoAccepts: ["variable"]
-    },
-    unit: {
-        validator: ["@unit"],
-        alsoAccepts: ["variable"]
-    },
-    any: {
-        validator: /.+/,
-        alsoAccepts: []
-    },
-    null: {
-        validator: ["null"],
-        alsoAccepts: []
-    },
-    operandTest: {
-        validator: [
-            "equal", "notEqual", "strictEqual", "greaterThan",
-            "lessThan", "greaterThanEq", "lessThanEq", "always"
-        ]
-    },
-    targetClass: {
-        validator: [
-            "any", "enemy", "ally", "player", "attacker",
-            "flying", "boss", "ground"
-        ]
-    },
-    unitSortCriteria: {
-        validator: ["distance", "health", "shield", "armor", "maxHealth"]
-    },
-    operandDouble: {
-        validator: [
-            "add", "sub", "mul", "div", "idiv", "mod", "pow",
-            "equal", "notEqual", "land", "lessThan",
-            "lessThanEq", "greaterThan", "greaterThanEq",
-            "strictEqual", "shl", "shr", "or", "and",
-            "xor", "min", "angle", "len", "noise",
-        ]
-    },
-    operandSingle: {
-        validator: [
-            "not", "max", "abs", "log", "log10",
-            "floor", "ceil", "sqrt", "rand", "sin",
-            "cos", "tan", "asin", "acos", "atan"
-        ]
-    },
-    lookupType: {
-        validator: ["building", "unit", "fluid", "item"]
-    },
-    jumpAddress: {
-        validator: /^[^":]+$/,
-        alsoAccepts: ["number"]
-    },
-    buildingGroup: {
-        validator: ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"]
-    },
-    invalid: {
-        validator: []
-    },
-    ctype: {
-        validator: /:[\w-$]+/
-    },
-    sOperandDouble: {
-        validator: (arg) => arg in shortOperandMapping
-    },
-    variable: {
-        validator: /^[^"]+$/
-    },
-});
+        validator: obj.validator instanceof RegExp ? [obj.validator] : obj.validator,
+        exclude: obj.exclude ?? []
+    }])))(new Map([
+    ["number", {
+            validator: [
+                /^-?\d+((\.\d+)|(e-?\d+))?$/,
+                "@thisx", "@thisy", "@ipt", "@links",
+                "@time", "@tick", "@mapw", "@maph",
+            ],
+            alsoAccepts: ["variable", "boolean"]
+        }],
+    ["string", {
+            validator: /^"(?:[^"]|(\\"))*"$/,
+            alsoAccepts: ["variable"]
+        }],
+    ["boolean", {
+            validator: ["true", "false"],
+            alsoAccepts: ["variable", "number"]
+        }],
+    ["type", {
+            validator: (arg) => arg.startsWith("@") && !["@unit", "@thisx", "@thisy", "@this", "@ipt", "@links", "@time", "@tick", "@mapw", "@maph", "@counter"].includes(arg),
+            alsoAccepts: ["variable"]
+        }],
+    ["building", {
+            validator: [buildingNameRegex, "@this"],
+            alsoAccepts: ["variable"]
+        }],
+    ["unit", {
+            validator: ["@unit"],
+            alsoAccepts: ["variable"]
+        }],
+    ["null", {
+            validator: ["null"],
+            alsoAccepts: []
+        }],
+    ["operandTest", {
+            validator: [
+                "equal", "notEqual", "strictEqual", "greaterThan",
+                "lessThan", "greaterThanEq", "lessThanEq", "always"
+            ]
+        }],
+    ["operandDouble", {
+            validator: [
+                "add", "sub", "mul", "div", "idiv", "mod", "pow",
+                "equal", "notEqual", "land", "lessThan",
+                "lessThanEq", "greaterThan", "greaterThanEq",
+                "strictEqual", "shl", "shr", "or", "and",
+                "xor", "min", "angle", "len", "noise",
+            ]
+        }],
+    ["operandSingle", {
+            validator: [
+                "not", "max", "abs", "log", "log10",
+                "floor", "ceil", "sqrt", "rand", "sin",
+                "cos", "tan", "asin", "acos", "atan"
+            ]
+        }],
+    ["jumpAddress", {
+            validator: /^[^":]+$/,
+            alsoAccepts: ["number"]
+        }],
+    ["invalid", {
+            validator: []
+        }],
+    ["ctype", {
+            validator: /:[\w-$]+/
+        }],
+    ["sOperandDouble", {
+            validator: (arg) => arg in shortOperandMapping
+        }],
+    ["targetClass", {
+            validator: [
+                "any", "enemy", "ally", "player", "attacker",
+                "flying", "boss", "ground"
+            ]
+        }],
+    ["unitSortCriteria", {
+            validator: ["distance", "health", "shield", "armor", "maxHealth"]
+        }],
+    ["buildingGroup", {
+            validator: ["core", "storage", "generator", "turret", "factory", "repair", "battery", "rally", "reactor"]
+        }],
+    ["lookupType", {
+            validator: ["building", "unit", "fluid", "item"]
+        }],
+    ["variable", {
+            validator: [/^[^"@()[\]{}/\\:]+$/, "@counter"],
+            exclude: ["number", "string", "boolean", "type", "building", "unit", "null", "ctype"]
+        }],
+    ["any", {
+            validator: /.+/,
+            alsoAccepts: []
+        }],
+]));
 export const requiredVarCode = {
     "cookie": [[
             `op mul cookie @thisx @maph`,

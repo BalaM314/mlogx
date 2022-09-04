@@ -11,7 +11,7 @@ Contains the commands AST.
 import { CompilerError, Log } from "./classes.js";
 import { GenericArgs, maxLoops, shortOperandMapping } from "./consts.js";
 import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
-import { CommandDefinitions, CompiledLine, PortingMode } from "./types.js";
+import { CommandDefinitions, CompiledLine, nGAT, PortingMode } from "./types.js";
 
 //welcome to AST hell
 /** Contains the arguments for all types.*/
@@ -205,14 +205,14 @@ export const commands: CommandDefinitions = processCommands({
 			args: "variable:*any type:ctype value:any",
 			description: "Sets the value of (variable) to (value), and the type of (variable) to (type).",
 			replace: (args:string[]) => {
-				if(args[2].slice(1) in GenericArgs){
+				if(GenericArgs.has(args[2].slice(1) as nGAT)){
 					return [`set ${args[1]} ${args[3]}`];
 				} else {
 					throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GenericArgs).join(", ")}`);
 				}
 			},
 			getVariablesDefined: (args) => {
-				if(args[2].slice(1) in GenericArgs){
+				if(GenericArgs.has(args[2].slice(1) as nGAT)){
 					return [[args[1], args[2].slice(1)]];
 				} else {
 					throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GenericArgs).join(", ")}`);

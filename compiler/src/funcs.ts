@@ -15,7 +15,7 @@ import {
 	CompilerCommandDefinitions, CompilerConst, CompilerConsts, Line, NamespaceStackElement,
 	PreprocessedCommandDefinitions, PreprocessedCompilerCommandDefinitions, Settings, StackElement,
 	TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup,
-	CompilerCommandDefinitionGroup, CompilerCommandDefinition, nGAT
+	CompilerCommandDefinitionGroup, CompilerCommandDefinition, nGAT, keyofMap, ArgKey
 } from "./types.js";
 import { buildingNameRegex, shortOperandMapping, GenericArgs } from "./consts.js";
 import { ForStackElement } from "./types.js";
@@ -28,14 +28,14 @@ import chalk from "chalk";
 
 /**Returns if an argument is generic or not. */
 export function isGenericArg(val:string): val is nGAT {
-	return (val as nGAT) in GenericArgs;
+	return GenericArgs.has(val as nGAT);
 }
 
 /**Estimates the type of an argument. May not be right.*/
 export function typeofArg(arg:string):nGAT {
 	if(arg == "") return "invalid";
 	if(arg == undefined) return "invalid";
-	for(const [name, argKey] of Object.entries(GenericArgs) as [nGAT, (typeof GenericArgs)[nGAT]][]){
+	for(const [name, argKey] of GenericArgs.entries()){
 		if(name == "any") continue;
 		if(typeof argKey.validator == "function"){
 			if(argKey.validator(arg)) return name;
@@ -52,23 +52,11 @@ export function typeofArg(arg:string):nGAT {
 	return "invalid";
 }
 
-/**Returns if an arg is of a specified type. */
-export function isArgValidForType(argToCheck:string, arg:ArgType, checkAlsoAccepts:boolean = true):boolean {
-	if(argToCheck == "") return false;
-	if(argToCheck == undefined) return false;
-	if(!isGenericArg(arg)){
-		return argToCheck === arg;
-	}
-	const argKey = GenericArgs[arg];
-	if(checkAlsoAccepts){
-		for(const otherType of argKey.alsoAccepts){
-			if(isArgValidForType(argToCheck, otherType, false)) return true;
-		}
-	}
-	if(typeof argKey.validator == "function"){
-		return argKey.validator(argToCheck);
+export function isArgValidForValidator(argToCheck:string, validator:ArgKey["validator"]):boolean {
+	if(typeof validator == "function"){
+		return validator(argToCheck);
 	} else {
-		for(const argString of argKey.validator){
+		for(const argString of validator){
 			if(argString instanceof RegExp){
 				if(argString.test(argToCheck)) return true;
 			} else {
@@ -77,6 +65,35 @@ export function isArgValidForType(argToCheck:string, arg:ArgType, checkAlsoAccep
 		}
 		return false;
 	}
+}
+
+/**Returns if an arg is of a specified type. */
+export function isArgValidForType(argToCheck:string, arg:ArgType, checkAlsoAccepts:boolean = true):boolean {
+	if(argToCheck == "") return false;
+	if(argToCheck == undefined) return false;
+	if(!isGenericArg(arg)){
+		return argToCheck === arg;
+	}
+	const argKey = GenericArgs.get(arg);
+	if(!argKey) throw new Error("impossible.");
+
+	//Check if the string is valid for any excluded arg
+	for(const excludedArg of argKey.exclude){
+		const excludedArgKey = GenericArgs.get(excludedArg as nGAT);
+		if(!excludedArgKey) throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies exclude option ${excludedArg} which is not a known generic arg type`);
+		//If it is valid, return false
+		if(isArgValidForValidator(argToCheck, excludedArgKey.validator)) return false;
+	}
+
+	//If function is not being called recursively
+	if(checkAlsoAccepts){
+		for(const otherType of argKey.alsoAccepts){
+			//If the arg is valid for another accepted type, return true
+			if(isArgValidForType(argToCheck, otherType, false)) return true;
+		}
+	}
+
+	return isArgValidForValidator(argToCheck, argKey.validator);
 
 }
 

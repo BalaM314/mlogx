@@ -669,49 +669,54 @@ describe("processCommands", () => {
 				{
 					args: "building buildingGroup:buildingGroup enemy:boolean outX:*number outY:*number found:*boolean building:*building",
 					description: "is sus.",
-					replace: ["sus building %2 %3 _ %4 %5 %6 %7"]
+					replace: ["sus building %2 %3 _ %4 %5 %6 %7"],
+					port(args, mode) {
+						return args.join(" ");
+					},
 				},{
 					args: "",
 					description: "Does nothing."
 				}
 			],
-		}))
-			.toEqual({
-				"amogus": [{
+		})).toEqual({
+			"amogus": [{
+				type: "Command",
+				args: [new Arg("sus", "sus", false, false, false), new Arg("number", "susLevel", false, true, false)],
+				description: "Sets the suslevel of the imposter.",
+				name: "amogus",
+				getVariablesDefined: undefined,
+				getVariablesUsed: undefined,
+				port: undefined
+			}],
+			"sus": [
+				{
 					type: "Command",
-					args: [new Arg("sus", "sus", false, false, false), new Arg("number", "susLevel", false, true, false)],
-					description: "Sets the suslevel of the imposter.",
-					name: "amogus",
+					name: "sus",
+					description: "is sus.",
+					args: [
+						new Arg("building", "building", false, false, false),
+						new Arg("buildingGroup", "buildingGroup", false, true, false),
+						new Arg("boolean", "enemy", false, true, false),
+						new Arg("number", "outX", false, true, true),
+						new Arg("number", "outY", false, true, true),
+						new Arg("boolean", "found", false, true, true),
+						new Arg("building", "building", false, true, true),
+					],
 					getVariablesDefined: undefined,
 					getVariablesUsed: undefined,
-				}],
-				"sus": [
-					{
-						type: "Command",
-						name: "sus",
-						description: "is sus.",
-						args: [
-							new Arg("building", "building", false, false, false),
-							new Arg("buildingGroup", "buildingGroup", false, true, false),
-							new Arg("boolean", "enemy", false, true, false),
-							new Arg("number", "outX", false, true, true),
-							new Arg("number", "outY", false, true, true),
-							new Arg("boolean", "found", false, true, true),
-							new Arg("building", "building", false, true, true),
-						],
-						getVariablesDefined: undefined,
-						getVariablesUsed: undefined,
-						replace: jasmine.any(Function)
-					},{
-						type: "Command",
-						args: [],
-						description: "Does nothing.",
-						name: "sus",
-						getVariablesDefined: undefined,
-						getVariablesUsed: undefined,
-					}
-				]
-			});
+					replace: jasmine.any(Function),
+					port: jasmine.any(Function)
+				},{
+					type: "Command",
+					args: [],
+					description: "Does nothing.",
+					name: "sus",
+					getVariablesDefined: undefined,
+					getVariablesUsed: undefined,
+					port: undefined
+				}
+			]
+		});
 
 	});
 });

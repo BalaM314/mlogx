@@ -192,7 +192,7 @@ export const commands = processCommands({
             args: "variable:*any type:ctype value:any",
             description: "Sets the value of (variable) to (value), and the type of (variable) to (type).",
             replace: (args) => {
-                if (args[2].slice(1) in GenericArgs) {
+                if (GenericArgs.has(args[2].slice(1))) {
                     return [`set ${args[1]} ${args[3]}`];
                 }
                 else {
@@ -200,7 +200,7 @@ export const commands = processCommands({
                 }
             },
             getVariablesDefined: (args) => {
-                if (args[2].slice(1) in GenericArgs) {
+                if (GenericArgs.has(args[2].slice(1))) {
                     return [[args[1], args[2].slice(1)]];
                 }
                 else {
