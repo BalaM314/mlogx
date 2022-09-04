@@ -385,13 +385,13 @@ export const commands: CommandDefinitions = processCommands({
 	],
 	uradar: [
 		{
-			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*any",
+			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
 			description: "Finds units of specified type within the range of the bound unit.",
 			replace: [
 				"uradar %1 %2 %3 %4 0 %5 %6"
 			]
 		},{
-			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sillyness:0 sortOrder:number output:*any",
+			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sillyness:0 sortOrder:number output:*unit",
 			description: "Today I learned that the default signature of uradar has a random 0 that doesn't mean anything.",
 			port(args, mode) {
 				if(mode >= PortingMode.shortenSyntax && ((args[1] == args[2] && args[2] == args[3]) || (args[2] == "any" && args[3] == "any")))
@@ -455,7 +455,7 @@ export const compilerCommands = processCompilerCommands({
 		stackElement: true,
 		overloads: [
 			{
-				args: "variable:*any in lowerBound:number upperBound:number {",
+				args: "variable:variable in lowerBound:number upperBound:number {",
 				description: "&for in loops allow you to emit the same code multiple times but with a number incrementing. (variable) is set as a compiler constant and goes from (lowerBound) through (upperBound) inclusive.",
 				onbegin(args, line) {
 					const lowerBound = parseInt(args[3]);
@@ -500,7 +500,7 @@ export const compilerCommands = processCompilerCommands({
 					return { compiledCode };
 				},
 			},{
-				args: "variable:*any of ...elements:any {",
+				args: "variable:variable of ...elements:any {",
 				description: "&for in loops allow you to emit the same code multiple times but with a value changed. (variable) is set as a compiler constant and goes through each element of (elements).",
 				onbegin(args, line) {
 					return {
