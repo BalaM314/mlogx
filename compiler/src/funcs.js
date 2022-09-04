@@ -4,6 +4,7 @@ import { CommandErrorType } from "./types.js";
 import * as readline from "readline";
 import chalk from "chalk";
 import { GenericArgs } from "./generic_args.js";
+import { bugReportUrl } from "./consts.js";
 export function isGenericArg(val) {
     return GenericArgs.has(val);
 }
@@ -62,7 +63,7 @@ export function isArgValidForType(argToCheck, arg, checkAlsoAccepts = true) {
     }
     const argKey = GenericArgs.get(arg);
     if (!argKey)
-        throw new Error("impossible.");
+        impossible();
     for (const excludedArg of argKey.exclude) {
         const excludedArgKey = GenericArgs.get(excludedArg);
         if (!excludedArgKey)
@@ -336,10 +337,8 @@ export function acceptsVariable(arg) {
     if (arg.isVariable)
         return false;
     if (arg.isGeneric) {
-        if (!GenericArgs.has(arg.type)) {
-            Log.dump(arg);
-            throw new Error(`Impossible.`);
-        }
+        if (!GenericArgs.has(arg.type))
+            impossible();
         return GenericArgs.get(arg.type).alsoAccepts.includes("variable");
     }
     else {
@@ -573,4 +572,10 @@ export function getCompilerConsts(icons, settings) {
         outputMap.set(key, value);
     }
     return outputMap;
+}
+export function impossible() {
+    throw new Error(`Something happened that should not be possible.
+If you are reading this, then there's an error with mlogx.
+Please file a bug report at ${bugReportUrl}
+Make sure to screenshot the stack trace below:`);
 }

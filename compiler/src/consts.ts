@@ -16,6 +16,8 @@ export const compilerMark = [
 	`print "github.com/BalaM314/mlogx/"`
 ];
 
+export const bugReportUrl = `https://github.com/BalaM314/mlogx/issues/new`;
+
 export const settingsSchema = yup.object({
 	name: yup.string().default("Untitled Project"),
 	authors: yup.array().of(yup.string()).default(["Unknown"]),

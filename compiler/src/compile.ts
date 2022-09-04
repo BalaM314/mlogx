@@ -449,13 +449,13 @@ export function addJumpLabels(code:string[]):string[] {
 	for(const line of cleanedCode){
 		if(getCommandDefinition(line) == commands.jump[0]){
 			const label = getJumpLabelUsed(line);
-			if(label == undefined) throw new Error("invalid jump statement");
+			if(label == undefined) throw new CompilerError("invalid jump statement");
 			transformedCode.push(
 				transformCommand(
 					splitLineIntoArguments(line),
 					commands.jump[0],
 					//Replace arguments
-					(arg:string) => jumps[arg] ?? (() => {throw new Error(`Unknown jump label ${arg}`);})(),
+					(arg:string) => jumps[arg] ?? (() => {throw new CompilerError(`Unknown jump label ${arg}`);})(),
 					//But only if the argument is a jump address
 					(arg:string, carg:Arg) => carg.isGeneric && carg.type == "jumpAddress"
 				).join(" ")

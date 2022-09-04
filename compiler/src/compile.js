@@ -331,8 +331,8 @@ export function addJumpLabels(code) {
         if (getCommandDefinition(line) == commands.jump[0]) {
             const label = getJumpLabelUsed(line);
             if (label == undefined)
-                throw new Error("invalid jump statement");
-            transformedCode.push(transformCommand(splitLineIntoArguments(line), commands.jump[0], (arg) => jumps[arg] ?? (() => { throw new Error(`Unknown jump label ${arg}`); })(), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
+                throw new CompilerError("invalid jump statement");
+            transformedCode.push(transformCommand(splitLineIntoArguments(line), commands.jump[0], (arg) => jumps[arg] ?? (() => { throw new CompilerError(`Unknown jump label ${arg}`); })(), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
         }
         else {
             transformedCode.push(line);

@@ -21,6 +21,7 @@ import { ForStackElement } from "./types.js";
 import * as readline from "readline";
 import chalk from "chalk";
 import { GenericArgs } from "./generic_args.js";
+import { bugReportUrl } from "./consts.js";
 
 
 
@@ -75,7 +76,7 @@ export function isArgValidForType(argToCheck:string, arg:ArgType, checkAlsoAccep
 		return argToCheck === arg;
 	}
 	const argKey = GenericArgs.get(arg);
-	if(!argKey) throw new Error("impossible.");
+	if(!argKey) impossible();
 
 	//Check if the string is valid for any excluded arg
 	for(const excludedArg of argKey.exclude){
@@ -443,10 +444,7 @@ export function acceptsVariable(arg: Arg|undefined):boolean {
 	if(arg == undefined) return false;
 	if(arg.isVariable) return false;
 	if(arg.isGeneric){
-		if(!GenericArgs.has(arg.type as GAT)){
-			Log.dump(arg);
-			throw new Error(`Impossible.`);
-		}
+		if(!GenericArgs.has(arg.type as GAT)) impossible();
 		return GenericArgs.get(arg.type as GAT)!.alsoAccepts.includes("variable");
 	} else {
 		return false;
@@ -754,6 +752,15 @@ export function getCompilerConsts(icons:Map<string, string>, settings:Settings):
 		outputMap.set(key, value);
 	}
 	return outputMap;
+}
+
+export function impossible():never {
+	throw new Error(
+`Something happened that should not be possible.
+If you are reading this, then there's an error with mlogx.
+Please file a bug report at ${bugReportUrl}
+Make sure to screenshot the stack trace below:`
+	);
 }
 
 //#endregion

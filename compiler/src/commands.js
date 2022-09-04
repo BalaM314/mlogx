@@ -1,6 +1,6 @@
 import { CompilerError, Log } from "./classes.js";
 import { maxLoops, MindustryContent, shortOperandMapping } from "./consts.js";
-import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
+import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, impossible, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
 import { GenericArgs } from "./generic_args.js";
 import { PortingMode } from "./types.js";
 export const commands = processCommands({
@@ -180,7 +180,7 @@ export const commands = processCommands({
                     return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];
                 }
                 else {
-                    throw new CompilerError(`Invalid command\n\tat ${args.join(" ")}\nCorrect usage: \`sensor foreshadow1.shootX\``);
+                    throw new CompilerError(`Invalid command, ${args[1]} must be of type thing.property and cannot contain certain special characters`);
                 }
             },
             description: "sensor turret.x instead of sensor turret.x turret @x"
@@ -593,7 +593,7 @@ export const compilerCommands = processCompilerCommands({
                         compiledCode: compiledOutput.map(line => {
                             const commandDefinition = getCommandDefinition(line[0]);
                             if (!commandDefinition) {
-                                throw new Error("This should not be possible.");
+                                impossible();
                             }
                             return [addNamespacesToLine(splitLineIntoArguments(line[0]), commandDefinition, stack), line[1]];
                         })
