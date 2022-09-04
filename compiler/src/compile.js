@@ -206,7 +206,7 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
         text: cleanLine(line.text),
         lineNumber: line.lineNumber
     };
-    cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConstants);
+    cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConstants, hasElement(stack, '&for'));
     if (cleanedLine.text == "") {
         if (settings.compilerOptions.removeComments) {
             return {

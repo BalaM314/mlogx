@@ -150,7 +150,7 @@ export function removeComments(line) {
     }
     return parsedChars.join("");
 }
-export function replaceCompilerConstants(line, variables) {
+export function replaceCompilerConstants(line, variables, ignoreUnknownCompilerConsts = false) {
     const specifiedConsts = line.match(/(?<!\\\$\()(?<=\$\()[\w-.]+(?=\))/g);
     specifiedConsts?.forEach(key => {
         if (variables.has(key)) {
@@ -158,7 +158,9 @@ export function replaceCompilerConstants(line, variables) {
             line = line.replace(`$(${key})`, value instanceof Array ? value.join(" ") : value.toString());
         }
         else {
-            Log.warn(`Unknown compiler const ${key}`);
+            if (!ignoreUnknownCompilerConsts) {
+                Log.warn(`Unknown compiler const ${key}`);
+            }
         }
     });
     if (!line.includes("$"))

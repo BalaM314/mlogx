@@ -185,8 +185,8 @@ export const commands: CommandDefinitions = processCommands({
 		},{
 			args: "output:*any",
 			replace: (args:string[]) => {
-				if(args[1].match(/^([\w@_$-]+?)\.([\w@_$-]+?)$/i)){
-					const [, target, property] = args[1].match(/^([\w@_$-]+?)\.([\w@_$-]+?)$/i)!;
+				if(args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)){
+					const [, target, property] = args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)!;
 					if(target == null || property == null) throw new Error("Impossible.");
 					if(!MindustryContent.senseables.includes(property)) throw new CompilerError(`Property ${property} is not senseable.`);
 					return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];

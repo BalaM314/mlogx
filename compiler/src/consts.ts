@@ -187,7 +187,7 @@ export const GenericArgs = (
 		validator: ["building", "unit", "fluid", "item"]
 	}],
 	["variable", {
-		validator: [/^@?[^"@()[\]{}/\\:]+$/, "@counter"],
+		validator: [/^@?[^"@[\]{}/\\:]+$/, "@counter"],
 		//TODO see if this causes performance issues
 		exclude: ["number", "string", "boolean", "building", "buildingType", "unitType", "itemType", "fluidType", "imageType", "senseable", "unit", "null", "ctype"]
 	}],

@@ -156,7 +156,7 @@ export const GenericArgs = ((stuff) => new Map(Array.from(stuff.entries())
             validator: ["building", "unit", "fluid", "item"]
         }],
     ["variable", {
-            validator: [/^@?[^"@()[\]{}/\\:]+$/, "@counter"],
+            validator: [/^@?[^"@[\]{}/\\:]+$/, "@counter"],
             exclude: ["number", "string", "boolean", "building", "buildingType", "unitType", "itemType", "fluidType", "imageType", "senseable", "unit", "null", "ctype"]
         }],
     ["any", {

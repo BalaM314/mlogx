@@ -179,14 +179,16 @@ export function removeComments(line:string):string {
 }
 
 /**Replaces compiler constants in a line. */
-export function replaceCompilerConstants(line:string, variables:CompilerConsts):string {
+export function replaceCompilerConstants(line:string, variables:CompilerConsts, ignoreUnknownCompilerConsts:boolean = false):string {
 	const specifiedConsts = line.match(/(?<!\\\$\()(?<=\$\()[\w-.]+(?=\))/g);
 	specifiedConsts?.forEach(key => {
 		if(variables.has(key)){
 			const value = variables.get(key)!;
 			line = line.replace(`$(${key})`, value instanceof Array ? value.join(" ") : value.toString());
 		} else {
-			Log.warn(`Unknown compiler const ${key}`);
+			if(!ignoreUnknownCompilerConsts){
+				Log.warn(`Unknown compiler const ${key}`);
+			}
 		}
 	});
 	if(!line.includes("$")) return line;
