@@ -483,7 +483,7 @@ export function arg(str) {
         return new Arg(str, str, false, false, false);
     }
     const [, spread, name, isVariable, type, isOptional] = matchResult;
-    return new Arg(type, name, !!isOptional, true, !!isVariable, !!spread);
+    return new Arg(type, name, !!isOptional, isGenericArg(type), !!isVariable, !!spread);
 }
 export function processCommands(preprocessedCommands) {
     const out = {};

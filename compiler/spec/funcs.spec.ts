@@ -640,8 +640,9 @@ describe("acceptsVariable", () => {
 //#region misc
 
 describe("arg", () => {
-	it("should parse generic args", () => {
+	it("should parse non-generic args", () => {
 		expect(arg(`amogus`)).toEqual(new Arg("amogus", "amogus", false, false, false, false));
+		expect(arg(`zero:0?`)).toEqual(new Arg("0", "zero", true, false, false, false));
 	});
 	it("should parse args with types", () => {
 		expect(arg(`amogus:number`)).toEqual(new Arg("number", "amogus", false, true, false, false));
