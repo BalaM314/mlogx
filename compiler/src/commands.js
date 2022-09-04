@@ -1,5 +1,5 @@
 import { CompilerError, Log } from "./classes.js";
-import { GenericArgs, maxLoops, shortOperandMapping } from "./consts.js";
+import { GenericArgs, maxLoops, MindustryContent, shortOperandMapping } from "./consts.js";
 import { addNamespacesToLine, getCommandDefinition, hasDisabledIf, processCommands, processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments, topForLoop, typeofArg } from "./funcs.js";
 import { PortingMode } from "./types.js";
 export const commands = processCommands({
@@ -30,7 +30,7 @@ export const commands = processCommands({
             description: "Throws (error). May or may not work."
         }],
     uflag: [{
-            args: "type:type",
+            args: "type:unitType",
             replace: [
                 "set unit_type %1",
                 "op add @counter _stack1 1",
@@ -75,7 +75,7 @@ export const commands = processCommands({
             args: "triangle x1:number y1:number x2:number y2:number x3:number y3:number",
             description: "Draws a triangle between the points (x1, y1), (x2, y2), and (x3, y3)."
         }, {
-            args: "image x:number y:number image:type size:number rotation:number",
+            args: "image x:number y:number image:imageType size:number rotation:number",
             description: "Displays an image of (image) centered at (x,y) with size (size) and rotated (rotation) degrees."
         },
     ],
@@ -150,7 +150,7 @@ export const commands = processCommands({
     ],
     sensor: [
         {
-            args: "output:*any building:building value:type",
+            args: "output:*any building:building value:senseable",
             description: "Gets information about (building) and outputs to (output), does not need to be linked or on the same team.",
             port(args, mode) {
                 if (args[1] == `${args[2]}.${args[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
@@ -159,7 +159,7 @@ export const commands = processCommands({
                     return args.join(" ");
             },
         }, {
-            args: "output:*any unit:unit value:type",
+            args: "output:*any unit:unit value:senseable",
             description: "Gets information about (unit) and outputs to (output), does not need to be on the same team.",
             port(args, mode) {
                 if (args[1] == `${args[2]}.${args[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
@@ -173,7 +173,9 @@ export const commands = processCommands({
                 if (args[1].match(/^([\w@_$-]+?)\.([\w@_$-]+?)$/i)) {
                     const [, target, property] = args[1].match(/^([\w@_$-]+?)\.([\w@_$-]+?)$/i);
                     if (target == null || property == null)
-                        throw new CompilerError("Impossible.");
+                        throw new Error("Impossible.");
+                    if (!MindustryContent.senseables.includes(property))
+                        throw new CompilerError(`Property ${property} is not senseable.`);
                     return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];
                 }
                 else {
@@ -253,10 +255,24 @@ export const commands = processCommands({
             args: "seconds:number",
             description: "Waits for (seconds) seconds."
         }],
-    lookup: [{
-            args: "type:lookupType output:*any n:number",
-            description: "Looks up the (n)th item, building, fluid, or unit type."
-        }],
+    lookup: [
+        {
+            args: "item output:*itemType n:number",
+            description: "Looks up the (n)th item."
+        },
+        {
+            args: "block output:*buildingType n:number",
+            description: "Looks up the (n)th building."
+        },
+        {
+            args: "liquid output:*unitType n:number",
+            description: "Looks up the (n)th fluid."
+        },
+        {
+            args: "unit output:*unitType n:number",
+            description: "Looks up the (n)th unit."
+        },
+    ],
     end: [{
             args: "",
             description: "Goes back to the start."
@@ -297,7 +313,7 @@ export const commands = processCommands({
     ],
     ubind: [
         {
-            args: "unitType:type",
+            args: "unitType:unitType",
             description: "Binds a unit of (unitType). May return dead units if no live ones exist."
         }, {
             args: "null:null",
@@ -336,7 +352,7 @@ export const commands = processCommands({
             args: "itemDrop building:building amount:number",
             description: "Tells the bound unit to drop at most (amount) items to (building)."
         }, {
-            args: "itemTake building:building item:type amount:number",
+            args: "itemTake building:building item:itemType amount:number",
             description: "Tells the bound unit to take at most (amount) of (item) from (building)."
         }, {
             args: "payDrop",
@@ -354,10 +370,10 @@ export const commands = processCommands({
             args: "flag flag:number",
             description: "Sets the flag of the bound unit."
         }, {
-            args: "build x:number y:number buildingType:type rotation:number config:any",
+            args: "build x:number y:number buildingType:buildingType rotation:number config:any",
             description: "Tells the unit to build (block) with (rotation) and (config) at (x,y)."
         }, {
-            args: "getBlock x:number y:number buildingType:*type building:*building",
+            args: "getBlock x:number y:number buildingType:*buildingType building:*building",
             description: "Gets the building type and building at (x,y) and outputs to (buildingType) and (building)."
         }, {
             args: "within x:number y:number radius:number output:*boolean",
@@ -392,7 +408,7 @@ export const commands = processCommands({
     ],
     ulocate: [
         {
-            args: "ore ore:type outX:*number outY:*number found:*boolean",
+            args: "ore ore:itemType outX:*number outY:*number found:*boolean",
             description: "Finds ores of specified type near the bound unit.",
             replace: ["ulocate ore core _ %2 %3 %4 %5 _"]
         }, {
@@ -408,7 +424,7 @@ export const commands = processCommands({
             description: "Finds buildings of specified group near the bound unit.",
             replace: ["ulocate building %2 %3 _ %4 %5 %6 %7"]
         }, {
-            args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:any buildingGroup:buildingGroup enemy:boolean ore:type outX:*number outY:*number found:*boolean building:*building",
+            args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:any buildingGroup:buildingGroup enemy:boolean ore:itemType outX:*number outY:*number found:*boolean building:*building",
             description: "The wack default ulocate signature, included for compatibility.",
             port(args, mode) {
                 if (mode >= PortingMode.shortenSyntax) {
