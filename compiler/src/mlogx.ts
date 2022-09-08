@@ -99,13 +99,14 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 			verbose: "verbose" in opts.namedArgs
 		}
 	};
+	const stdlibDirectory = fs.existsSync(path.join(app.sourceDirectory, "../stdlib")) ? path.join(app.sourceDirectory, "../stdlib") : path.join(app.sourceDirectory, "../../stdlib");
 	
 	if(settingsOverrides.compilerOptions?.verbose){
 		Log.announce("Using verbose mode");
 	}
 	if("watch" in opts.namedArgs){
 		let lastCompiledTime = Date.now();
-		compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), settingsOverrides);
+		compileDirectory(target, stdlibDirectory, settingsOverrides);
 		fs.watch(target, {
 			recursive: true
 		}, (type, filename) => {
@@ -132,7 +133,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 					Log.announce(`Compiling directory ${dirToCompile}`);
 
 
-					compileDirectory(dirToCompile, path.join(app.sourceDirectory, "../stdlib"), settingsOverrides);
+					compileDirectory(dirToCompile, stdlibDirectory, settingsOverrides);
 					lastCompiledTime = Date.now();
 				}
 			}
@@ -145,7 +146,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 	}
 	if(fs.lstatSync(target).isDirectory()){
 		Log.announce(`Compiling folder ${target}`);
-		compileDirectory(target, path.join(app.sourceDirectory, "../stdlib"), settingsOverrides);
+		compileDirectory(target, stdlibDirectory, settingsOverrides);
 		return 0;
 	} else {
 		Log.announce(`Compiling file ${target}`);
