@@ -79,13 +79,18 @@ async function copyFiles(version?:string){
 	const packageJsonData = JSON.parse(await fsP.readFile("package.json", "utf-8"));
 	const modifiedPackageJsonData = {
 		...packageJsonData,
+		version: version ? `${version}-beta` : packageJsonData.version
+	};
+	const buildPackageJsonData = {
+		...packageJsonData,
 		main: "./index.js",
 		bin: {
 			mlogx: "./cli.js"
 		},
 		version: version ?? packageJsonData.version
 	};
-	fsP.writeFile("build/package.json", JSON.stringify(modifiedPackageJsonData, null, `\t`));
+	await fsP.writeFile("build/package.json", JSON.stringify(buildPackageJsonData, null, `\t`) + "\r\n");
+	await fsP.writeFile("package.json", JSON.stringify(modifiedPackageJsonData, null, `\t`) + "\r\n");
 	
 }
 /**Copies a file, or a directory recursively. */
