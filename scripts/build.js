@@ -42,7 +42,7 @@ function downloadFile(url, output) {
         });
     });
 }
-async function copyFiles() {
+async function copyFiles(version) {
     const filesToCopy = [
         ["compiler/index.js", "build/index.js"],
         ["compiler/cli.js", "build/cli.js"],
@@ -63,6 +63,7 @@ async function copyFiles() {
         bin: {
             mlogx: "./cli.js"
         },
+        version: version ?? packageJsonData.version
     };
     fsP.writeFile("build/package.json", JSON.stringify(modifiedPackageJsonData, null, `\t`));
 }
@@ -91,6 +92,8 @@ async function print(message) {
 }
 async function main(argv) {
     process.chdir(path.join(fileURLToPath(import.meta.url), "..", ".."));
+    let version = process.argv.map(thing => thing.match(/version=(\d\.\d\.\d)/)).filter(thing => thing)[0]?.[1];
+    print(version ? `\nBuilding MLOGX v${version}\n` : "\nBuilding MLOGX\n");
     print("Cleaning build directory...");
     await cleanBuildDirectory();
     print("done\n");
@@ -98,7 +101,7 @@ async function main(argv) {
     await updateCaches();
     print("done\n");
     print("Copying files...");
-    await copyFiles();
+    await copyFiles(version);
     print("done\n");
     if (process.argv.includes("--publish")) {
         print("Publishing...");

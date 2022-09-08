@@ -18,6 +18,7 @@ import { addJumpLabels, portCode } from "./compile.js";
 import { createProject, compileDirectory, compileFile } from "./compile_fs.js";
 import { GAT, PartialRecursive, PortingMode, Settings } from "./types.js";
 import { GenericArgs } from "./generic_args.js";
+import { parseIcons } from "./funcs.js";
 
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
@@ -65,7 +66,8 @@ ${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof R
 
 mlogx.command("version", "Displays the version of mlogx", (opts, app) => {
 	try {
-		const packageJsonData = JSON.parse(fs.readFileSync(path.join(app.sourceDirectory, "../package.json"), 'utf-8'));
+		const packageJsonFilepath = fs.existsSync(path.join(app.sourceDirectory, "package.json")) ? path.join(app.sourceDirectory, "package.json") : path.join(app.sourceDirectory, "../package.json");
+		const packageJsonData = JSON.parse(fs.readFileSync(packageJsonFilepath, 'utf-8'));
 		Log.none(chalk.blue(`MLOGX v${chalk.cyan(packageJsonData.version)}`));
 	} catch(err){
 		Log.err(`This should not happen. ${(err as Error).message}`);
@@ -100,14 +102,16 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 			verbose: "verbose" in opts.namedArgs
 		}
 	};
-	const stdlibDirectory = fs.existsSync(path.join(app.sourceDirectory, "../stdlib")) ? path.join(app.sourceDirectory, "../stdlib") : path.join(app.sourceDirectory, "../../stdlib");
+	const stdlibDirectory = fs.existsSync(path.join(app.sourceDirectory, "stdlib")) ? path.join(app.sourceDirectory, "stdlib") : path.join(app.sourceDirectory, "../stdlib");
+	const cacheDirectory = fs.existsSync(path.join(app.sourceDirectory, "cache")) ? path.join(app.sourceDirectory, "cache") : path.join(app.sourceDirectory, "../cache");
+	const icons = parseIcons(fs.readFileSync(path.join(cacheDirectory, "icons.properties"), "utf-8").split(/\r?\n/));
 	
 	if(settingsOverrides.compilerOptions?.verbose){
 		Log.announce("Using verbose mode");
 	}
 	if("watch" in opts.namedArgs){
 		let lastCompiledTime = Date.now();
-		compileDirectory(target, stdlibDirectory, settingsOverrides);
+		compileDirectory(target, stdlibDirectory, settingsOverrides, icons);
 		fs.watch(target, {
 			recursive: true
 		}, (type, filename) => {
@@ -134,7 +138,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 					Log.announce(`Compiling directory ${dirToCompile}`);
 
 
-					compileDirectory(dirToCompile, stdlibDirectory, settingsOverrides);
+					compileDirectory(dirToCompile, stdlibDirectory, settingsOverrides, icons);
 					lastCompiledTime = Date.now();
 				}
 			}
@@ -147,11 +151,11 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 	}
 	if(fs.lstatSync(target).isDirectory()){
 		Log.announce(`Compiling folder ${target}`);
-		compileDirectory(target, stdlibDirectory, settingsOverrides);
+		compileDirectory(target, stdlibDirectory, settingsOverrides, icons);
 		return 0;
 	} else {
 		Log.announce(`Compiling file ${target}`);
-		compileFile(target, settingsOverrides);
+		compileFile(target, settingsOverrides, icons);
 		return 0;
 	}
 }, true, {

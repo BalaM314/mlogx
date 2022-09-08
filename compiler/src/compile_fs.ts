@@ -15,10 +15,10 @@ import deepmerge from "deepmerge";
 import { Log, CompilerError } from "./classes.js";
 import { compileMlogxToMlog } from "./compile.js";
 import { compilerMark, settingsSchema } from "./consts.js";
-import { parseIcons, getCompilerConsts, askQuestion } from "./funcs.js";
+import { getCompilerConsts, askQuestion } from "./funcs.js";
 import { PartialRecursive, Settings } from "./types";
 
-export function compileDirectory(directory:string, stdlibPath:string, defaultSettings:PartialRecursive<Settings>){
+export function compileDirectory(directory:string, stdlibPath:string, defaultSettings:PartialRecursive<Settings>, icons:Map<string, string>){
 	let settings:Settings;
 	try {
 		fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
@@ -39,8 +39,6 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 		}
 		settings = settingsSchema.getDefault() as Settings;
 	}
-	
-	const icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
 
 	const srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
 
@@ -167,9 +165,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 	Log.announce("Done!");
 }
 
-export function compileFile(name:string, givenSettings:PartialRecursive<Settings>){
-
-	const icons = parseIcons(fs.readFileSync(path.join(process.argv[1], "../cache/icons.properties"), "utf-8").split(/\r?\n/));
+export function compileFile(name:string, givenSettings:PartialRecursive<Settings>, icons:Map<string, string>){
 
 	const data:string[] = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
 	let outputData:string[];
@@ -214,7 +210,7 @@ export async function createProject(name:string|undefined){
 	const authors:string[] = (await askQuestion("Authors: ")).split(" ");
 	const isSingleFiles = await askQuestion("Single files [y/n]:");
 	fs.mkdirSync(path.join(process.cwd(), name));
-	fs.mkdirSync(path.join(process.cwd(), name, "src"));
+	if(!isSingleFiles) fs.mkdirSync(path.join(process.cwd(), name, "src"));
 	fs.writeFileSync(path.join(process.cwd(), name, "config.json"), JSON.stringify(settingsSchema.validateSync({
 		name,
 		authors,
