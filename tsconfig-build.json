@@ -14,9 +14,10 @@
 		"moduleResolution": "node",
 		"module": "ES2022",
 		"allowSyntheticDefaultImports": true,
+		"outDir": "build/src/",
+		"declaration": true
 	},
 	"include": [
-		"compiler/**/*.ts",
-		"scripts/**/*.ts",
+		"compiler/src/*.ts"
 	],
 }
