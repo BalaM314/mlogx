@@ -219,6 +219,8 @@ export function removeUnusedJumps(compiledProgram, jumpLabelUsages) {
 export function parseIcons(data) {
     const icons = new Map();
     for (const line of data) {
+        if (!line || line.length <= 1)
+            continue;
         try {
             icons.set("_" + line.split("=")[1].split("|")[0].replaceAll("-", "_"), String.fromCodePoint(parseInt(line.split("=")[0])));
         }
