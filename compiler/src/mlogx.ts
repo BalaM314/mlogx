@@ -65,7 +65,8 @@ ${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof R
 
 mlogx.command("version", "Displays the version of mlogx", (opts, app) => {
 	try {
-		Log.info(`MLOGX Compiler version ${chalk.cyan(JSON.parse(fs.readFileSync(path.join(app.sourceDirectory, "../package.json"), 'utf-8')).version)}`);
+		const packageJsonData = JSON.parse(fs.readFileSync(path.join(app.sourceDirectory, "../package.json"), 'utf-8'));
+		Log.none(chalk.blue(`MLOGX v${chalk.cyan(packageJsonData.version)}`));
 	} catch(err){
 		Log.err(`This should not happen. ${(err as Error).message}`);
 	}
