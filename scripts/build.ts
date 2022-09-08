@@ -104,7 +104,7 @@ async function copy(src:string, dest:string){
 };
 function publish(){
 	return new Promise<void>((resolve, reject) => {
-		exec("npm publish build", (e) => {
+		exec("npm publish ./build/", (e) => {
 			if(e) reject(e);
 			resolve();
 		});
@@ -138,8 +138,8 @@ async function main(argv:string[]){
 
 	if(process.argv.includes("--publish")){
 		print("Publishing...")
-		// await publish();
-		print("NOT done\n");
+		await publish();
+		print("done\n");
 	}
 }
 
