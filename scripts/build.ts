@@ -59,7 +59,6 @@ function downloadFile(url:string, output:string){
 }
 async function copyFiles(version?:string){
 	const filesToCopy = [
-		["compiler/index.js", "build/index.js"],
 		["compiler/cli.js", "build/cli.js"],
 		["License", "build/License"],
 		["gpl.txt", "build/gpl.txt"],
@@ -72,6 +71,7 @@ async function copyFiles(version?:string){
 	
 	//Use TSC to compile all source files, producing .js and .d.ts files in build/src/
 	execSync("tsc -p tsconfig-build.json");
+	execSync("tsc compiler/index.ts --outDirectory build/ --declaration")
 	//Copy all other files such as cli.js and README.md
 	await Promise.all(filesToCopy.map(([src, dest]) => copy(src, dest)));
 
