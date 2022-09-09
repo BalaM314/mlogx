@@ -72,7 +72,6 @@ async function copyFiles(version?:string){
 	//Use TSC to compile all source files, producing .js and .d.ts files in build/src/
 	try {
 		execSync("tsc -p tsconfig-build.json");
-		execSync("tsc compiler/index.ts --outDirectory build/ --declaration")
 	} catch(err){
 		console.error(((err as any).output[1] as Buffer).toString("utf-8"));
 		throw err;

@@ -55,7 +55,6 @@ async function copyFiles(version) {
     ];
     try {
         execSync("tsc -p tsconfig-build.json");
-        execSync("tsc compiler/index.ts --outDirectory build/ --declaration");
     }
     catch (err) {
         console.error(err.output[1].toString("utf-8"));
