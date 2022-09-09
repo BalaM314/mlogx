@@ -70,8 +70,13 @@ async function copyFiles(version?:string){
 	];
 	
 	//Use TSC to compile all source files, producing .js and .d.ts files in build/src/
-	execSync("tsc -p tsconfig-build.json");
-	execSync("tsc compiler/index.ts --outDirectory build/ --declaration")
+	try {
+		execSync("tsc -p tsconfig-build.json");
+		execSync("tsc compiler/index.ts --outDirectory build/ --declaration")
+	} catch(err){
+		console.error(((err as any).output[1] as Buffer).toString("utf-8"));
+		throw err;
+	}
 	//Copy all other files such as cli.js and README.md
 	await Promise.all(filesToCopy.map(([src, dest]) => copy(src, dest)));
 

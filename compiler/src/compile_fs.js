@@ -7,27 +7,7 @@ import { compileMlogxToMlog } from "./compile.js";
 import { compilerMark, settingsSchema } from "./consts.js";
 import { getCompilerConsts, askQuestion } from "./funcs.js";
 export function compileDirectory(directory, stdlibPath, defaultSettings, icons) {
-    let settings;
-    try {
-        fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
-        const settingsInFile = JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"));
-        settings = settingsSchema.validateSync(deepmerge(defaultSettings, settingsInFile), {
-            stripUnknown: false
-        });
-        if ("compilerVariables" in settings) {
-            Log.warn(`settings.compilerVariables is deprecated, please use settings.compilerConstants instead.`);
-            settings.compilerConstants = settings["compilerVariables"];
-        }
-    }
-    catch (err) {
-        if (err instanceof yup.ValidationError || err instanceof SyntaxError) {
-            Log.err(`config.json file is invalid. (${err.message}) Using default settings.`);
-        }
-        else {
-            Log.debug("No config.json found, using default settings.");
-        }
-        settings = settingsSchema.getDefault();
-    }
+    const settings = getSettings(directory, defaultSettings);
     const srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
     if (!srcDirectoryExists && settings.compilerOptions.mode == "project") {
         Log.warn(`Compiler mode set to "project" but no src directory found.`);
@@ -42,17 +22,17 @@ export function compileDirectory(directory, stdlibPath, defaultSettings, icons) 
     if (settings.compilerOptions.mode == "project" && !fs.existsSync(outputDirectory)) {
         fs.mkdirSync(outputDirectory);
     }
-    const filelist_mlogx = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlogx$/));
-    const filelist_mlog = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlog$/));
-    const filelist_stdlib = fs.readdirSync(stdlibDirectory).filter(filename => filename.match(/\.mlog/));
-    Log.announce("Files to compile: ", filelist_mlogx);
+    const mlogxFilelist = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlogx$/));
+    const mlogFilelist = fs.readdirSync(sourceDirectory).filter(filename => filename.match(/\.mlog$/));
+    const stdlibFilelist = fs.readdirSync(stdlibDirectory).filter(filename => filename.match(/\.mlog/));
     const compiledData = {};
     let mainData = [];
     const stdlibData = {};
-    for (const filename of filelist_stdlib) {
+    Log.announce("Files to compile: ", mlogxFilelist);
+    for (const filename of stdlibFilelist) {
         stdlibData[filename.split(".")[0]] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8').split(/\r?\n/g);
     }
-    for (const filename of filelist_mlogx) {
+    for (const filename of mlogxFilelist) {
         Log.announce(`Compiling file ${filename}`);
         const data = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split(/\r?\n/g);
         let outputData;
@@ -89,7 +69,7 @@ export function compileDirectory(directory, stdlibPath, defaultSettings, icons) 
         }
     }
     if (settings.compilerOptions.mode == "project") {
-        for (const filename of filelist_mlog) {
+        for (const filename of mlogFilelist) {
             if (filename != "main.mlog") {
                 compiledData[filename] = fs.readFileSync(`src/${filename}`, 'utf-8').split(/\r?\n/g);
             }
@@ -110,6 +90,30 @@ export function compileDirectory(directory, stdlibPath, defaultSettings, icons) 
         fs.writeFileSync(path.join(directory, "out.mlog"), outputData.join("\r\n"));
     }
     Log.announce("Done!");
+}
+function getSettings(directory, defaultSettings) {
+    try {
+        let settings;
+        fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
+        const settingsInFile = JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"));
+        settings = settingsSchema.validateSync(deepmerge(defaultSettings, settingsInFile), {
+            stripUnknown: false
+        });
+        if ("compilerVariables" in settings) {
+            Log.warn(`settings.compilerVariables is deprecated, please use settings.compilerConstants instead.`);
+            settings.compilerConstants = settings["compilerVariables"];
+        }
+        return settings;
+    }
+    catch (err) {
+        if (err instanceof yup.ValidationError || err instanceof SyntaxError) {
+            Log.err(`config.json file is invalid. (${err.message}) Using default settings.`);
+        }
+        else {
+            Log.debug("No config.json found, using default settings.");
+        }
+        return settingsSchema.getDefault();
+    }
 }
 export function compileFile(name, givenSettings, icons) {
     const data = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);

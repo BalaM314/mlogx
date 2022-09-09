@@ -150,8 +150,10 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 
 function getSettings(directory:string, defaultSettings:PartialRecursive<Settings>):Settings {
 	try {
+		let settings:Settings;
 		fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
 		const settingsInFile = JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"));
+		// eslint-disable-next-line prefer-const
 		settings = settingsSchema.validateSync(deepmerge(defaultSettings, settingsInFile), {
 			stripUnknown: false
 		}) as Settings;

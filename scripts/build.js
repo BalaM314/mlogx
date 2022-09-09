@@ -44,7 +44,6 @@ function downloadFile(url, output) {
 }
 async function copyFiles(version) {
     const filesToCopy = [
-        ["compiler/index.js", "build/index.js"],
         ["compiler/cli.js", "build/cli.js"],
         ["License", "build/License"],
         ["gpl.txt", "build/gpl.txt"],
@@ -54,7 +53,14 @@ async function copyFiles(version) {
         ["compiler/cache", "build/cache"],
         ["stdlib", "build/stdlib"],
     ];
-    execSync("tsc -p tsconfig-build.json");
+    try {
+        execSync("tsc -p tsconfig-build.json");
+        execSync("tsc compiler/index.ts --outDirectory build/ --declaration");
+    }
+    catch (err) {
+        console.error(err.output[1].toString("utf-8"));
+        throw err;
+    }
     await Promise.all(filesToCopy.map(([src, dest]) => copy(src, dest)));
     const packageJsonData = JSON.parse(await fsP.readFile("package.json", "utf-8"));
     const modifiedPackageJsonData = {

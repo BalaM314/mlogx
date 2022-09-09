@@ -23,7 +23,16 @@ export class CompilerError extends Error {
         this.name = "CompilerError";
     }
 }
+const logLevels = {
+    "debug": [chalk.gray, "[DEBUG]"],
+    "info": [chalk.white, "[INFO]"],
+    "warn": [chalk.yellow, "[WARN]"],
+    "err": [chalk.red, "[ERROR]"],
+};
 export class Log {
+    static printMessage(level, message) {
+        console.log(logLevels[level][0](`${logLevels[level][1]}\t${message}`));
+    }
     static debug(message) {
         console.log(chalk.gray(`[DEBUG]\t${message}`));
     }
