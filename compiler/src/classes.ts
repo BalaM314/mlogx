@@ -38,7 +38,21 @@ export class CompilerError extends Error {
 	}
 }
 
+const logLevels: {
+	[name:string]: [color: (string) => string, tag:string]
+} = {
+	"debug": [chalk.gray, "[DEBUG]"],
+	"info": [chalk.white, "[INFO]"],
+	"warn": [chalk.yellow, "[WARN]"],
+	"err": [chalk.red, "[ERROR]"],
+}
+
 export class Log {
+	static currentLevel: keyof typeof Log;
+
+	static printMessage(level:keyof logLevels, message:string){
+		console.log(logLevels[level][0](`${logLevels[level][1]}\t${message}`));
+	}
 	/**For debug information. */
 	static debug(message:string){
 		console.log(chalk.gray(`[DEBUG]\t${message}`));
