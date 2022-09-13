@@ -22,7 +22,7 @@ import {
 	processCompilerCommands, removeComments, removeTrailingSpaces, isArgValidFor, isArgValidForValidator
 } from "../src/funcs.js";
 import { GenericArgs } from "../src/generic_args.js";
-import { ArgType, CompilerConst } from "../src/types.js";
+import { ArgType, CompilerConst, CommandErrorType } from "../src/types.js";
 import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 
 
@@ -530,12 +530,26 @@ describe("getCommandDefinitions", () => {
 		expect(getCommandDefinitions(`print x`)).toEqual([
 			commands.print[0]
 		]);
+	});
+	it("should return errors if specified", () => {
+		expect(getCommandDefinitions(`amogus`, true)).toEqual([
+			[],
+			[{
+				type: CommandErrorType.noCommand,
+				message: jasmine.any(String)
+			}]
+		]);
 		expect(getCommandDefinitions(`jump label always`, true)).toEqual([
 			[commands.jump[0]],
-			[jasmine.any(Object), jasmine.any(Object)]
+			[{
+				type: CommandErrorType.argumentCount,
+				message: jasmine.any(String)
+			},{
+				type: CommandErrorType.argumentCount,
+				message: jasmine.any(String)
+			}]
 		]);
 	});
-	//TODO add more
 	it("should return empty if no valid definitions", () => {
 		expect(getCommandDefinitions(`amogus`)).toEqual([]);
 		expect(getCommandDefinitions(`print sussy baka`)).toEqual([]);
@@ -559,10 +573,21 @@ describe("isCommand", () => {
 			.toEqual([true, null]);
 		expect(isCommand(`set x :number 5`, commands.set[1]))
 			.toEqual([true, null]);
-		expect(isCommand(`set x 5`, commands.set[1])[0])
-			.toEqual(false);
-		expect(isCommand(`set x :number 5`, commands.set[0])[0])
-			.toEqual(false);
+		expect(isCommand(`set x 5`, commands.set[1]))
+			.toEqual([false, {
+				type: CommandErrorType.argumentCount,
+				message: jasmine.any(String)
+			}]);
+		expect(isCommand(`set x :number 5`, commands.set[0]))
+			.toEqual([false, {
+				type: CommandErrorType.argumentCount,
+				message: jasmine.any(String)
+			}]);
+		expect(isCommand(`ulocate or3 @copper ore.x ore.y ore.found`, commands.ulocate[3]))
+			.toEqual([false, {
+				type: CommandErrorType.argumentCount,
+				message: jasmine.any(String)
+			}]);
 		//TODO add more
 	});
 });

@@ -32,13 +32,13 @@ mlogx.command("info", "Shows information about a logic command", (opts) => {
 `Info for command "${name}"
 Usage:
 
-${commands[name].map(
-	commandDefinition => name + " " + commandDefinition.args
+${commands[name].map(commandDefinition =>
+	name + " " + commandDefinition.args
 		.map(arg => arg.toString())
 		.join(" ") + "\n" + commandDefinition.description
 ).join("\n\n")}
 `)
-		);//todo clean this up ^^
+		);
 		return 0;
 	} else if(GenericArgs.has(name as GAT)){
 		const arg = GenericArgs.get(name as GAT)!;
@@ -186,7 +186,7 @@ mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded j
 		Log.err(`Invalid path specified.\nPath ${target} is a directory.`);
 		return 1;
 	} else {
-		Log.none(chalk.gray(`This command was made by looking at SByte's python code.`));
+		Log.none(chalk.gray(`This command was made possible by looking at SByte's python code.`));
 		Log.announce(`Adding jump labels to file ${target}`);
 		const data = fs.readFileSync(target, "utf-8").split(/\r?\n/g);
 		const output = addJumpLabels(data);
