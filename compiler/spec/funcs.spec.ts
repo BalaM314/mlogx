@@ -157,14 +157,14 @@ describe("removeTrailingSpaces", () => {
 
 describe("removeComments", () => {
 	it("should remove single line comments", () => {
-		expect(removeComments("amogus sussy //comment")).toBe("amogus sussy");
-		expect(removeComments("amogus sussy #comment")).toBe("amogus sussy");
+		expect(removeComments("amogus sussy //comment")).toBe("amogus sussy ");
+		expect(removeComments("amogus sussy #comment")).toBe("amogus sussy ");
 		expect(removeComments("//comment")).toBe("");
 		expect(removeComments("amogus sussy#//#comment")).toBe("amogus sussy");
 	});
 	it("should remove multiline comments", () => {
 		expect(removeComments("amogus /*COMMENT*/sus")).toBe("amogus sus");
-		expect(removeComments("amogus /*com*/sus/*ent*/ ")).toBe("amogus sus");
+		expect(removeComments("amogus /*com*/sus/*ent*/ ")).toBe("amogus sus ");
 	});
 	it("should not mess up comments inside of strings", () => {
 		expect(removeComments(`print "[#blue]amogus[]"`)).toBe(`print "[#blue]amogus[]"`);
@@ -617,7 +617,7 @@ describe("getCompilerCommandDefinitions", () => {
 		expect(getCompilerCommandDefinitions("&for x of a b c d f {"))
 			.toEqual([
 				[compilerCommands["&for"].overloads[1]],
-				[]
+				[commandErrOfType(CommandErrorType.badStructure)]
 			]);
 		expect(getCompilerCommandDefinitions("namespace amogus {"))
 			.toEqual([
@@ -631,7 +631,7 @@ describe("getCompilerCommandDefinitions", () => {
 				[],
 				[commandErrOfType(CommandErrorType.argumentCount), commandErrOfType(CommandErrorType.badStructure)]
 			]);
-		expect(getCompilerCommandDefinitions(`namespace "@unit" {`))
+		expect(getCompilerCommandDefinitions(`namespace @unit {`))
 			.toEqual([
 				[],
 				[commandErrOfType(CommandErrorType.type)]
