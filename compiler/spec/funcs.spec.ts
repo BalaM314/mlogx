@@ -131,6 +131,18 @@ describe("isArgValidFor", () => {
 	});
 });
 
+describe("isArgValidForValidator", () => {
+	it("should determine if an arg is valid for string array validators", () => {
+		expect(isArgValidForValidator("amogus", ["amogus"])).toBe(true);
+		expect(isArgValidForValidator("sus", ["su", "amog", "imposter"])).toBe(false);
+		expect(isArgValidForValidator("su", ["su", "amog", "imposter"])).toBe(true);
+	});
+	it("should determine if an arg is valid for regexp array validators", () => {
+		expect(isArgValidForValidator("amog5us", [/amog\dus/])).toBe(true);
+		expect(isArgValidForValidator("amogeus", [/amog us/, /amog\dus/])).toBe(false);
+	});
+});
+
 //#endregion
 //#region lineManipulation
 

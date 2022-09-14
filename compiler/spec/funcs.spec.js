@@ -1,6 +1,6 @@
 import { Arg } from "../src/classes.js";
 import commands, { compilerCommands } from "../src/commands.js";
-import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgValidForType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg, getCompilerCommandDefinitions, removeComments, removeTrailingSpaces, isArgValidFor } from "../src/funcs.js";
+import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgValidForType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg, getCompilerCommandDefinitions, removeComments, removeTrailingSpaces, isArgValidFor, isArgValidForValidator } from "../src/funcs.js";
 import { GenericArgs } from "../src/generic_args.js";
 import { CommandErrorType } from "../src/types.js";
 import { commandErrOfType, makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
@@ -100,6 +100,17 @@ describe("isArgValidFor", () => {
         }
         expect(isArgValidFor("amogus", new Arg("sus"))).toBe(false);
         expect(isArgValidFor("x", new Arg("operandTest"))).toBe(false);
+    });
+});
+describe("isArgValidForValidator", () => {
+    it("should determine if an arg is valid for string array validators", () => {
+        expect(isArgValidForValidator("amogus", ["amogus"])).toBe(true);
+        expect(isArgValidForValidator("sus", ["su", "amog", "imposter"])).toBe(false);
+        expect(isArgValidForValidator("su", ["su", "amog", "imposter"])).toBe(true);
+    });
+    it("should determine if an arg is valid for regexp array validators", () => {
+        expect(isArgValidForValidator("amog5us", [/amog\dus/])).toBe(true);
+        expect(isArgValidForValidator("amogeus", [/amog us/, /amog\dus/])).toBe(false);
     });
 });
 describe("removeTrailingSpaces", () => {
