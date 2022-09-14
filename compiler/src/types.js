@@ -6,8 +6,8 @@ export var PortingMode;
 })(PortingMode || (PortingMode = {}));
 export var CommandErrorType;
 (function (CommandErrorType) {
-    CommandErrorType[CommandErrorType["argumentCount"] = 0] = "argumentCount";
-    CommandErrorType[CommandErrorType["type"] = 1] = "type";
-    CommandErrorType[CommandErrorType["noCommand"] = 2] = "noCommand";
-    CommandErrorType[CommandErrorType["badStructure"] = 3] = "badStructure";
+    CommandErrorType["argumentCount"] = "argumentCount";
+    CommandErrorType["type"] = "type";
+    CommandErrorType["noCommand"] = "noCommand";
+    CommandErrorType["badStructure"] = "badStructure";
 })(CommandErrorType || (CommandErrorType = {}));

@@ -56,10 +56,10 @@ export enum PortingMode {
 }
 
 export enum CommandErrorType {
-	argumentCount,
-	type,
-	noCommand,
-	badStructure,
+	argumentCount="argumentCount",
+	type="type",
+	noCommand="noCommand",
+	badStructure="badStructure",
 }
 
 export interface CommandError {

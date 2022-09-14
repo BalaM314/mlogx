@@ -563,11 +563,11 @@ describe("getCommandDefinitions", () => {
 	it("should return errors if specified", () => {
 		expect(getCommandDefinitions(`amogus`, true)).toEqual([
 			[],
-			[commandErrOfType(CommandErrorType.noCommand)]
+			[commandErrOfType("noCommand")]
 		]);
 		expect(getCommandDefinitions(`jump label always`, true)).toEqual([
 			[commands.jump[0]],
-			[commandErrOfType(CommandErrorType.argumentCount), commandErrOfType(CommandErrorType.argumentCount)]
+			[commandErrOfType("argumentCount"), commandErrOfType("argumentCount")]
 		]);
 	});
 	it("should return empty if no valid definitions", () => {
@@ -594,11 +594,11 @@ describe("isCommand", () => {
 		expect(isCommand(`set x :number 5`, commands.set[1]))
 			.toEqual([true, null]);
 		expect(isCommand(`set x 5`, commands.set[1]))
-			.toEqual([false, commandErrOfType(CommandErrorType.argumentCount)]);
+			.toEqual([false, commandErrOfType("argumentCount")]);
 		expect(isCommand(`set x :number 5`, commands.set[0]))
-			.toEqual([false, commandErrOfType(CommandErrorType.argumentCount)]);
-		expect(isCommand(`ulocate or3 @copper ore.x ore.y ore.found`, commands.ulocate[3]))
-			.toEqual([false, commandErrOfType(CommandErrorType.badStructure)]);
+			.toEqual([false, commandErrOfType("argumentCount")]);
+		expect(isCommand(`ulocate or3 @copper ore.x ore.y ore.found`, commands.ulocate[0]))
+			.toEqual([false, commandErrOfType("badStructure")]);
 	});
 });
 
@@ -612,12 +612,12 @@ describe("getCompilerCommandDefinitions", () => {
 		expect(getCompilerCommandDefinitions("&for x in 0 5 {"))
 			.toEqual([
 				[compilerCommands["&for"].overloads[0]],
-				[commandErrOfType(CommandErrorType.badStructure)]
+				[commandErrOfType("badStructure")]
 			]);
 		expect(getCompilerCommandDefinitions("&for x of a b c d f {"))
 			.toEqual([
 				[compilerCommands["&for"].overloads[1]],
-				[commandErrOfType(CommandErrorType.badStructure)]
+				[commandErrOfType("argumentCount")]
 			]);
 		expect(getCompilerCommandDefinitions("namespace amogus {"))
 			.toEqual([
@@ -629,17 +629,22 @@ describe("getCompilerCommandDefinitions", () => {
 		expect(getCompilerCommandDefinitions("&for x in sussybakas {"))
 			.toEqual([
 				[],
-				[commandErrOfType(CommandErrorType.argumentCount), commandErrOfType(CommandErrorType.badStructure)]
+				[commandErrOfType("argumentCount"), commandErrOfType("badStructure")]
+			]);
+		expect(getCompilerCommandDefinitions("&for x in 0 5 e"))
+			.toEqual([
+				[],
+				[commandErrOfType("badStructure"), commandErrOfType("badStructure")]
 			]);
 		expect(getCompilerCommandDefinitions(`namespace @unit {`))
 			.toEqual([
 				[],
-				[commandErrOfType(CommandErrorType.type)]
+				[commandErrOfType("type")]
 			]);
 		expect(getCompilerCommandDefinitions("set x 5"))
 			.toEqual([
 				[],
-				[commandErrOfType(CommandErrorType.noCommand)]
+				[commandErrOfType("noCommand")]
 			]);
 	});
 });
