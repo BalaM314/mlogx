@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 
 import { Arg } from "../src/classes.js";
-import commands from "../src/commands.js";
+import commands, { compilerCommands } from "../src/commands.js";
 import {  } from "../src/consts.js";
 import {
 	processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed,
@@ -17,13 +17,13 @@ import {
 	cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable,
 	prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives,
 	hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType,
-	isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg, formatLine,
-	formatLineWithPrefix, getCompilerCommandDefinitions, getCompilerConsts, hasDisabledIf,
+	isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg,
+	getCompilerCommandDefinitions, getCompilerConsts, hasDisabledIf,
 	processCompilerCommands, removeComments, removeTrailingSpaces, isArgValidFor, isArgValidForValidator
 } from "../src/funcs.js";
 import { GenericArgs } from "../src/generic_args.js";
 import { ArgType, CompilerConst, CommandErrorType } from "../src/types.js";
-import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
+import { commandErrOfType, makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 
 
 describe("templateFunction", () => {
@@ -136,10 +136,29 @@ describe("isArgValidFor", () => {
 
 describe("removeTrailingSpaces", () => {
 	it("should remove trailing and leading spaces and tabs", () => {
-		expect(cleanLine("    set x 5")).toBe("set x 5");
-		expect(cleanLine("set x 5  ")).toBe("set x 5");
-		expect(cleanLine("\tset x 5")).toBe("set x 5");
-		expect(cleanLine(" \tset x 5\t ")).toBe("set x 5");
+		expect(removeTrailingSpaces("    set x 5")).toBe("set x 5");
+		expect(removeTrailingSpaces("set x 5  ")).toBe("set x 5");
+		expect(removeTrailingSpaces("\tset x 5")).toBe("set x 5");
+		expect(removeTrailingSpaces(" \tset x 5\t ")).toBe("set x 5");
+	});
+});
+
+describe("removeComments", () => {
+	it("should remove single line comments", () => {
+		expect(removeComments("amogus sussy //comment")).toBe("amogus sussy");
+		expect(removeComments("amogus sussy #comment")).toBe("amogus sussy");
+		expect(removeComments("//comment")).toBe("");
+		expect(removeComments("amogus sussy#//#comment")).toBe("amogus sussy");
+	});
+	it("should remove multiline comments", () => {
+		expect(removeComments("amogus /*COMMENT*/sus")).toBe("amogus sus");
+		expect(removeComments("amogus /*com*/sus/*ent*/ ")).toBe("amogus sus");
+	});
+	it("should not mess up comments inside of strings", () => {
+		expect(removeComments(`print "[#blue]amogus[]"`)).toBe(`print "[#blue]amogus[]"`);
+		expect(removeComments(`print "amo//gus"`)).toBe(`print "amo//gus"`);
+		expect(removeComments(`print "am/*og*/us"`)).toBe(`print "am/*og*/us"`);
+		expect(removeComments(`print /*"a#m*/ogus ""`)).toBe(`print ogus ""`);
 	});
 });
 
@@ -171,7 +190,6 @@ describe("cleanLine", () => {
 		expect(cleanLine(`print /*"a#m*/ogus ""`)).toBe(`print ogus ""`);
 	});
 	it("should do everything above at once", () => {
-		//todo make this MORE COMPLICATED
 		expect(cleanLine(`   \t say amogus /*#"a*/nd""#     \t\t  `)).toBe(`say amogus nd""`);
 	});
 });
@@ -335,7 +353,6 @@ describe("getParameters", () => {
 			.toEqual([["dest.x", "number"], ["u", "unit"]]);
 		expect(getParameters(["#sussy amogus"]))
 			.toEqual([]);
-		//TODO add more
 	});
 });
 
@@ -534,20 +551,11 @@ describe("getCommandDefinitions", () => {
 	it("should return errors if specified", () => {
 		expect(getCommandDefinitions(`amogus`, true)).toEqual([
 			[],
-			[{
-				type: CommandErrorType.noCommand,
-				message: jasmine.any(String)
-			}]
+			[commandErrOfType(CommandErrorType.noCommand)]
 		]);
 		expect(getCommandDefinitions(`jump label always`, true)).toEqual([
 			[commands.jump[0]],
-			[{
-				type: CommandErrorType.argumentCount,
-				message: jasmine.any(String)
-			},{
-				type: CommandErrorType.argumentCount,
-				message: jasmine.any(String)
-			}]
+			[commandErrOfType(CommandErrorType.argumentCount), commandErrOfType(CommandErrorType.argumentCount)]
 		]);
 	});
 	it("should return empty if no valid definitions", () => {
@@ -574,21 +582,53 @@ describe("isCommand", () => {
 		expect(isCommand(`set x :number 5`, commands.set[1]))
 			.toEqual([true, null]);
 		expect(isCommand(`set x 5`, commands.set[1]))
-			.toEqual([false, {
-				type: CommandErrorType.argumentCount,
-				message: jasmine.any(String)
-			}]);
+			.toEqual([false, commandErrOfType(CommandErrorType.argumentCount)]);
 		expect(isCommand(`set x :number 5`, commands.set[0]))
-			.toEqual([false, {
-				type: CommandErrorType.argumentCount,
-				message: jasmine.any(String)
-			}]);
+			.toEqual([false, commandErrOfType(CommandErrorType.argumentCount)]);
 		expect(isCommand(`ulocate or3 @copper ore.x ore.y ore.found`, commands.ulocate[3]))
-			.toEqual([false, {
-				type: CommandErrorType.argumentCount,
-				message: jasmine.any(String)
-			}]);
-		//TODO add more
+			.toEqual([false, commandErrOfType(CommandErrorType.badStructure)]);
+	});
+});
+
+describe("getCompilerCommandDefinitions", () => {
+	it("should get all valid compiler command definitions for a statement", () => {
+		expect(getCompilerCommandDefinitions("&if x {"))
+			.toEqual([
+				[compilerCommands["&if"].overloads[0]],
+				[]
+			]);
+		expect(getCompilerCommandDefinitions("&for x in 0 5 {"))
+			.toEqual([
+				[compilerCommands["&for"].overloads[0]],
+				[commandErrOfType(CommandErrorType.badStructure)]
+			]);
+		expect(getCompilerCommandDefinitions("&for x of a b c d f {"))
+			.toEqual([
+				[compilerCommands["&for"].overloads[1]],
+				[]
+			]);
+		expect(getCompilerCommandDefinitions("namespace amogus {"))
+			.toEqual([
+				[compilerCommands["namespace"].overloads[0]],
+				[]
+			]);
+	});
+	it("should return errors if a command is invalid", () => {
+		expect(getCompilerCommandDefinitions("&for x in sussybakas {"))
+			.toEqual([
+				[],
+				[commandErrOfType(CommandErrorType.argumentCount), commandErrOfType(CommandErrorType.badStructure)]
+			]);
+		expect(getCompilerCommandDefinitions(`namespace "@unit" {`))
+			.toEqual([
+				[],
+				[commandErrOfType(CommandErrorType.type)]
+			]);
+		expect(getCompilerCommandDefinitions("set x 5"))
+			.toEqual([
+				[],
+				[commandErrOfType(CommandErrorType.noCommand)]
+			]);
 	});
 });
 

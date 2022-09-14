@@ -9,3 +9,9 @@ export function makeForEl(varname, elements, loopBuffer = []) {
 export function makeIfEl(enabled) {
     return { type: "&if", commandDefinition: compilerCommands["&if"].overloads[0], line: { lineNumber: 420, text: "[test]" }, enabled };
 }
+export function commandErrOfType(type) {
+    return {
+        type,
+        message: jasmine.any(String)
+    };
+}

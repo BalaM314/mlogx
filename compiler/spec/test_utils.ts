@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 import { compilerCommands } from "../src/commands.js";
 import { addSourcesToCode } from "../src/funcs.js";
-import { ForStackElement, IfStackElement, NamespaceStackElement } from "../src/types.js";
+import { CommandErrorType, ForStackElement, IfStackElement, NamespaceStackElement } from "../src/types.js";
 
 
 
@@ -20,4 +20,10 @@ export function makeForEl(varname:string, elements:string[], loopBuffer:string[]
 }
 export function makeIfEl(enabled:boolean):IfStackElement {
 	return {type: "&if", commandDefinition: compilerCommands["&if"].overloads[0], line: {lineNumber:420, text: "[test]"}, enabled};
+}
+export function commandErrOfType(type:CommandErrorType){
+	return {
+		type,
+		message: jasmine.any(String)
+	};
 }

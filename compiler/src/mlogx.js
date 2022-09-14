@@ -167,7 +167,7 @@ mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded j
         return 1;
     }
     else {
-        Log.none(chalk.gray(`This command was made by looking at SByte's python code.`));
+        Log.none(chalk.gray(`This command was made possible by looking at SByte's python code.`));
         Log.announce(`Adding jump labels to file ${target}`);
         const data = fs.readFileSync(target, "utf-8").split(/\r?\n/g);
         const output = addJumpLabels(data);
