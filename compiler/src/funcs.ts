@@ -764,4 +764,13 @@ Make sure to screenshot the stack trace below:`
 	);
 }
 
+/**
+ * A TS util function used for type wrangling ASTs.
+ * Returns a function that causes TypeScript to force some data to conform to some interface, but include the specific types in the final output.
+ * Example: the messages.message.for() function accepts arbitrary data as an input, and this should be available in typeof messages, but not having a fur() function should cause an error.
+ **/
+export function extend<Struct>() {
+	return <T extends Struct>(data:T) => data;
+}
+
 //#endregion

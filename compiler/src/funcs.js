@@ -581,3 +581,6 @@ If you are reading this, then there's an error with mlogx.
 Please file a bug report at ${bugReportUrl}
 Make sure to screenshot the stack trace below:`);
 }
+export function extend() {
+    return (data) => data;
+}

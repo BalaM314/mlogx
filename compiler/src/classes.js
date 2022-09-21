@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { extend } from "./funcs";
 export class Arg {
     constructor(type, name = "WIP", isOptional = false, isGeneric = true, isVariable = false, spread = false) {
         this.type = type;
@@ -32,7 +33,7 @@ const logLevels = ((e) => (e))({
     "announce": [chalk.blueBright, ""],
     "none": [m => m, ""],
 });
-const messages = ((messagesData) => messagesData)({
+const messages = extend()({
     "unknownRequire": { for: (d) => `Unknown require ${d.requiredVar}`, level: "warn" }
 });
 export class Log {

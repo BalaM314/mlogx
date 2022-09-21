@@ -9,6 +9,7 @@ Contains various classes.
 */
 
 import chalk from "chalk";
+import { extend } from "./funcs";
 import { ArgType } from "./types";
 
 /**Represents an argument(type) for a command.*/
@@ -58,7 +59,7 @@ interface MessageData {
 		level: logLevel
 	}
 }
-const messages = (<M extends MessageData>(messagesData:M) => messagesData)({
+const messages = extend<MessageData>()({
 	"unknownRequire": {for:(d:{requiredVar:string}) => `Unknown require ${d.requiredVar}`, level: "warn"}
 });
 
