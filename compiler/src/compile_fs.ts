@@ -55,7 +55,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 		[index: string]: string[];
 	} = {};
 	
-	Log.announce("Files to compile: ", mlogxFilelist);
+	Log.announce(`Files to compile: [${mlogxFilelist.join(", ")}]`);
 
 	for(const filename of stdlibFilelist){
 		//For each filename in the stdlib

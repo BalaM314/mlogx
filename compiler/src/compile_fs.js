@@ -28,7 +28,7 @@ export function compileDirectory(directory, stdlibPath, defaultSettings, icons) 
     const compiledData = {};
     let mainData = [];
     const stdlibData = {};
-    Log.announce("Files to compile: ", mlogxFilelist);
+    Log.announce(`Files to compile: [${mlogxFilelist.join(", ")}]`);
     for (const filename of stdlibFilelist) {
         stdlibData[filename.split(".")[0]] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8').split(/\r?\n/g);
     }

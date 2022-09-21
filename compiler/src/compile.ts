@@ -69,7 +69,7 @@ export function compileMlogxToMlog(
 				}
 			}];
 		} else {
-			Log.warn("Unknown require " + requiredVar);
+			Log.printMessage("unknownRequire", {requiredVar});
 		}
 	}
 

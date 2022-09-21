@@ -38,52 +38,66 @@ export class CompilerError extends Error {
 	}
 }
 
-const logLevels: {
-	[name:string]: [color: (input:string) => string, tag:string]
-} = {
+//TODO move this to a file called Log.ts
+const logLevels = (<T extends string>(e:{
+	[K in T]: [color: (input:string) => string, tag:string]
+}) => (e))({
 	"debug": [chalk.gray, "[DEBUG]"],
 	"info": [chalk.white, "[INFO]"],
 	"warn": [chalk.yellow, "[WARN]"],
 	"err": [chalk.red, "[ERROR]"],
-};
+	"fatal": [chalk.bgRed.white, "[FATAL]"],
+	"announce": [chalk.blueBright, ""],
+	"none": [m => m, ""],
+});
+type logLevel = keyof typeof logLevels;
+
+interface MessageData {
+	[id:string]: {
+		for: (data:never) => string,
+		level: logLevel
+	}
+}
+const messages = (<M extends MessageData>(messagesData:M) => messagesData)({
+	"unknownRequire": {for:(d:{requiredVar:string}) => `Unknown require ${d.requiredVar}`, level: "warn"}
+});
 
 export class Log {
-	static currentLevel: keyof typeof Log;
-
-	static printMessage(level:keyof typeof logLevels, message:string){
-		console.log(logLevels[level][0](`${logLevels[level][1]}\t${message}`));
+	static level: logLevel;
+	static printWithLevel(level:logLevel, message:string){
+		this.level = level;
+		console.log(logLevels[level][0](`${logLevels[level][1]}${logLevels[level][1].length == 0 ? "" : "\t"}${message}`));
 	}
 	/**For debug information. */
-	static debug(message:string){
-		console.log(chalk.gray(`[DEBUG]\t${message}`));
-	}
+	static debug(message:string){this.printWithLevel("debug", message);}
 	/**Dumps objects */
+	static dump(level:logLevel, ...objects:unknown[]):void;
+	static dump(...objects:unknown[]):void;
 	static dump(...objects:unknown[]){
-		console.log(`[DEBUG]`, ...objects);
+		if((objects[0] as string) in logLevels){
+			this.level = objects[0] as logLevel;
+			console.log(logLevels[this.level] + "\t", ...(objects.slice(1)));
+		} else {
+			console.log(logLevels[this.level] + "\t", ...objects);
+		}
 	}
 	/**For general info. */
-	static info(message:string){
-		console.log(chalk.white(`[INFO]\t${message}`));
-	}
+	static info(message:string){this.printWithLevel("info", message);}
 	/**Warnings */
-	static warn(message:string){
-		console.warn(chalk.yellow(`[WARN]\t${message}`));
-	}
+	static warn(message:string){this.printWithLevel("warn", message);}
 	/**Errors */
-	static err(message:string){
-		console.error(chalk.redBright(`[ERROR]\t${message}`));
-	}
+	static err(message:string){this.printWithLevel("err", message);}
 	/**Fatal errors */
-	static fatal(message:string){
-		console.error(`[FATAL]\t${chalk.bgRed.white(message)}`);
-	}
+	static fatal(message:string){this.printWithLevel("fatal", message);}
 	/**Used by the program to announce what it is doing. */
-	static announce(message:string, ...rest:unknown[]){
-		console.log(chalk.blueBright(`${message}`), ...rest);
-	}
+	static announce(message:string){this.printWithLevel("announce", message);}
 	/**Just prints a message without any formatting */
-	static none(message:string){
-		console.log(message);
-	}
+	static none(message:string){this.printWithLevel("none", message);}
 
+	static printMessage<ID extends keyof typeof messages, MData extends (typeof messages)[ID]>(
+		messageID:ID, data:Parameters<MData["for"]>[0]
+	){
+		const message = messages[messageID];
+		Log[message.level](message.for(data));
+	}
 }
