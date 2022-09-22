@@ -109,12 +109,12 @@ export interface PreprocessedCommand {
 	getVariablesUsed?: (args:string[]) => [name:string, types:ArgType[]][]
 }
 
-export interface CommandDefinitions {
-	[index: string]: CommandDefinition[];
+export type CommandDefinitions<IDs extends string> = {
+	[ID in IDs]: CommandDefinition[];
 }
 
-export interface PreprocessedCommandDefinitions {
-	[index: string]: PreprocessedCommand[]
+export type PreprocessedCommandDefinitions<IDs extends string> = {
+	[ID in IDs]: PreprocessedCommand[]
 }
 
 export interface CompilerCommandDefinition<StackEl> {

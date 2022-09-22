@@ -15,7 +15,7 @@ import {
 	CompilerCommandDefinitions, CompilerConst, CompilerConsts, Line, NamespaceStackElement,
 	PreprocessedCommandDefinitions, PreprocessedCompilerCommandDefinitions, Settings, StackElement,
 	TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup,
-	CompilerCommandDefinitionGroup, CompilerCommandDefinition, GAT, ArgKey
+	CompilerCommandDefinitionGroup, CompilerCommandDefinition, GAT, ArgKey, PreprocessedCommand
 } from "./types.js";
 import { ForStackElement } from "./types.js";
 import * as readline from "readline";
@@ -529,16 +529,16 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean =
 	CommandDefinition[] | [CommandDefinition[], CommandError[]] {
 	const args = splitLineIntoArguments(cleanedLine);
 
-	const commandList = commands[args[0]];
-	const possibleCommands = [];
-	const errors = [];
-
-	if(commandList == undefined){
+	if(!(args[0] in commands)){
 		return returnErrors ? [[], [{
 			type: CommandErrorType.noCommand,
 			message: `Command "${args[0]}" does not exist.`
 		}]] : [];
 	}
+
+	const commandList = commands[args[0] as keyof typeof commands];
+	const possibleCommands = [];
+	const errors = [];
 
 	for(const possibleCommand of commandList){
 		const result = isCommand(cleanedLine, possibleCommand);
@@ -637,10 +637,10 @@ export function arg(str:PreprocessedArg){
 }
 
 /**Processes commands(adds in what would otherwise be boilerplate). */
-export function processCommands(preprocessedCommands:PreprocessedCommandDefinitions):CommandDefinitions {
+export function processCommands<IDs extends string>(preprocessedCommands:PreprocessedCommandDefinitions<IDs>):CommandDefinitions<IDs> {
 
-	const out:CommandDefinitions = {};
-	for(const [name, commands] of Object.entries(preprocessedCommands)){
+	const out:Partial<CommandDefinitions<IDs>> = {};
+	for(const [name, commands] of (Object.entries(preprocessedCommands) as [name:IDs, commands:PreprocessedCommand[]][])){
 		out[name] = [];
 		for(const command of commands){
 			const processedCommand:CommandDefinition = {
@@ -664,10 +664,10 @@ export function processCommands(preprocessedCommands:PreprocessedCommandDefiniti
 			} else if(typeof command.replace == "function"){
 				processedCommand.replace = (command.replace as (args:string[]) => string[]);
 			}
-			out[name].push(processedCommand);
+			out[name]!.push(processedCommand);
 		}
 	}
-	return out;
+	return out as CommandDefinitions<IDs>;
 }
 
 export function processCompilerCommands(preprocessedCommands:PreprocessedCompilerCommandDefinitions):CompilerCommandDefinitions {

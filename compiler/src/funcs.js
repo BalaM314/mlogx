@@ -408,15 +408,15 @@ export function getCommandDefinition(cleanedLine) {
 }
 export function getCommandDefinitions(cleanedLine, returnErrors = false) {
     const args = splitLineIntoArguments(cleanedLine);
-    const commandList = commands[args[0]];
-    const possibleCommands = [];
-    const errors = [];
-    if (commandList == undefined) {
+    if (!(args[0] in commands)) {
         return returnErrors ? [[], [{
                     type: CommandErrorType.noCommand,
                     message: `Command "${args[0]}" does not exist.`
                 }]] : [];
     }
+    const commandList = commands[args[0]];
+    const possibleCommands = [];
+    const errors = [];
     for (const possibleCommand of commandList) {
         const result = isCommand(cleanedLine, possibleCommand);
         if (result[0]) {

@@ -16,11 +16,11 @@ import {
 	topForLoop, typeofArg
 } from "./funcs.js";
 import { GenericArgs } from "./generic_args.js";
-import { CommandDefinitions, CompiledLine, GAT, PortingMode } from "./types.js";
+import { CompiledLine, GAT, PortingMode } from "./types.js";
 
 //welcome to AST hell
 /** Contains the arguments for all types.*/
-export const commands: CommandDefinitions = processCommands({
+export const commands = processCommands({
 	call: [{
 		args: "function:variable",
 		replace: [
