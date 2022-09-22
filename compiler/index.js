@@ -11,6 +11,6 @@ export * from "./src/generic_args.js";
 export { mlogx as app } from "./src/mlogx.js";
 export * from "./src/types.js";
 if (process.argv[1] == fileURLToPath(import.meta.url)) {
-    Log.warn(`Running index.js is deprecated, please run cli.js instead.`);
+    Log.printMessage("wrong file ran", {});
     mlogx.run(process.argv);
 }

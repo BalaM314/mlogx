@@ -36,7 +36,7 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
                 }];
         }
         else {
-            Log.printMessage("unknownRequire", { requiredVar });
+            Log.printMessage("unknown require", { requiredVar });
         }
     }
     let hasInvalidStatements = false;

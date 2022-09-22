@@ -25,7 +25,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 	const srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
 
 	if(!srcDirectoryExists && settings.compilerOptions.mode == "project"){
-		Log.warn(`Compiler mode set to "project" but no src directory found.`);
+		Log.printMessage("compiler mode project but no src directory", {});
 		settings.compilerOptions.mode = "single";
 	}
 	if(srcDirectoryExists){
@@ -55,7 +55,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 		[index: string]: string[];
 	} = {};
 	
-	Log.announce(`Files to compile: [${mlogxFilelist.join(", ")}]`);
+	Log.printMessage("files to compile", mlogxFilelist);
 
 	for(const filename of stdlibFilelist){
 		//For each filename in the stdlib

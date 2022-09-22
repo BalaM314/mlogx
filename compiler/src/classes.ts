@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
 Copyright © <BalaM314>, 2022.
 This file is part of mlogx.
@@ -49,8 +50,16 @@ interface MessageData {
 		level: logLevel
 	}
 }
+type none = Record<string, never>
+
 const messages = extend<MessageData>()({
-	"unknownRequire": {for:(d:{requiredVar:string}) => `Unknown require ${d.requiredVar}`, level: "warn"}
+	"unknown require": {for:(d:{requiredVar:string}) => `Unknown require ${d.requiredVar}`, level: "warn"},
+	"wrong file ran": {for:(d:none) => `Running index.js is deprecated, please run cli.js instead.`, level: "warn"},
+	"statement port failed": {for:(d:{name:string, statement:string, reason?:string}) => `Cannot port ${d.name} statement "${d.statement}" because ${d.reason ?? "it is invalid"}`, level: "err"},
+	"if statement condition not boolean": {for:(d:{condition:string}) => `Condition in &if statement was "${d.condition}", expected true or false.`, level:"warn"},
+	"compiler mode project but no src directory": {for:(d:none) => `Compiler mode set to "project" but no src directory found.`, level:"warn"},
+	"files to compile": {for:(filelist:string[]) => `Files to compile: [${filelist.map(file => chalk.green(file)).join(", ")}]`, level:"announce"},
+	//"name": {for:(d:{}) => ``, level:""},
 });
 
 export class Log {
@@ -89,7 +98,8 @@ export class Log {
 	static printMessage<ID extends keyof typeof messages, MData extends (typeof messages)[ID]>(
 		messageID:ID, data:Parameters<MData["for"]>[0]
 	){
-		const message = messages[messageID];
-		Log[message.level](message.for(data));
+		const message = messages[messageID] as MData;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		Log[message.level](message.for(data as any));
 	}
 }

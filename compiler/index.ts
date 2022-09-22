@@ -26,6 +26,6 @@ export * from "./src/types.js";
 
 
 if(process.argv[1] == fileURLToPath(import.meta.url)){
-	Log.warn(`Running index.js is deprecated, please run cli.js instead.`);
-  mlogx.run(process.argv);
+	Log.printMessage("wrong file ran", {});
+	mlogx.run(process.argv);
 }

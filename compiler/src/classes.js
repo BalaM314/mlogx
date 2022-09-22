@@ -16,7 +16,12 @@ const logLevels = extend()({
     "none": [m => m, ""],
 });
 const messages = extend()({
-    "unknownRequire": { for: (d) => `Unknown require ${d.requiredVar}`, level: "warn" }
+    "unknown require": { for: (d) => `Unknown require ${d.requiredVar}`, level: "warn" },
+    "wrong file ran": { for: (d) => `Running index.js is deprecated, please run cli.js instead.`, level: "warn" },
+    "statement port failed": { for: (d) => `Cannot port ${d.name} statement "${d.statement}" because ${d.reason ?? "it is invalid"}`, level: "err" },
+    "if statement condition not boolean": { for: (d) => `Condition in &if statement was "${d.condition}", expected true or false.`, level: "warn" },
+    "compiler mode project but no src directory": { for: (d) => `Compiler mode set to "project" but no src directory found.`, level: "warn" },
+    "files to compile": { for: (filelist) => `Files to compile: [${filelist.map(file => chalk.green(file)).join(", ")}]`, level: "announce" },
 });
 export class Log {
     static printWithLevel(level, message) {

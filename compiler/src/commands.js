@@ -438,7 +438,9 @@ export const commands = processCommands({
                         case "building":
                             return `ulocate building ${args[2]} ${args[3]} ${args[5]} ${args[6]} ${args[7]} ${args[8]}`;
                         default:
-                            Log.err(`Cannot port ulocate statement "${args.join(" ")}" because it is invalid.`);
+                            Log.printMessage("statement port failed", {
+                                name: args[0], statement: args.join(" ")
+                            });
                     }
                 }
                 return args.join(" ");
@@ -547,7 +549,7 @@ export const compilerCommands = processCompilerCommands({
                             isEnabled = false;
                         }
                         else {
-                            Log.warn(`condition in &if statement(${args[1]}) is not "true" or "false".`);
+                            Log.printMessage("if statement condition not boolean", { condition: args[1] });
                             isEnabled = true;
                         }
                     }
