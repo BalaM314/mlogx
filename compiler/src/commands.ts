@@ -11,12 +11,12 @@ Contains the commands AST.
 import { CompilerError, Log } from "./classes.js";
 import { maxLoops, MindustryContent, shortOperandMapping } from "./consts.js";
 import {
-	addNamespacesToLine, getCommandDefinition, hasDisabledIf, impossible, processCommands,
+	addNamespacesToLine, getCommandDefinition, hasDisabledIf, impossible, isKey, processCommands,
 	processCompilerCommands, range, replaceCompilerConstants, splitLineIntoArguments,
 	topForLoop, typeofArg
 } from "./funcs.js";
 import { GenericArgs } from "./generic_args.js";
-import { CompiledLine, GAT, PortingMode } from "./types.js";
+import { CompiledLine, PortingMode } from "./types.js";
 
 //welcome to AST hell
 /** Contains the arguments for all types.*/
@@ -211,17 +211,19 @@ export const commands = processCommands({
 			args: "variable:*any type:ctype value:any",
 			description: "Sets the value of (variable) to (value), and the type of (variable) to (type).",
 			replace: (args:string[]) => {
-				if(GenericArgs.has(args[2].slice(1) as GAT)){
+				const type = args[2].slice(1);
+				if(isKey(GenericArgs, type)){
 					return [`set ${args[1]} ${args[3]}`];
 				} else {
-					throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GenericArgs).join(", ")}`);
+					throw new CompilerError(`Invalid type "${type}", valid types are ${Object.keys(GenericArgs).join(", ")}`);
 				}
 			},
 			getVariablesDefined: (args) => {
-				if(GenericArgs.has(args[2].slice(1) as GAT)){
+				const type = args[2].slice(1);
+				if(isKey(GenericArgs, type)){
 					return [[args[1], args[2].slice(1)]];
 				} else {
-					throw new CompilerError(`Invalid type "${args[2].slice(1)}", valid types are ${Object.keys(GenericArgs).join(", ")}`);
+					throw new CompilerError(`Invalid type "${type}", valid types are ${Object.keys(GenericArgs).join(", ")}`);
 				}
 			}
 		},{

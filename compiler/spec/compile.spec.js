@@ -86,7 +86,7 @@ describe("compileLine", () => {
         ];
         const compiledOutput = compileLine({ text: "}", lineNumber: 1 }, new Map(), settingsForFilename("sample.mlogx"), false, stack);
         stack = compiledOutput.modifiedStack ?? stack;
-        stack.at(-1)?.loopBuffer.push(...compiledOutput.compiledCode);
+        stack.at(-1)?.loopBuffer?.push(...compiledOutput.compiledCode);
         expect(compiledOutput.compiledCode.map(line => line[0]))
             .toEqual([`set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]);
         expect(compiledOutput.modifiedStack).toEqual([

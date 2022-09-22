@@ -9,7 +9,7 @@ Contains various classes.
 */
 
 import chalk from "chalk";
-import { extend } from "./funcs";
+import { extend, isKey } from "./funcs";
 import { ArgType } from "./types";
 
 /**Represents an argument(type) for a command.*/
@@ -40,9 +40,9 @@ export class CompilerError extends Error {
 }
 
 //TODO move this to a file called Log.ts
-const logLevels = (<T extends string>(e:{
-	[K in T]: [color: (input:string) => string, tag:string]
-}) => (e))({
+const logLevels = extend<{
+	[index:string]: [color: (input:string) => string, tag:string]
+}>()({
 	"debug": [chalk.gray, "[DEBUG]"],
 	"info": [chalk.white, "[INFO]"],
 	"warn": [chalk.yellow, "[WARN]"],
@@ -75,8 +75,9 @@ export class Log {
 	static dump(level:logLevel, ...objects:unknown[]):void;
 	static dump(...objects:unknown[]):void;
 	static dump(...objects:unknown[]){
-		if((objects[0] as string) in logLevels){
-			this.level = objects[0] as logLevel;
+		const firstArg = objects[0];
+		if(isKey(logLevels, firstArg)){
+			this.level = firstArg;
 			console.log(logLevels[this.level] + "\t", ...(objects.slice(1)));
 		} else {
 			console.log(logLevels[this.level] + "\t", ...objects);

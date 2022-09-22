@@ -80,8 +80,10 @@ export function isArgValidForType(argToCheck:string, arg:ArgType, checkAlsoAccep
 
 	//Check if the string is valid for any excluded arg
 	for(const excludedArg of argKey.exclude){
-		const excludedArgKey = GenericArgs.get(excludedArg as GAT);
-		if(!excludedArgKey) throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies exclude option ${excludedArg} which is not a known generic arg type`);
+		if(!isKey(GenericArgs, excludedArg)){
+			throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies exclude option ${excludedArg} which is not a known generic arg type`);
+		}
+		const excludedArgKey = GenericArgs.get(excludedArg)!;
 		//If it is valid, return false
 		if(isArgValidForValidator(argToCheck, excludedArgKey.validator)) return false;
 	}
@@ -445,8 +447,8 @@ export function acceptsVariable(arg: Arg|undefined):boolean {
 	if(arg == undefined) return false;
 	if(arg.isVariable) return false;
 	if(arg.isGeneric){
-		if(!GenericArgs.has(arg.type as GAT)) impossible();
-		return GenericArgs.get(arg.type as GAT)!.alsoAccepts.includes("variable");
+		if(!isKey(GenericArgs, arg.type)) impossible();
+		return GenericArgs.get(arg.type)!.alsoAccepts.includes("variable");
 	} else {
 		return false;
 	}
@@ -529,14 +531,14 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean =
 	CommandDefinition[] | [CommandDefinition[], CommandError[]] {
 	const args = splitLineIntoArguments(cleanedLine);
 
-	if(!(args[0] in commands)){
+	if(!isKey(commands, args[0])){
 		return returnErrors ? [[], [{
 			type: CommandErrorType.noCommand,
 			message: `Command "${args[0]}" does not exist.`
 		}]] : [];
 	}
 
-	const commandList = commands[args[0] as keyof typeof commands];
+	const commandList = commands[args[0]];
 	const possibleCommands = [];
 	const errors = [];
 
@@ -558,16 +560,17 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean =
 export function getCompilerCommandDefinitions(cleanedLine:string):[CompilerCommandDefinition<StackElement>[], CommandError[]] {
 	const args = splitLineIntoArguments(cleanedLine);
 
-	const commandGroup = compilerCommands[args[0] as keyof StackElementMapping];
-	const possibleCommands:CompilerCommandDefinition<StackElement>[] = [];
-	const errors = [];
-
-	if(commandGroup == undefined){
+	if(!isKey(compilerCommands, args[0])){
 		return [[], [{
 			type: CommandErrorType.noCommand,
 			message: `Compiler command "${args[0]}" does not exist.`
 		}]];
 	}
+
+	const commandGroup = compilerCommands[args[0]];
+	const possibleCommands:CompilerCommandDefinition<StackElement>[] = [];
+	const errors = [];
+
 
 	for(const possibleCommand of commandGroup.overloads as CompilerCommandDefinition<StackElement>[]){
 		const result = isCommand(cleanedLine, possibleCommand);
@@ -662,7 +665,7 @@ export function processCommands<IDs extends string>(preprocessedCommands:Preproc
 					});
 				};
 			} else if(typeof command.replace == "function"){
-				processedCommand.replace = (command.replace as (args:string[]) => string[]);
+				processedCommand.replace = command.replace;
 			}
 			out[name]!.push(processedCommand);
 		}

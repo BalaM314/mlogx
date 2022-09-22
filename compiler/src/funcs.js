@@ -65,9 +65,10 @@ export function isArgValidForType(argToCheck, arg, checkAlsoAccepts = true) {
     if (!argKey)
         impossible();
     for (const excludedArg of argKey.exclude) {
-        const excludedArgKey = GenericArgs.get(excludedArg);
-        if (!excludedArgKey)
+        if (!isKey(GenericArgs, excludedArg)) {
             throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies exclude option ${excludedArg} which is not a known generic arg type`);
+        }
+        const excludedArgKey = GenericArgs.get(excludedArg);
         if (isArgValidForValidator(argToCheck, excludedArgKey.validator))
             return false;
     }
@@ -339,7 +340,7 @@ export function acceptsVariable(arg) {
     if (arg.isVariable)
         return false;
     if (arg.isGeneric) {
-        if (!GenericArgs.has(arg.type))
+        if (!isKey(GenericArgs, arg.type))
             impossible();
         return GenericArgs.get(arg.type).alsoAccepts.includes("variable");
     }
@@ -408,7 +409,7 @@ export function getCommandDefinition(cleanedLine) {
 }
 export function getCommandDefinitions(cleanedLine, returnErrors = false) {
     const args = splitLineIntoArguments(cleanedLine);
-    if (!(args[0] in commands)) {
+    if (!isKey(commands, args[0])) {
         return returnErrors ? [[], [{
                     type: CommandErrorType.noCommand,
                     message: `Command "${args[0]}" does not exist.`
@@ -433,15 +434,15 @@ export function getCommandDefinitions(cleanedLine, returnErrors = false) {
 }
 export function getCompilerCommandDefinitions(cleanedLine) {
     const args = splitLineIntoArguments(cleanedLine);
-    const commandGroup = compilerCommands[args[0]];
-    const possibleCommands = [];
-    const errors = [];
-    if (commandGroup == undefined) {
+    if (!isKey(compilerCommands, args[0])) {
         return [[], [{
                     type: CommandErrorType.noCommand,
                     message: `Compiler command "${args[0]}" does not exist.`
                 }]];
     }
+    const commandGroup = compilerCommands[args[0]];
+    const possibleCommands = [];
+    const errors = [];
     for (const possibleCommand of commandGroup.overloads) {
         const result = isCommand(cleanedLine, possibleCommand);
         if (result[0]) {

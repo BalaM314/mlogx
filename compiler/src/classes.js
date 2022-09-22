@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { extend } from "./funcs";
+import { extend, isKey } from "./funcs";
 export class Arg {
     constructor(type, name = "WIP", isOptional = false, isGeneric = true, isVariable = false, spread = false) {
         this.type = type;
@@ -24,7 +24,7 @@ export class CompilerError extends Error {
         this.name = "CompilerError";
     }
 }
-const logLevels = ((e) => (e))({
+const logLevels = extend()({
     "debug": [chalk.gray, "[DEBUG]"],
     "info": [chalk.white, "[INFO]"],
     "warn": [chalk.yellow, "[WARN]"],
@@ -43,8 +43,9 @@ export class Log {
     }
     static debug(message) { this.printWithLevel("debug", message); }
     static dump(...objects) {
-        if (objects[0] in logLevels) {
-            this.level = objects[0];
+        const firstArg = objects[0];
+        if (isKey(logLevels, firstArg)) {
+            this.level = firstArg;
             console.log(logLevels[this.level] + "\t", ...(objects.slice(1)));
         }
         else {

@@ -1,11 +1,10 @@
 import { MindustryContent, buildingNameRegex, shortOperandMapping } from "./consts.js";
-export const GenericArgs = ((stuff) => new Map(Array.from(stuff.entries())
-    .map(([key, obj]) => [key, {
+export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
         alsoAccepts: obj.alsoAccepts ?? [],
         validator: obj.validator instanceof RegExp ? [obj.validator] : obj.validator,
         exclude: obj.exclude ?? [],
         doNotGuess: obj.doNotGuess ?? false
-    }])))(new Map([
+    }])))([
     ["number", {
             validator: [
                 /^-?\d+((\.\d+)|(e-?\d+))?$/,
@@ -132,4 +131,4 @@ export const GenericArgs = ((stuff) => new Map(Array.from(stuff.entries())
             alsoAccepts: ["variable"],
             doNotGuess: true,
         }],
-]));
+]);

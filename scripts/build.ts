@@ -73,7 +73,7 @@ async function copyFiles(version?:string){
 	try {
 		execSync("tsc -p tsconfig-build.json");
 	} catch(err){
-		console.error(((err as any).output[1] as Buffer).toString("utf-8"));
+		console.error(((err as any)?.output[1] as Buffer)?.toString("utf-8"));
 		throw err;
 	}
 	//Copy all other files such as cli.js and README.md

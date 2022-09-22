@@ -13,18 +13,17 @@ import { PreprocessedArgKey, ArgKey } from "./types.js";
 
 export const GenericArgs = (
 ///////warning: black magic below
-	(<T extends string>(stuff: Map<T, PreprocessedArgKey>) =>
+	(<T extends string>(stuff: [T, PreprocessedArgKey][]) =>
 		new Map<T, ArgKey>(
-			Array.from(stuff.entries())
-				.map(([key, obj]) => [key, {
-					alsoAccepts: obj.alsoAccepts ?? [],
-					validator: obj.validator instanceof RegExp ? [ obj.validator ] : obj.validator,
-					exclude: obj.exclude ?? [],
-					doNotGuess: obj.doNotGuess ?? false
-				}])
-		)) as <T extends string>(stuff: Map<T, PreprocessedArgKey>) => Map<T, ArgKey>
+			stuff.map(([key, obj]) => [key, {
+				alsoAccepts: obj.alsoAccepts ?? [],
+				validator: obj.validator instanceof RegExp ? [ obj.validator ] : obj.validator,
+				exclude: obj.exclude ?? [],
+				doNotGuess: obj.doNotGuess ?? false
+			}])
+		)) as <T extends string>(stuff: [T, PreprocessedArgKey][]) => Map<T, ArgKey>
 ///////warning: black magic above
-)(new Map([
+)([
 	["number", {
 		validator: [
 			/^-?\d+((\.\d+)|(e-?\d+))?$/,
@@ -158,4 +157,4 @@ export const GenericArgs = (
 		alsoAccepts: ["variable"],
 		doNotGuess: true,
 	}],
-]));
+]);

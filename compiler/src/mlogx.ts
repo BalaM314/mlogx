@@ -16,9 +16,9 @@ import { Log } from "./classes.js";
 import { commands } from "./commands.js";
 import { addJumpLabels, portCode } from "./compile.js";
 import { createProject, compileDirectory, compileFile } from "./compile_fs.js";
-import { GAT, PartialRecursive, PortingMode, Settings } from "./types.js";
+import { PartialRecursive, PortingMode, Settings } from "./types.js";
 import { GenericArgs } from "./generic_args.js";
-import { parseIcons } from "./funcs.js";
+import { isKey, parseIcons } from "./funcs.js";
 
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
@@ -27,7 +27,7 @@ mlogx.command("info", "Shows information about a logic command", (opts) => {
 		Log.err(`Commands cannot contain spaces.`);
 		return 1;
 	}
-	if(commands[name]){
+	if(isKey(commands, name)){
 		Log.none(chalk.white(
 `Info for command "${name}"
 Usage:
@@ -40,8 +40,8 @@ ${commands[name].map(commandDefinition =>
 `)
 		);
 		return 0;
-	} else if(GenericArgs.has(name as GAT)){
-		const arg = GenericArgs.get(name as GAT)!;
+	} else if(isKey(GenericArgs, name)){
+		const arg = GenericArgs.get(name)!;
 		Log.none(chalk.white(
 `Info for generic arg type ${name}:
 

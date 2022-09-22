@@ -57,7 +57,7 @@ async function copyFiles(version) {
         execSync("tsc -p tsconfig-build.json");
     }
     catch (err) {
-        console.error(err.output[1].toString("utf-8"));
+        console.error(err?.output[1]?.toString("utf-8"));
         throw err;
     }
     await Promise.all(filesToCopy.map(([src, dest]) => copy(src, dest)));
