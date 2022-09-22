@@ -627,19 +627,29 @@ export async function askYesOrNo(question:string): Promise<boolean> {
 }
 
 /**Converts an arg string into an Arg. */
-export function arg(str:PreprocessedArg){
+export function arg(str:PreprocessedArg):Arg {
 	const matchResult = str.match(/(\.\.\.)?(\w+):(\*)?(\w+)(\?)?/);
 	if(!matchResult){
 		if(str.includes(":")){
-			Log.warn(`Possibly bad arg string ${str}, assuming literal meaning`);
+			Log.warn(`Possibly bad arg string ${str}, assuming it means a non-generic arg`);
 		}
-		return new Arg(str, str, false, false, false);
+		return makeArg(str, str, false, false, false);
 	}
 	const [, spread, name, isVariable, type, isOptional] = matchResult;
-	return new Arg(type, name, !! isOptional, isGenericArg(type), !! isVariable, !! spread);
+	return makeArg(type, name, !! isOptional, isGenericArg(type), !! isVariable, !! spread);
 }
 
-/**Processes commands(adds in what would otherwise be boilerplate). */
+/**Makes an arg using ordered arguments */
+export function makeArg(type:string, name:string = "WIP", isOptional:boolean = false, isGeneric:boolean = true, isVariable:boolean = false, spread:boolean = false){
+	return {
+		type, name, isOptional, isGeneric, isVariable, spread
+	};
+}
+
+/**
+ * Processes commands(adds in what would otherwise be boilerplate). 
+ * Warning: called before execution.
+ **/
 export function processCommands<IDs extends string>(preprocessedCommands:PreprocessedCommandDefinitions<IDs>):CommandDefinitions<IDs> {
 
 	const out:Partial<CommandDefinitions<IDs>> = {};

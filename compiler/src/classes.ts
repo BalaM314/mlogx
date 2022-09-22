@@ -9,27 +9,17 @@ Contains various classes.
 */
 
 import chalk from "chalk";
-import { extend, isKey } from "./funcs";
-import { ArgType } from "./types";
+import { extend, isKey } from "./funcs.js";
+import { ArgType } from "./types.js";
 
 /**Represents an argument(type) for a command.*/
-export class Arg {
-	constructor(
-		public type:ArgType,
-		public name:string = "WIP",
-		public isOptional:boolean = false,
-		public isGeneric:boolean = true,
-		public isVariable:boolean = false,
-		public spread:boolean = false
-	){}
-	toString(){
-		if(!this.isGeneric)
-			return `${this.type}`;
-		if(this.isOptional)
-			return `(${this.spread ? "..." : ""}${this.name}:${this.isVariable ? "*" : ""}${this.type})`;
-		else
-			return `[${this.spread ? "..." : ""}${this.name}:${this.isVariable ? "*" : ""}${this.type}]`;
-	}
+export interface Arg {
+	type:ArgType,
+	name:string,
+	isOptional:boolean,
+	isGeneric:boolean,
+	isVariable:boolean,
+	spread:boolean
 }
 
 export class CompilerError extends Error {

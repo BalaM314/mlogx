@@ -1,23 +1,5 @@
 import chalk from "chalk";
-import { extend, isKey } from "./funcs";
-export class Arg {
-    constructor(type, name = "WIP", isOptional = false, isGeneric = true, isVariable = false, spread = false) {
-        this.type = type;
-        this.name = name;
-        this.isOptional = isOptional;
-        this.isGeneric = isGeneric;
-        this.isVariable = isVariable;
-        this.spread = spread;
-    }
-    toString() {
-        if (!this.isGeneric)
-            return `${this.type}`;
-        if (this.isOptional)
-            return `(${this.spread ? "..." : ""}${this.name}:${this.isVariable ? "*" : ""}${this.type})`;
-        else
-            return `[${this.spread ? "..." : ""}${this.name}:${this.isVariable ? "*" : ""}${this.type}]`;
-    }
-}
+import { extend, isKey } from "./funcs.js";
 export class CompilerError extends Error {
     constructor(message) {
         super(message);

@@ -1,6 +1,5 @@
-import { Arg } from "../src/classes.js";
-import commands, { compilerCommands } from "../src/commands.js";
-import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgValidForType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg, getCompilerCommandDefinitions, removeComments, removeTrailingSpaces, isArgValidFor, isArgValidForValidator } from "../src/funcs.js";
+import { commands, compilerCommands } from "../src/commands.js";
+import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgValidForType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg, getCompilerCommandDefinitions, makeArg, removeComments, removeTrailingSpaces, isArgValidFor, isArgValidForValidator, } from "../src/funcs.js";
 import { GenericArgs } from "../src/generic_args.js";
 import { commandErrOfType, makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 describe("templateFunction", () => {
@@ -79,10 +78,10 @@ describe("isArgValidFor", () => {
             [`cos`, "operandSingle"],
         ];
         for (const [arg, expectedType] of correctTypes) {
-            expect(isArgValidFor(arg, new Arg(expectedType))).toBe(true);
+            expect(isArgValidFor(arg, makeArg(expectedType))).toBe(true);
         }
-        expect(isArgValidFor("amogus", new Arg("amogus"))).toBe(true);
-        expect(isArgValidFor("x", new Arg("number"))).toBe(true);
+        expect(isArgValidFor("amogus", makeArg("amogus"))).toBe(true);
+        expect(isArgValidFor("x", makeArg("number"))).toBe(true);
     });
     it("should determine if an arg is not of specified type", () => {
         const wrongTypes = [
@@ -95,10 +94,10 @@ describe("isArgValidFor", () => {
             [`:number`, "variable"],
         ];
         for (const [arg, unexpectedType] of wrongTypes) {
-            expect(isArgValidFor(arg, new Arg(unexpectedType))).toBe(false);
+            expect(isArgValidFor(arg, makeArg(unexpectedType))).toBe(false);
         }
-        expect(isArgValidFor("amogus", new Arg("sus"))).toBe(false);
-        expect(isArgValidFor("x", new Arg("operandTest"))).toBe(false);
+        expect(isArgValidFor("amogus", makeArg("sus"))).toBe(false);
+        expect(isArgValidFor("x", makeArg("operandTest"))).toBe(false);
     });
 });
 describe("isArgValidForValidator", () => {
@@ -566,36 +565,36 @@ describe("typesAreCompatible", () => {
 });
 describe("acceptsVariable", () => {
     it("should determine if an Arg accepts a variable as an input", () => {
-        expect(acceptsVariable(new Arg("unit", "target", true, true, false)))
+        expect(acceptsVariable(makeArg("unit", "target", true, true, false)))
             .toEqual(true);
-        expect(acceptsVariable(new Arg("number", "target", true, true, false)))
+        expect(acceptsVariable(makeArg("number", "target", true, true, false)))
             .toEqual(true);
-        expect(acceptsVariable(new Arg("unit", "target", true, true, true)))
+        expect(acceptsVariable(makeArg("unit", "target", true, true, true)))
             .toEqual(false);
-        expect(acceptsVariable(new Arg("buildingGroup", "thing", true, true, false)))
+        expect(acceptsVariable(makeArg("buildingGroup", "thing", true, true, false)))
             .toEqual(false);
-        expect(acceptsVariable(new Arg("ctype", "thing", true, true, false)))
+        expect(acceptsVariable(makeArg("ctype", "thing", true, true, false)))
             .toEqual(false);
-        expect(acceptsVariable(new Arg("unitSortCriteria", "thing", true, true, false)))
+        expect(acceptsVariable(makeArg("unitSortCriteria", "thing", true, true, false)))
             .toEqual(false);
     });
 });
 describe("arg", () => {
     it("should parse non-generic args", () => {
-        expect(arg(`amogus`)).toEqual(new Arg("amogus", "amogus", false, false, false, false));
-        expect(arg(`zero:0?`)).toEqual(new Arg("0", "zero", true, false, false, false));
+        expect(arg(`amogus`)).toEqual(makeArg("amogus", "amogus", false, false, false, false));
+        expect(arg(`zero:0?`)).toEqual(makeArg("0", "zero", true, false, false, false));
     });
     it("should parse args with types", () => {
-        expect(arg(`amogus:number`)).toEqual(new Arg("number", "amogus", false, true, false, false));
+        expect(arg(`amogus:number`)).toEqual(makeArg("number", "amogus", false, true, false, false));
     });
     it("should parse optional args", () => {
-        expect(arg(`amogus:string?`)).toEqual(new Arg("string", "amogus", true, true, false, false));
+        expect(arg(`amogus:string?`)).toEqual(makeArg("string", "amogus", true, true, false, false));
     });
     it("should parse variable output args", () => {
-        expect(arg(`amogus:*number`)).toEqual(new Arg("number", "amogus", false, true, true, false));
+        expect(arg(`amogus:*number`)).toEqual(makeArg("number", "amogus", false, true, true, false));
     });
     it("should parse spread args", () => {
-        expect(arg(`...amogus:number`)).toEqual(new Arg("number", "amogus", false, true, false, true));
+        expect(arg(`...amogus:number`)).toEqual(makeArg("number", "amogus", false, true, false, true));
     });
 });
 describe("processCommands", () => {
@@ -621,7 +620,7 @@ describe("processCommands", () => {
         })).toEqual({
             "amogus": [{
                     type: "Command",
-                    args: [new Arg("sus", "sus", false, false, false), new Arg("number", "susLevel", false, true, false)],
+                    args: [makeArg("sus", "sus", false, false, false), makeArg("number", "susLevel", false, true, false)],
                     description: "Sets the suslevel of the imposter.",
                     name: "amogus",
                     getVariablesDefined: undefined,
@@ -634,13 +633,13 @@ describe("processCommands", () => {
                     name: "sus",
                     description: "is sus.",
                     args: [
-                        new Arg("building", "building", false, false, false),
-                        new Arg("buildingGroup", "buildingGroup", false, true, false),
-                        new Arg("boolean", "enemy", false, true, false),
-                        new Arg("number", "outX", false, true, true),
-                        new Arg("number", "outY", false, true, true),
-                        new Arg("boolean", "found", false, true, true),
-                        new Arg("building", "building", false, true, true),
+                        makeArg("building", "building", false, false, false),
+                        makeArg("buildingGroup", "buildingGroup", false, true, false),
+                        makeArg("boolean", "enemy", false, true, false),
+                        makeArg("number", "outX", false, true, true),
+                        makeArg("number", "outY", false, true, true),
+                        makeArg("boolean", "found", false, true, true),
+                        makeArg("building", "building", false, true, true),
                     ],
                     getVariablesDefined: undefined,
                     getVariablesUsed: undefined,

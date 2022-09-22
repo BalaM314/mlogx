@@ -1,4 +1,4 @@
-import { Arg, Log } from "./classes.js";
+import { Log } from "./classes.js";
 import { commands, compilerCommands } from "./commands.js";
 import { CommandErrorType } from "./types.js";
 import * as readline from "readline";
@@ -484,12 +484,17 @@ export function arg(str) {
     const matchResult = str.match(/(\.\.\.)?(\w+):(\*)?(\w+)(\?)?/);
     if (!matchResult) {
         if (str.includes(":")) {
-            Log.warn(`Possibly bad arg string ${str}, assuming literal meaning`);
+            Log.warn(`Possibly bad arg string ${str}, assuming it means a non-generic arg`);
         }
-        return new Arg(str, str, false, false, false);
+        return makeArg(str, str, false, false, false);
     }
     const [, spread, name, isVariable, type, isOptional] = matchResult;
-    return new Arg(type, name, !!isOptional, isGenericArg(type), !!isVariable, !!spread);
+    return makeArg(type, name, !!isOptional, isGenericArg(type), !!isVariable, !!spread);
+}
+export function makeArg(type, name = "WIP", isOptional = false, isGeneric = true, isVariable = false, spread = false) {
+    return {
+        type, name, isOptional, isGeneric, isVariable, spread
+    };
 }
 export function processCommands(preprocessedCommands) {
     const out = {};
