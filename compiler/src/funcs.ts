@@ -733,9 +733,9 @@ export function processCompilerCommands(preprocessedCommands:PreprocessedCompile
 	return out as CompilerCommandDefinitions;
 }
 
+/**Returns a list of numbers within two bounds inclusive */
 export function range(min:number, max:number):number[];
 export function range(min:number, max:number, strings:true):string[];
-/**Returns a list of numbers within two bounds inclusive */
 export function range(min:number, max:number, strings?:true):number[]|string[] {
 	if(min > max) return [];
 	return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
@@ -771,6 +771,16 @@ Make sure to screenshot the stack trace below:`
  **/
 export function extend<Struct>() {
 	return <T extends Struct>(data:T) => data;
+}
+
+/**Returns if a thing is in an object. Useful to stop typescript complaining. */
+export function isKey<T extends string>(obj:Record<T, unknown>, thing:unknown):thing is T;
+export function isKey<T extends string>(obj:Map<T, unknown>, thing:unknown):thing is T;
+export function isKey<T extends string>(obj:Record<T, unknown> | Map<T, unknown>, thing:unknown):thing is T {
+	if(obj instanceof Map)
+		return obj.has(thing as T);
+	else
+		return (thing as string) in obj;
 }
 
 //#endregion

@@ -584,3 +584,9 @@ Make sure to screenshot the stack trace below:`);
 export function extend() {
     return (data) => data;
 }
+export function isKey(obj, thing) {
+    if (obj instanceof Map)
+        return obj.has(thing);
+    else
+        return thing in obj;
+}
