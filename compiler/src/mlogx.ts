@@ -12,7 +12,7 @@ import chalk from "chalk";
 import { Application } from "cli-app";
 import * as fs from "fs";
 import path from "path";
-import { GenericArgs } from "./args.js";
+import { argToString, GenericArgs } from "./args.js";
 import { commands } from "./commands.js";
 import { addJumpLabels, portCode } from "./compile.js";
 import { compileDirectory, compileFile, createProject } from "./compile_fs.js";
@@ -35,7 +35,7 @@ Usage:
 
 ${commands[name].map(commandDefinition =>
 	name + " " + commandDefinition.args
-		.map(arg => arg.toString())
+		.map(argToString)
 		.join(" ") + "\n" + commandDefinition.description
 ).join("\n\n")}
 `)

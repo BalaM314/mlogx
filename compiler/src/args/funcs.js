@@ -12,6 +12,14 @@ export function arg(str) {
     const [, spread, name, isVariable, type, isOptional] = matchResult;
     return makeArg(type, name, !!isOptional, isGenericArg(type), !!isVariable, !!spread);
 }
+export function argToString(arg) {
+    if (!arg.isGeneric)
+        return `${arg.type}`;
+    if (arg.isOptional)
+        return `(${arg.spread ? "..." : ""}${arg.name}:${arg.isVariable ? "*" : ""}${arg.type})`;
+    else
+        return `[${arg.spread ? "..." : ""}${arg.name}:${arg.isVariable ? "*" : ""}${arg.type}]`;
+}
 export function makeArg(type, name = "WIP", isOptional = false, isGeneric = true, isVariable = false, spread = false) {
     return {
         type, name, isOptional, isGeneric, isVariable, spread

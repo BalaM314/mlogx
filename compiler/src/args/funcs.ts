@@ -28,6 +28,15 @@ export function arg(str:PreprocessedArg):Arg {
 	return makeArg(type, name, !! isOptional, isGenericArg(type), !! isVariable, !! spread);
 }
 
+export function argToString(arg:Arg):string {
+	if(!arg.isGeneric)
+		return `${arg.type}`;
+	if(arg.isOptional)
+		return `(${arg.spread ? "..." : ""}${arg.name}:${arg.isVariable ? "*" : ""}${arg.type})`;
+	else
+		return `[${arg.spread ? "..." : ""}${arg.name}:${arg.isVariable ? "*" : ""}${arg.type}]`;
+}
+
 /**Makes an arg using ordered arguments */
 export function makeArg(type:string, name:string = "WIP", isOptional:boolean = false, isGeneric:boolean = true, isVariable:boolean = false, spread:boolean = false){
 	return {
