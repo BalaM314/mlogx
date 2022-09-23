@@ -99,7 +99,7 @@ ${formatLineWithPrefix(element.line)}`);
         throw new CompilerError("There were unclosed blocks.");
     }
     if (settings.compilerOptions.checkTypes && !hasInvalidStatements)
-        printTypeErrors(typeCheckingData, settings);
+        printTypeErrors(typeCheckingData);
     const outputProgram = settings.compilerOptions.removeUnusedJumpLabels ?
         removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed) :
         compiledProgram;
@@ -156,7 +156,7 @@ export function typeCheckLine(compiledLine, typeCheckingData) {
     });
     return;
 }
-export function printTypeErrors({ variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed }, settings) {
+export function printTypeErrors({ variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed }) {
     for (const [name, definitions] of Object.entries(variableDefinitions)) {
         const types = [
             ...new Set(definitions.map(el => el.variableType)

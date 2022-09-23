@@ -139,7 +139,7 @@ ${formatLineWithPrefix(element.line)}`
 
 	
 	if(settings.compilerOptions.checkTypes && !hasInvalidStatements)
-		printTypeErrors(typeCheckingData, settings);
+		printTypeErrors(typeCheckingData);
 	
 	const outputProgram =
 		settings.compilerOptions.removeUnusedJumpLabels ?
@@ -212,7 +212,7 @@ export function typeCheckLine(compiledLine:CompiledLine, typeCheckingData:TypeCh
 	return;
 }
 
-export function printTypeErrors({variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed}: TypeCheckingData, settings:Settings){
+export function printTypeErrors({variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed}: TypeCheckingData){
 	//Check for conflicting definitions
 	for(const [name, definitions] of Object.entries(variableDefinitions)){
 		//Create a list of each definition's type and remove duplicates.
