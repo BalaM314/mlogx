@@ -24,11 +24,11 @@ export function makeForEl(varname:string, elements:string[], loopBuffer:string[]
 export function makeIfEl(enabled:boolean):IfStackElement {
 	return {type: "&if", commandDefinition: compilerCommands["&if"].overloads[0], line: {lineNumber:420, text: "[test]", sourceFilename: "[test]"}, enabled};
 }
-export function commandErrOfType(type:keyof typeof CommandErrorType){
+export function commandErrOfType(type:keyof typeof CommandErrorType):jasmine.ExpectedRecursive<CommandError> {
 	return {
-		type,
+		type: CommandErrorType[type],
 		message: jasmine.any(String)
-	} as unknown as CommandError;//:(
+	};
 }
 
 export function makeLine(text:string, lineNumber:number = 1, sourceFilename:string = "[test]"):Line {

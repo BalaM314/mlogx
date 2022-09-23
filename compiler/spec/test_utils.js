@@ -1,5 +1,6 @@
 import { compilerCommands } from "../src/commands.js";
 import { addSourcesToCode } from "../src/funcs.js";
+import { CommandErrorType } from "../src/types.js";
 export function makeNamespaceEl(name) {
     return { type: "namespace", commandDefinition: compilerCommands["namespace"].overloads[0], name, line: { lineNumber: 1, text: `namespace ${name} {`, sourceFilename: "[test]" } };
 }
@@ -11,7 +12,7 @@ export function makeIfEl(enabled) {
 }
 export function commandErrOfType(type) {
     return {
-        type,
+        type: CommandErrorType[type],
         message: jasmine.any(String)
     };
 }
