@@ -105,7 +105,7 @@ export function replaceCompilerConstants(line:string, variables:CompilerConsts, 
 			line = line.replace(`$(${key})`, value instanceof Array ? value.join(" ") : value.toString());
 		} else {
 			if(!ignoreUnknownCompilerConsts){
-				Log.warn(`Unknown compiler const ${key}`);
+				Log.printMessage("unknown compiler const", {name: key});
 			}
 		}
 	});

@@ -35,7 +35,7 @@ export function compileDirectory(directory, stdlibPath, defaultSettings, icons) 
         stdlibData[filename.split(".")[0]] = fs.readFileSync(path.join(stdlibDirectory, filename), 'utf-8').split(/\r?\n/g);
     }
     for (const filename of mlogxFilelist) {
-        Log.announce(`Compiling file ${filename}`);
+        Log.printMessage("compiling file", { filename });
         const data = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split(/\r?\n/g);
         let outputData;
         try {
@@ -48,7 +48,7 @@ export function compileDirectory(directory, stdlibPath, defaultSettings, icons) 
             }));
         }
         catch (err) {
-            Log.err(`Failed to compile file ${filename}!`);
+            Log.printMessage("compiling file failed", { filename });
             if (err instanceof CompilerError)
                 Log.err(err.message);
             else
@@ -79,8 +79,7 @@ export function compileDirectory(directory, stdlibPath, defaultSettings, icons) 
                 mainData = fs.readFileSync(`src/${filename}`, 'utf-8').split(/\r?\n/g);
             }
         }
-        Log.announce("Compiled all files successfully.");
-        Log.announce("Assembling output:");
+        Log.printMessage("assembling output", {});
         const outputData = [
             ...mainData, "end", "",
             "#functions",
@@ -91,7 +90,7 @@ export function compileDirectory(directory, stdlibPath, defaultSettings, icons) 
         ];
         fs.writeFileSync(path.join(directory, "out.mlog"), outputData.join("\r\n"));
     }
-    Log.announce("Done!");
+    Log.printMessage("compilation complete", {});
 }
 function getSettings(directory, defaultSettings) {
     try {
@@ -102,17 +101,17 @@ function getSettings(directory, defaultSettings) {
             stripUnknown: false
         });
         if ("compilerVariables" in settings) {
-            Log.warn(`settings.compilerVariables is deprecated, please use settings.compilerConstants instead.`);
+            Log.printMessage("settings.compilerVariables deprecated", {});
             settings.compilerConstants = settings["compilerVariables"];
         }
         return settings;
     }
     catch (err) {
         if (err instanceof yup.ValidationError || err instanceof SyntaxError) {
-            Log.err(`config.json file is invalid. (${err.message}) Using default settings.`);
+            Log.printMessage("invalid config.json", err);
         }
         else {
-            Log.debug("No config.json found, using default settings.");
+            Log.printMessage("no config.json", {});
         }
         return settingsSchema.getDefault();
     }
@@ -128,7 +127,7 @@ export function compileFile(name, givenSettings, icons) {
         outputData = compileMlogxToMlog(data, settings, getCompilerConsts(icons, settings));
     }
     catch (err) {
-        Log.err(`Failed to compile file ${name}!`);
+        Log.printMessage("compiling file failed", { filename: name });
         if (err instanceof CompilerError) {
             Log.err(err.message);
         }
@@ -165,6 +164,6 @@ export async function createProject(name) {
             mode: isSingleFiles ? "single" : "project"
         }
     }), null, "\t"), "utf-8");
-    Log.announce(`Successfully created a new project in ${path.join(process.cwd(), name)}`);
+    Log.printMessage("project created", { dirname: path.join(process.cwd(), name) });
     return true;
 }

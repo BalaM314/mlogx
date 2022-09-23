@@ -146,7 +146,7 @@ ${formatLineWithPrefix(element.line, settings)}`
 			compiledProgram;
 
 	if(outputProgram.length > maxLines){
-		Log.err(`Program length exceeded 999 lines. Copy-pasting into an ingame processor will fail.`);
+		Log.printMessage("program too long", {});
 	}
 
 	return outputProgram;
@@ -179,7 +179,7 @@ export function typeCheckLine(compiledLine:CompiledLine, typeCheckingData:TypeCh
 		);
 	}
 	if(uncompiledCommandDefinitions.length == 0){
-		Log.warn("Tried to type check a line with an invalid uncompiled command definition. This has most likely occured as the result of a bodge. This may cause issues with type checking.");
+		Log.printMessage("invalid uncompiled command definition", compiledLine);
 	}
 
 	const jumpLabelUsed:string | null = getJumpLabelUsed(cleanedCompiledLine);
@@ -227,13 +227,9 @@ export function printTypeErrors({variableDefinitions, variableUsages, jumpLabels
 		];
 		//TODO do this properly
 		if(types.length > 1){
-			Log.warn(
-`Variable "${name}" was defined with ${types.length} different types. ([${types.join(", ")}])
-	First definition:
-${formatLineWithPrefix(definitions[0].line, settings, "\t\t")}
-	First conflicting definition:
-${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].line, settings, "\t\t")}`
-			);
+			Log.printMessage("variable redefined with conflicting type", {
+				name, types, settings, definitions
+			});
 		}
 	}
 
@@ -244,10 +240,9 @@ ${formatLineWithPrefix(definitions.filter(v => v.variableType == types[1])[0].li
 		for(const variableUsage of thisVariableUsages){
 			if(!(name in variableDefinitions)){
 				//If the variable has never been defined
-				Log.warn(
-`Variable "${name}" seems to be undefined.
-${formatLineWithPrefix(variableUsage.line, settings)}`
-				);
+				Log.printMessage("variable undefined", {
+					name, line: variableUsage.line, settings
+				});
 			} else if(!areAnyOfInputsCompatibleWithType(variableUsage.variableTypes, variableDefinitions[name][0].variableType)){
 				//If the list of possible types does not include the type of the first definition
 				Log.warn(
@@ -264,7 +259,7 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 	//Check for redefined jump labels
 	for(const [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)){
 		if(definitions.length > 1){
-			Log.warn(`Jump label "${jumpLabel}" was defined ${definitions.length} times.`);
+			Log.printMessage("jump label redefined", {jumpLabel, numDefinitions:definitions.length});
 			definitions.forEach(definition =>
 				Log.none(
 					formatLineWithPrefix(definition.line, settings)
@@ -276,7 +271,7 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 	//Check for undefined jump labels
 	for(const [jumpLabel, usages] of Object.entries(jumpLabelsUsed)){
 		if(!jumpLabelsDefined[jumpLabel] && isNaN(parseInt(jumpLabel))){
-			Log.warn(`Jump label "${jumpLabel}" is missing.`);
+			Log.printMessage("jump label missing", {jumpLabel});
 			usages.forEach(usage =>
 				Log.none(
 					formatLineWithPrefix(usage.line, settings)
@@ -299,7 +294,7 @@ export function compileLine(
 
 	
 	if(line.text.includes("\u{F4321}")){
-		Log.warn(`Line \`${line.text}\` includes the character \\uF4321 which may cause issues with argument parsing`);
+		Log.printMessage("line contains U+F4321", {line, settings});
 	}
 	
 	const cleanedLine:Line = {
@@ -483,19 +478,23 @@ export function addJumpLabels(code:string[]):string[] {
 }
 
 export function portCode(program:string[], mode:PortingMode):string[] {
-	return program.map(line => {
-		let cleanedLine = cleanLine(line);
+	return program.map((line, index) => {
+
+		const cleanedLine:Line = {
+			text: cleanLine(line),
+			lineNumber: index + 1
+		};
 		const leadingTabsOrSpaces = line.match(/^[ \t]*/) ?? "";
 		const comment = line.match(/#.*$/) ?? "";
-		let commandDefinition = getCommandDefinition(cleanedLine);
-		const args = splitLineIntoArguments(cleanedLine);
+		let commandDefinition = getCommandDefinition(cleanedLine.text);
+		const args = splitLineIntoArguments(cleanedLine.text);
 		while(commandDefinition == null && args.at(-1) == "0"){
 			args.splice(-1, 1);
-			cleanedLine = args.join(" ");
-			commandDefinition = getCommandDefinition(cleanedLine);
+			cleanedLine.text = args.join(" ");
+			commandDefinition = getCommandDefinition(cleanedLine.text);
 		}
 		if(commandDefinition == null){
-			Log.warn(`No known command definition for line ${cleanedLine}`);
+			Log.printMessage("cannot port invalid line", {line: cleanedLine});
 		} else if(commandDefinition.port) {
 			return leadingTabsOrSpaces + commandDefinition.port(args, mode) + comment;
 		}

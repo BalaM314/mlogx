@@ -68,7 +68,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 	for(const filename of mlogxFilelist){
 		//For each filename in the file list
 
-		Log.announce(`Compiling file ${filename}`);
+		Log.printMessage("compiling file", {filename});
 		const data:string[] = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split(/\r?\n/g);
 		//Load the data
 		
@@ -86,7 +86,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 				})
 			);
 		} catch(err){
-			Log.err(`Failed to compile file ${filename}!`);
+			Log.printMessage("compiling file failed", {filename});
 			if(err instanceof CompilerError)
 				Log.err(err.message);
 			else
@@ -123,8 +123,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 				mainData = fs.readFileSync(`src/${filename}`, 'utf-8').split(/\r?\n/g);
 			}
 		}
-		Log.announce("Compiled all files successfully.");
-		Log.announce("Assembling output:");
+		Log.printMessage("assembling output", {});
 
 		const outputData:string[] = [
 			...mainData, "end", "",
@@ -147,7 +146,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 			outputData.join("\r\n")
 		);
 	}
-	Log.announce("Done!");
+	Log.printMessage("compilation complete", {});
 }
 
 function getSettings(directory:string, defaultSettings:PartialRecursive<Settings>):Settings {
@@ -160,15 +159,16 @@ function getSettings(directory:string, defaultSettings:PartialRecursive<Settings
 			stripUnknown: false
 		}) as Settings;
 		if("compilerVariables" in settings){
-			Log.warn(`settings.compilerVariables is deprecated, please use settings.compilerConstants instead.`);
+			Log.printMessage("settings.compilerVariables deprecated", {});
 			settings.compilerConstants = (settings as Settings & {compilerVariables: typeof settings.compilerConstants})["compilerVariables"];
 		}
 		return settings;
 	} catch(err){
 		if(err instanceof yup.ValidationError || err instanceof SyntaxError){
-			Log.err(`config.json file is invalid. (${err.message}) Using default settings.`);
+			Log.printMessage("invalid config.json", err);
 		} else {
-			Log.debug("No config.json found, using default settings.");
+			Log.printMessage("no config.json", {});
+
 		}
 		return settingsSchema.getDefault() as Settings;
 	}
@@ -189,7 +189,7 @@ export function compileFile(name:string, givenSettings:PartialRecursive<Settings
 			getCompilerConsts(icons, settings)
 		);
 	} catch(err){
-		Log.err(`Failed to compile file ${name}!`);
+		Log.printMessage("compiling file failed", {filename:name});
 		if(err instanceof CompilerError){
 			Log.err(err.message);
 		} else {
@@ -227,7 +227,7 @@ export async function createProject(name:string|undefined){
 			mode: isSingleFiles ? "single" : "project"
 		}
 	}), null, "\t"), "utf-8");
-	Log.announce(`Successfully created a new project in ${path.join(process.cwd(), name)}`);
+	Log.printMessage("project created", {dirname: path.join(process.cwd(), name)});
 	return true;
 }
 

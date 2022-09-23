@@ -81,7 +81,7 @@ export function replaceCompilerConstants(line, variables, ignoreUnknownCompilerC
         }
         else {
             if (!ignoreUnknownCompilerConsts) {
-                Log.warn(`Unknown compiler const ${key}`);
+                Log.printMessage("unknown compiler const", { name: key });
             }
         }
     });
