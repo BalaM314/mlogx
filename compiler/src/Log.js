@@ -25,12 +25,12 @@ export const messages = extend()({
     "no config.json": { for: (d) => `No config.json found, using default settings.`, level: "debug" },
     "project created": { for: (d) => `Successfully created a new project in ${d.dirname}`, level: "announce" },
     "program too long": { for: (d) => `Program length exceeded 999 lines. Running it in-game will silently fail.`, level: "err" },
-    "invalid uncompiled command definition": { for: (d) => `Tried to type check a line(${d[1].text} => ${d[0]}) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level: "err" },
+    "invalid uncompiled command definition": { for: (d) => `Tried to type check a line(${d.line[1].text} => ${d.line[0]}) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level: "err" },
     "variable redefined with conflicting type": { for: (d) => `Variable "${d.name}" was defined with ${d.types.length} different types. ([${d.types.join(", ")}])
 	First definition:
-${formatLineWithPrefix(d.definitions[0].line, "\t\t")}
+${formatLineWithPrefix(d.firstDefinitionLine, "\t\t")}
 	First conflicting definition:
-${formatLineWithPrefix(d.definitions.filter(v => v.variableType == d.types[1])[0].line, "\t\t")}`,
+${formatLineWithPrefix(d.conflictingDefinitionLine, "\t\t")}`,
         level: "warn" },
     "variable undefined": { for: (d) => `Variable "${d.name}" seems to be undefined.
 ${formatLineWithPrefix(d.line)}`,

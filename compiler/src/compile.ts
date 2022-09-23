@@ -180,7 +180,7 @@ export function typeCheckLine(compiledLine:CompiledLine, typeCheckingData:TypeCh
 		);
 	}
 	if(uncompiledCommandDefinitions.length == 0){
-		Log.printMessage("invalid uncompiled command definition", compiledLine);
+		Log.printMessage("invalid uncompiled command definition", {line: compiledLine});
 	}
 
 	const jumpLabelUsed:string | null = getJumpLabelUsed(cleanedCompiledLine);
@@ -229,7 +229,7 @@ export function printTypeErrors({variableDefinitions, variableUsages, jumpLabels
 		//TODO do this properly
 		if(types.length > 1){
 			Log.printMessage("variable redefined with conflicting type", {
-				name, types, definitions
+				name, types, firstDefinitionLine: definitions.filter(d => d.variableType == types[0])[0].line, conflictingDefinitionLine: definitions.filter(v => v.variableType == types[1])[0].line
 			});
 		}
 	}

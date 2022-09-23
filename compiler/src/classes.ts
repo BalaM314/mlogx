@@ -9,10 +9,19 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains various classes.
 */
 
+import { messages } from "./Log.js";
+
 
 export class CompilerError extends Error {
 	constructor(message:string){
 		super(message);
 		this.name = "CompilerError";
+	}
+	static throw<ID extends keyof typeof messages, MData extends (typeof messages)[ID]>(
+		messageID:ID, data:Parameters<MData["for"]>[0]
+	){
+		const message = messages[messageID] as MData;
+		//cursed
+		throw new this(message.for(data as never));
 	}
 }

@@ -51,13 +51,13 @@ export const messages = extend<Messages>()({
 	"no config.json": {for:(d:none) => `No config.json found, using default settings.`, level:"debug"},
 	"project created": {for:(d:{dirname:string}) => `Successfully created a new project in ${d.dirname}`, level:"announce"},
 	"program too long": {for:(d:none) => `Program length exceeded 999 lines. Running it in-game will silently fail.`, level:"err"},
-	"invalid uncompiled command definition": {for:(d:CompiledLine) => `Tried to type check a line(${d[1].text} => ${d[0]}) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level:"err"},
-	"variable redefined with conflicting type": {for:(d:{name:string, types:string[], definitions:TData.variableDefinitions[string]}) =>
+	"invalid uncompiled command definition": {for:(d:{line:CompiledLine}) => `Tried to type check a line(${d.line[1].text} => ${d.line[0]}) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level:"err"},
+	"variable redefined with conflicting type": {for:(d:{name:string, types:string[], firstDefinitionLine:Line, conflictingDefinitionLine:Line}) =>
 `Variable "${d.name}" was defined with ${d.types.length} different types. ([${d.types.join(", ")}])
 	First definition:
-${formatLineWithPrefix(d.definitions[0].line, "\t\t")}
+${formatLineWithPrefix(d.firstDefinitionLine, "\t\t")}
 	First conflicting definition:
-${formatLineWithPrefix(d.definitions.filter(v => v.variableType == d.types[1])[0].line, "\t\t")}`
+${formatLineWithPrefix(d.conflictingDefinitionLine, "\t\t")}`
 	, level:"warn"},
 	"variable undefined": {for:(d:{name:string, line:Line}) =>
 `Variable "${d.name}" seems to be undefined.
