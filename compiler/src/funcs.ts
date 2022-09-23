@@ -586,6 +586,9 @@ export function getCompilerCommandDefinitions(cleanedLine:string):[CompilerComma
 }
 
 //#endregion
+//#region expressionParsing
+
+//#endregion
 //#region misc
 
 /**Displays a Line. */

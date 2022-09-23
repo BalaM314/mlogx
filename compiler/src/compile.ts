@@ -318,6 +318,7 @@ export function compileLine(
 	}
 	const cleanedText = cleanedLine.text;
 
+	//If the text is a jump label, return
 	if(getJumpLabel(cleanedText)){
 		return {
 			compiledCode: [
@@ -337,6 +338,7 @@ export function compileLine(
 	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 
+	//Handle ending of blocks
 	if(args[0] == "}"){
 		const modifiedStack = stack.slice();
 		const endedBlock = modifiedStack.pop();
