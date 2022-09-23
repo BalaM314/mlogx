@@ -52,26 +52,26 @@ export const messages = extend<Messages>()({
 	"project created": {for:(d:{dirname:string}) => `Successfully created a new project in ${d.dirname}`, level:"announce"},
 	"program too long": {for:(d:none) => `Program length exceeded 999 lines. Running it in-game will silently fail.`, level:"err"},
 	"invalid uncompiled command definition": {for:(d:CompiledLine) => `Tried to type check a line(${d[1].text} => ${d[0]}) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level:"err"},
-	"variable redefined with conflicting type": {for:(d:{name:string, types:string[], settings:Settings, definitions:TData.variableDefinitions[string]}) =>
+	"variable redefined with conflicting type": {for:(d:{name:string, types:string[], definitions:TData.variableDefinitions[string]}) =>
 `Variable "${d.name}" was defined with ${d.types.length} different types. ([${d.types.join(", ")}])
 	First definition:
-${formatLineWithPrefix(d.definitions[0].line, d.settings, "\t\t")}
+${formatLineWithPrefix(d.definitions[0].line, "\t\t")}
 	First conflicting definition:
-${formatLineWithPrefix(d.definitions.filter(v => v.variableType == d.types[1])[0].line, d.settings, "\t\t")}`
+${formatLineWithPrefix(d.definitions.filter(v => v.variableType == d.types[1])[0].line, "\t\t")}`
 	, level:"warn"},
-	"variable undefined": {for:(d:{name:string, line:Line, settings:Settings}) =>
+	"variable undefined": {for:(d:{name:string, line:Line}) =>
 `Variable "${d.name}" seems to be undefined.
-${formatLineWithPrefix(d.line, d.settings)}`
+${formatLineWithPrefix(d.line)}`
 	, level:"warn"},
 	"jump label redefined": {for:(d:{jumpLabel:string, numDefinitions:number}) => `Jump label "${d.jumpLabel}" was defined ${d.numDefinitions} times.`, level:"warn"},
 	"jump label missing": {for:(d:{jumpLabel:string}) => `Jump label "${d.jumpLabel}" is missing.`, level: "warn"},
-	"line contains U+F4321": {for:(d:{line:Line, settings:Settings}) =>
+	"line contains U+F4321": {for:(d:{line:Line}) =>
 `Line includes the character U+F4321 which may cause issues with argument parsing
-${formatLineWithPrefix(d.line, d.settings)}`
+${formatLineWithPrefix(d.line)}`
 	, level:"warn"},
 	"cannot port invalid line": {for:(d:{line:Line}) =>
 `Line cannot be ported as it is not valid for any known command definition
-${formatLineWithPrefix(d.line, {filename: "unknown"} as Settings)}`
+${formatLineWithPrefix(d.line)}`
 	, level:"warn"},
 	"unknown compiler const": {for:(d:{name:string}) => `Unknown compiler const "${d.name}"`, level:"warn"},
 	//"name": {for:(d:{}) => ``, level:""},

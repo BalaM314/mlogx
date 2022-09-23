@@ -28,20 +28,20 @@ export const messages = extend()({
     "invalid uncompiled command definition": { for: (d) => `Tried to type check a line(${d[1].text} => ${d[0]}) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level: "err" },
     "variable redefined with conflicting type": { for: (d) => `Variable "${d.name}" was defined with ${d.types.length} different types. ([${d.types.join(", ")}])
 	First definition:
-${formatLineWithPrefix(d.definitions[0].line, d.settings, "\t\t")}
+${formatLineWithPrefix(d.definitions[0].line, "\t\t")}
 	First conflicting definition:
-${formatLineWithPrefix(d.definitions.filter(v => v.variableType == d.types[1])[0].line, d.settings, "\t\t")}`,
+${formatLineWithPrefix(d.definitions.filter(v => v.variableType == d.types[1])[0].line, "\t\t")}`,
         level: "warn" },
     "variable undefined": { for: (d) => `Variable "${d.name}" seems to be undefined.
-${formatLineWithPrefix(d.line, d.settings)}`,
+${formatLineWithPrefix(d.line)}`,
         level: "warn" },
     "jump label redefined": { for: (d) => `Jump label "${d.jumpLabel}" was defined ${d.numDefinitions} times.`, level: "warn" },
     "jump label missing": { for: (d) => `Jump label "${d.jumpLabel}" is missing.`, level: "warn" },
     "line contains U+F4321": { for: (d) => `Line includes the character U+F4321 which may cause issues with argument parsing
-${formatLineWithPrefix(d.line, d.settings)}`,
+${formatLineWithPrefix(d.line)}`,
         level: "warn" },
     "cannot port invalid line": { for: (d) => `Line cannot be ported as it is not valid for any known command definition
-${formatLineWithPrefix(d.line, { filename: "unknown" })}`,
+${formatLineWithPrefix(d.line)}`,
         level: "warn" },
     "unknown compiler const": { for: (d) => `Unknown compiler const "${d.name}"`, level: "warn" },
 });

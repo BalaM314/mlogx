@@ -36,7 +36,8 @@ export const processorVariables = {
             variableType: "number",
             line: {
                 text: "[processor variable]",
-                lineNumber: 0
+                lineNumber: 0,
+                sourceFilename: "[processor variable]"
             }
         }]
 };

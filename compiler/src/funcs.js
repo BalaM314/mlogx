@@ -365,13 +365,13 @@ export function getCompilerCommandDefinitions(cleanedLine) {
     }
     return [possibleCommands, errors];
 }
-export function formatLine(line, settings) {
-    return chalk.gray(`${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
+export function formatLine(line) {
+    return chalk.gray(`${line.sourceFilename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
-export function formatLineWithPrefix(line, settings, prefix = "\t\tat ") {
-    return chalk.gray(`${prefix}${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
+export function formatLineWithPrefix(line, prefix = "\t\tat ") {
+    return chalk.gray(`${prefix}${line.sourceFilename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
-export function addSourcesToCode(code, sourceLine = { text: `not provided`, lineNumber: 2 }) {
+export function addSourcesToCode(code, sourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }) {
     return code.map(compiledLine => [compiledLine, sourceLine]);
 }
 export function exit(message) {

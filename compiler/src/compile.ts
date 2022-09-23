@@ -51,7 +51,8 @@ export function compileMlogxToMlog(
 				accumulator[name] ??= [];
 				accumulator[name].push({variableType: type, line: {
 					text: "[function parameter]",
-					lineNumber: 1
+					lineNumber: 1,
+					sourceFilename: "[function parameter]"
 				}});
 				return accumulator;
 			},{}) : {})
@@ -66,8 +67,9 @@ export function compileMlogxToMlog(
 			typeCheckingData.variableDefinitions[requiredVar] = [{
 				variableType: requiredVarCode[requiredVar][1],
 				line: {
-					text: `[required variable]`,
-					lineNumber: 0
+					text: `[#require'd variable]`,
+					lineNumber: 0,
+					sourceFilename: "[#require'd variable]",
 				}
 			}];
 		} else {
@@ -79,9 +81,10 @@ export function compileMlogxToMlog(
 	let hasInvalidStatements = false;
 	//Loop through each line and compile it
 	for(const line in mlogxProgram){
-		const sourceLine = {
+		const sourceLine:Line = {
 			lineNumber: +line+1,
-			text: mlogxProgram[line]
+			text: mlogxProgram[line],
+			sourceFilename: settings.filename
 		};
 		try {
 			const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(sourceLine, compilerConstants, settings, isMain, stack);
@@ -98,7 +101,7 @@ export function compileMlogxToMlog(
 					if(err instanceof CompilerError){
 						Log.err(
 `${err.message}
-${formatLineWithPrefix(sourceLine, settings)}`
+${formatLineWithPrefix(sourceLine)}`
 						);
 						hasInvalidStatements = true;
 					} else {
@@ -115,9 +118,7 @@ ${formatLineWithPrefix(sourceLine, settings)}`
 			if(err instanceof CompilerError){
 				Log.err(
 `${err.message}
-${formatLineWithPrefix({
-	lineNumber:+line+1, text:mlogxProgram[line]
-}, settings)}`
+${formatLineWithPrefix(sourceLine)}`
 				);
 			} else {
 				throw err;
@@ -130,7 +131,7 @@ ${formatLineWithPrefix({
 		for(const element of stack){
 			Log.err(
 `${element.type == "namespace" ? `Namespace "${element.name}"` : element.type == "&for" ? `For loop with variable "${element.variableName}"` : `&if statement`} was not closed.
-${formatLineWithPrefix(element.line, settings)}`
+${formatLineWithPrefix(element.line)}`
 			);
 		}
 		throw new CompilerError("There were unclosed blocks.");
@@ -228,7 +229,7 @@ export function printTypeErrors({variableDefinitions, variableUsages, jumpLabels
 		//TODO do this properly
 		if(types.length > 1){
 			Log.printMessage("variable redefined with conflicting type", {
-				name, types, settings, definitions
+				name, types, definitions
 			});
 		}
 	}
@@ -241,16 +242,16 @@ export function printTypeErrors({variableDefinitions, variableUsages, jumpLabels
 			if(!(name in variableDefinitions)){
 				//If the variable has never been defined
 				Log.printMessage("variable undefined", {
-					name, line: variableUsage.line, settings
+					name, line: variableUsage.line
 				});
 			} else if(!areAnyOfInputsCompatibleWithType(variableUsage.variableTypes, variableDefinitions[name][0].variableType)){
 				//If the list of possible types does not include the type of the first definition
 				Log.warn(
 `Variable "${name}" is of type "${variableDefinitions[name][0].variableType}", \
 but the command requires it to be of type ${variableUsage.variableTypes.map(t => `"${t}"`).join(" or ")}
-${formatLineWithPrefix(variableUsage.line, settings)}
+${formatLineWithPrefix(variableUsage.line)}
 	First definition:
-${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
+${formatLineWithPrefix(variableDefinitions[name][0].line, "\t\t")}`
 				);
 			}
 		}
@@ -260,11 +261,7 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 	for(const [jumpLabel, definitions] of Object.entries(jumpLabelsDefined)){
 		if(definitions.length > 1){
 			Log.printMessage("jump label redefined", {jumpLabel, numDefinitions:definitions.length});
-			definitions.forEach(definition =>
-				Log.none(
-					formatLineWithPrefix(definition.line, settings)
-				)
-			);
+			definitions.forEach(definition => Log.none(formatLineWithPrefix(definition.line)));
 		}
 	}
 
@@ -272,11 +269,7 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, settings, "\t\t")}`
 	for(const [jumpLabel, usages] of Object.entries(jumpLabelsUsed)){
 		if(!jumpLabelsDefined[jumpLabel] && isNaN(parseInt(jumpLabel))){
 			Log.printMessage("jump label missing", {jumpLabel});
-			usages.forEach(usage =>
-				Log.none(
-					formatLineWithPrefix(usage.line, settings)
-				)
-			);
+			usages.forEach(usage => Log.none(formatLineWithPrefix(usage.line)));
 		}
 	}
 }
@@ -294,12 +287,12 @@ export function compileLine(
 
 	
 	if(line.text.includes("\u{F4321}")){
-		Log.printMessage("line contains U+F4321", {line, settings});
+		Log.printMessage("line contains U+F4321", {line});
 	}
 	
 	const cleanedLine:Line = {
-		text: cleanLine(line.text),
-		lineNumber: line.lineNumber
+		...line,
+		text: cleanLine(line.text)
 	};
 	cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConstants, hasElement(stack, '&for'));
 	if(cleanedLine.text == ""){
@@ -482,7 +475,8 @@ export function portCode(program:string[], mode:PortingMode):string[] {
 
 		const cleanedLine:Line = {
 			text: cleanLine(line),
-			lineNumber: index + 1
+			lineNumber: index + 1,
+			sourceFilename: "unknown.mlogx"
 		};
 		const leadingTabsOrSpaces = line.match(/^[ \t]*/) ?? "";
 		const comment = line.match(/#.*$/) ?? "";

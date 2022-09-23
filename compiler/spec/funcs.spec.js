@@ -2,7 +2,7 @@ import { arg, GenericArgs, isArgValidFor, isArgValidForType, isArgValidForValida
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
 import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsCompatibleWithType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, getVariablesUsed, isCommand, parseIcons, parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, typesAreCompatible } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
-import { commandErrOfType, makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
+import { commandErrOfType, makeForEl, makeIfEl, makeLine, makeNamespaceEl } from "./test_utils.js";
 describe("templateFunction", () => {
     it("should ", () => {
         expect("functionThing").toEqual("functionThing");
@@ -248,7 +248,7 @@ describe("removeUnusedJumps", () => {
             "jump label5 always"
         ], {
             label5: [{
-                    line: { text: "jump label5 always", lineNumber: 2 }
+                    line: makeLine("jump label5 always")
                 }]
         })).toEqual([
             "label5:",
@@ -262,7 +262,7 @@ describe("removeUnusedJumps", () => {
             "label6:"
         ], {
             label5: [{
-                    line: { text: "jump label5 always", lineNumber: 2 }
+                    line: makeLine("jump label5 always")
                 }]
         })).toEqual([
             "label5:",
@@ -665,13 +665,10 @@ describe("addSourcesToCode", () => {
             `print "hello"`,
             `printflush message1`,
             `//sussy baka`
-        ], {
-            lineNumber: 69,
-            text: `print "hello"`
-        })).toEqual([
-            [`print "hello"`, { lineNumber: 69, text: `print "hello"` }],
-            [`printflush message1`, { lineNumber: 69, text: `print "hello"` }],
-            [`//sussy baka`, { lineNumber: 69, text: `print "hello"` }],
+        ], makeLine(`print "hello"`, 420, "amogus.mlogx"))).toEqual([
+            [`print "hello"`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
+            [`printflush message1`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
+            [`//sussy baka`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
         ]);
     });
 });

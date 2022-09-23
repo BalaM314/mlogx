@@ -43,6 +43,7 @@ export interface CommandError {
 export interface Line {
 	text: string;
 	lineNumber: number;
+	sourceFilename: string;
 }
 export type CompiledLine = [compiledCode:string, source:Line];
 

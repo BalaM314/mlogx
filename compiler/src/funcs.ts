@@ -492,17 +492,17 @@ export function getCompilerCommandDefinitions(cleanedLine:string):[CompilerComma
 //#region misc
 
 /**Displays a Line. */
-export function formatLine(line:Line, settings:Settings):string {
-	return chalk.gray(`${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
+export function formatLine(line:Line):string {
+	return chalk.gray(`${line.sourceFilename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
 
 /**Displays a Line with a prefix before it. */
-export function formatLineWithPrefix(line:Line, settings:Settings, prefix:string = "\t\tat "):string {
-	return chalk.gray(`${prefix}${settings.filename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
+export function formatLineWithPrefix(line:Line, prefix:string = "\t\tat "):string {
+	return chalk.gray(`${prefix}${line.sourceFilename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
 
 /**Adds a source line to a multiple lines of code. */
-export function addSourcesToCode(code:string[], sourceLine:Line = {text: `not provided`, lineNumber:2}):CompiledLine[]{
+export function addSourcesToCode(code:string[], sourceLine:Line = {text: `not provided`, lineNumber:0, sourceFilename: `unknown.mlogx`}):CompiledLine[]{
 	return code.map(compiledLine => [compiledLine, sourceLine] as CompiledLine);
 }
 
