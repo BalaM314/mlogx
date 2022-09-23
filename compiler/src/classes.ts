@@ -31,9 +31,10 @@ export class CompilerError extends Error {
 }
 
 //TODO move this to a file called Log.ts
-const logLevels = extend<{
+interface LogLevels {
 	[index:string]: [color: (input:string) => string, tag:string]
-}>()({
+}
+const logLevels = extend<LogLevels>()({
 	"debug": [chalk.gray, "[DEBUG]"],
 	"info": [chalk.white, "[INFO]"],
 	"warn": [chalk.yellow, "[WARN]"],
@@ -44,7 +45,7 @@ const logLevels = extend<{
 });
 type logLevel = keyof typeof logLevels;
 
-interface MessageData {
+interface Messages {
 	[id:string]: {
 		for: (data:never) => string,
 		level: logLevel
@@ -52,7 +53,7 @@ interface MessageData {
 }
 type none = Record<string, never>
 
-const messages = extend<MessageData>()({
+const messages = extend<Messages>()({
 	"unknown require": {for:(d:{requiredVar:string}) => `Unknown require ${d.requiredVar}`, level: "warn"},
 	"wrong file ran": {for:(d:none) => `Running index.js is deprecated, please run cli.js instead.`, level: "warn"},
 	"statement port failed": {for:(d:{name:string, statement:string, reason?:string}) => `Cannot port ${d.name} statement "${d.statement}" because ${d.reason ?? "it is invalid"}`, level: "err"},
@@ -62,44 +63,46 @@ const messages = extend<MessageData>()({
 	//"name": {for:(d:{}) => ``, level:""},
 });
 
-export class Log {
-	static level: logLevel;
-	static printWithLevel(level:logLevel, message:string){
+export class Logger<_LogLevels extends LogLevels, _Messages extends Messages> {
+	level:keyof _LogLevels = "info";
+	constructor(public logLevels:_LogLevels, public messages:_Messages){}
+	printWithLevel(level:logLevel, message:string){
 		this.level = level;
-		console.log(logLevels[level][0](`${logLevels[level][1]}${logLevels[level][1].length == 0 ? "" : "\t"}${message}`));
+		console.log(this.logLevels[level][0](`${logLevels[level][1]}${logLevels[level][1].length == 0 ? "" : "\t"}${message}`));
 	}
 	/**For debug information. */
-	static debug(message:string){this.printWithLevel("debug", message);}
+	debug(message:string){this.printWithLevel("debug", message);}
 	/**Dumps objects */
-	static dump(level:logLevel, ...objects:unknown[]):void;
-	static dump(...objects:unknown[]):void;
-	static dump(...objects:unknown[]){
+	dump(level:logLevel, ...objects:unknown[]):void;
+	dump(...objects:unknown[]):void;
+	dump(...objects:unknown[]){
 		const firstArg = objects[0];
-		if(isKey(logLevels, firstArg)){
+		if(isKey(this.logLevels, firstArg)){
 			this.level = firstArg;
-			console.log(logLevels[this.level] + "\t", ...(objects.slice(1)));
+			console.log(this.logLevels[this.level][1] + "\t", ...(objects.slice(1)));
 		} else {
-			console.log(logLevels[this.level] + "\t", ...objects);
+			console.log(this.logLevels[this.level][1] + "\t", ...objects);
 		}
 	}
 	/**For general info. */
-	static info(message:string){this.printWithLevel("info", message);}
+	info(message:string){this.printWithLevel("info", message);}
 	/**Warnings */
-	static warn(message:string){this.printWithLevel("warn", message);}
+	warn(message:string){this.printWithLevel("warn", message);}
 	/**Errors */
-	static err(message:string){this.printWithLevel("err", message);}
+	err(message:string){this.printWithLevel("err", message);}
 	/**Fatal errors */
-	static fatal(message:string){this.printWithLevel("fatal", message);}
+	fatal(message:string){this.printWithLevel("fatal", message);}
 	/**Used by the program to announce what it is doing. */
-	static announce(message:string){this.printWithLevel("announce", message);}
+	announce(message:string){this.printWithLevel("announce", message);}
 	/**Just prints a message without any formatting */
-	static none(message:string){this.printWithLevel("none", message);}
+	none(message:string){this.printWithLevel("none", message);}
 
-	static printMessage<ID extends keyof typeof messages, MData extends (typeof messages)[ID]>(
+	printMessage<ID extends keyof _Messages, MData extends _Messages[ID]>(
 		messageID:ID, data:Parameters<MData["for"]>[0]
 	){
-		const message = messages[messageID] as MData;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		Log[message.level](message.for(data as any));
+		const message = this.messages[messageID] as MData;
+		//cursed
+		this[message.level](message.for(data as never));
 	}
 }
+export const Log = new Logger(logLevels, messages);

@@ -23,30 +23,36 @@ const messages = extend()({
     "compiler mode project but no src directory": { for: (d) => `Compiler mode set to "project" but no src directory found.`, level: "warn" },
     "files to compile": { for: (filelist) => `Files to compile: [${filelist.map(file => chalk.green(file)).join(", ")}]`, level: "announce" },
 });
-export class Log {
-    static printWithLevel(level, message) {
-        this.level = level;
-        console.log(logLevels[level][0](`${logLevels[level][1]}${logLevels[level][1].length == 0 ? "" : "\t"}${message}`));
+export class Logger {
+    constructor(logLevels, messages) {
+        this.logLevels = logLevels;
+        this.messages = messages;
+        this.level = "info";
     }
-    static debug(message) { this.printWithLevel("debug", message); }
-    static dump(...objects) {
+    printWithLevel(level, message) {
+        this.level = level;
+        console.log(this.logLevels[level][0](`${logLevels[level][1]}${logLevels[level][1].length == 0 ? "" : "\t"}${message}`));
+    }
+    debug(message) { this.printWithLevel("debug", message); }
+    dump(...objects) {
         const firstArg = objects[0];
-        if (isKey(logLevels, firstArg)) {
+        if (isKey(this.logLevels, firstArg)) {
             this.level = firstArg;
-            console.log(logLevels[this.level] + "\t", ...(objects.slice(1)));
+            console.log(this.logLevels[this.level][1] + "\t", ...(objects.slice(1)));
         }
         else {
-            console.log(logLevels[this.level] + "\t", ...objects);
+            console.log(this.logLevels[this.level][1] + "\t", ...objects);
         }
     }
-    static info(message) { this.printWithLevel("info", message); }
-    static warn(message) { this.printWithLevel("warn", message); }
-    static err(message) { this.printWithLevel("err", message); }
-    static fatal(message) { this.printWithLevel("fatal", message); }
-    static announce(message) { this.printWithLevel("announce", message); }
-    static none(message) { this.printWithLevel("none", message); }
-    static printMessage(messageID, data) {
-        const message = messages[messageID];
-        Log[message.level](message.for(data));
+    info(message) { this.printWithLevel("info", message); }
+    warn(message) { this.printWithLevel("warn", message); }
+    err(message) { this.printWithLevel("err", message); }
+    fatal(message) { this.printWithLevel("fatal", message); }
+    announce(message) { this.printWithLevel("announce", message); }
+    none(message) { this.printWithLevel("none", message); }
+    printMessage(messageID, data) {
+        const message = this.messages[messageID];
+        this[message.level](message.for(data));
     }
 }
+export const Log = new Logger(logLevels, messages);
