@@ -330,11 +330,12 @@ export function addJumpLabels(code) {
         }
     }
     for (const line of cleanedCode) {
-        if (getCommandDefinition(line) == commands.jump[0]) {
+        const commandDefinition = getCommandDefinition(line);
+        if (commandDefinition == commands.jump[0] || commandDefinition == commands.jump[1]) {
             const label = getJumpLabelUsed(line);
             if (label == undefined)
                 throw new CompilerError("invalid jump statement");
-            transformedCode.push(transformCommand(splitLineIntoArguments(line), commands.jump[0], (arg) => jumps[arg] ?? (() => { throw new CompilerError(`Unknown jump label ${arg}`); })(), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
+            transformedCode.push(transformCommand(splitLineIntoArguments(line), commandDefinition, (arg) => jumps[arg] ?? (() => { throw new CompilerError(`Unknown jump label ${arg}`); })(), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
         }
         else {
             transformedCode.push(line);
