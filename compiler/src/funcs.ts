@@ -8,106 +8,21 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains a lot of utility functions.
 */
 
-import { Arg, Log } from "./classes.js";
-import { commands, compilerCommands } from "./commands.js";
-import {
-	ArgType, CommandDefinition, CommandDefinitions, CommandError, CommandErrorType, CompiledLine,
-	CompilerCommandDefinitions, CompilerConst, CompilerConsts, Line, NamespaceStackElement,
-	PreprocessedCommandDefinitions, PreprocessedCompilerCommandDefinitions, Settings, StackElement,
-	TData, PreprocessedArg, StackElementMapping, PreprocessedCompilerCommandDefinitionGroup,
-	CompilerCommandDefinitionGroup, CompilerCommandDefinition, GAT, ArgKey, PreprocessedCommand
-} from "./types.js";
-import { ForStackElement } from "./types.js";
-import * as readline from "readline";
 import chalk from "chalk";
-import { GenericArgs } from "./generic_args.js";
+import * as readline from "readline";
+import { Arg, ArgType, GenericArgs, isArgValidFor, isArgValidForType, typeofArg } from "./args.js";
+import {
+	CommandDefinition, commands, CompilerCommandDefinition, compilerCommands
+} from "./commands.js";
 import { bugReportUrl } from "./consts.js";
+import { Log } from "./Log.js";
+import type { Settings } from "./settings.js";
+import { hasElement, NamespaceStackElement, StackElement } from "./stack_elements.js";
+import {
+	CommandError, CommandErrorType, CompiledLine, CompilerConst, CompilerConsts, Line, TData
+} from "./types.js";
 
 
-
-//#region argfunctions
-
-/**Returns if an argument is generic or not. */
-export function isGenericArg(val:string): val is GAT {
-	return GenericArgs.has(val as GAT);
-}
-
-/**Estimates the type of an argument. May not be right.*/
-export function typeofArg(arg:string):GAT {
-	if(arg == "") return "invalid";
-	if(arg == undefined) return "invalid";
-	for(const [name, argKey] of GenericArgs.entries()){
-		if(argKey.doNotGuess) continue;
-		if(typeof argKey.validator == "function"){
-			if(argKey.validator(arg)) return name;
-		} else {
-			for(const argString of argKey.validator){
-				if(argString instanceof RegExp){
-					if(argString.test(arg)) return name;
-				} else {
-					if(argString == arg) return name;
-				}
-			}
-		}
-	}
-	return "invalid";
-}
-
-export function isArgValidForValidator(argToCheck:string, validator:ArgKey["validator"]):boolean {
-	if(typeof validator == "function"){
-		return validator(argToCheck);
-	} else {
-		for(const argString of validator){
-			if(argString instanceof RegExp){
-				if(argString.test(argToCheck)) return true;
-			} else {
-				if(argString == argToCheck) return true;
-			}
-		}
-		return false;
-	}
-}
-
-/**Returns if an arg is of a specified type. */
-export function isArgValidForType(argToCheck:string, arg:ArgType, checkAlsoAccepts:boolean = true):boolean {
-	if(argToCheck == "") return false;
-	if(argToCheck == undefined) return false;
-	if(!isGenericArg(arg)){
-		return argToCheck === arg;
-	}
-	const argKey = GenericArgs.get(arg);
-	if(!argKey) impossible();
-
-	//Check if the string is valid for any excluded arg
-	for(const excludedArg of argKey.exclude){
-		if(!isKey(GenericArgs, excludedArg)){
-			throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies exclude option ${excludedArg} which is not a known generic arg type`);
-		}
-		const excludedArgKey = GenericArgs.get(excludedArg)!;
-		//If it is valid, return false
-		if(isArgValidForValidator(argToCheck, excludedArgKey.validator)) return false;
-	}
-
-	//If function is not being called recursively
-	if(checkAlsoAccepts){
-		for(const otherType of argKey.alsoAccepts){
-			//If the arg is valid for another accepted type, return true
-			if(isArgValidForType(argToCheck, otherType, false)) return true;
-		}
-	}
-
-	return isArgValidForValidator(argToCheck, argKey.validator);
-
-}
-
-export function isArgValidFor(str:string, arg:Arg):boolean {
-	if(arg.isVariable){
-		return isArgValidForType(str, "variable");
-	}
-	return isArgValidForType(str, arg.type);
-}
-
-//#endregion
 //#region linemanipulation
 
 /**Cleans a line by removing trailing/leading whitespaces/tabs, and comments. */
@@ -403,21 +318,6 @@ export function getJumpLabel(cleanedLine:string):string | null {
 //#endregion
 //#region stack
 
-/**Returns if the stack contains an element of a particular type. */
-export function hasElement(stack:StackElement[], type:StackElement["type"]):boolean {
-	return stack.filter(el => el.type == type).length != 0;
-}
-
-/** Returns if the stack contains a disabled if statement */
-export function hasDisabledIf(stack:StackElement[]):boolean {
-	return stack.filter(el => el.type == "&if" && !el.enabled).length != 0;
-}
-
-/**Returns the topmost for loop in the stack. */
-export function topForLoop(stack:StackElement[]):ForStackElement | null {
-	return stack.filter(el => el.type == "&for").at(-1) as ForStackElement ?? null;
-}
-
 
 //#endregion
 //#region typechecking
@@ -629,125 +529,6 @@ export async function askYesOrNo(question:string): Promise<boolean> {
 	return ["y", "yes"].includes(await askQuestion(question));
 }
 
-/**Converts an arg string into an Arg. */
-export function arg(str:PreprocessedArg):Arg {
-	const matchResult = str.match(/(\.\.\.)?(\w+):(\*)?(\w+)(\?)?/);
-	if(!matchResult){
-		if(str.includes(":")){
-			Log.warn(`Possibly bad arg string ${str}, assuming it means a non-generic arg`);
-		}
-		return makeArg(str, str, false, false, false);
-	}
-	const [, spread, name, isVariable, type, isOptional] = matchResult;
-	return makeArg(type, name, !! isOptional, isGenericArg(type), !! isVariable, !! spread);
-}
-
-/**Makes an arg using ordered arguments */
-export function makeArg(type:string, name:string = "WIP", isOptional:boolean = false, isGeneric:boolean = true, isVariable:boolean = false, spread:boolean = false){
-	return {
-		type, name, isOptional, isGeneric, isVariable, spread
-	};
-}
-
-/**
- * Processes commands(adds in what would otherwise be boilerplate). 
- * Warning: called before execution.
- **/
-export function processCommands<IDs extends string>(preprocessedCommands:PreprocessedCommandDefinitions<IDs>):CommandDefinitions<IDs> {
-
-	const out:Partial<CommandDefinitions<IDs>> = {};
-	for(const [name, commands] of (Object.entries(preprocessedCommands) as [name:IDs, commands:PreprocessedCommand[]][])){
-		out[name] = [];
-		for(const command of commands){
-			const processedCommand:CommandDefinition = {
-				type: "Command",
-				description: command.description,
-				name: name,
-				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as PreprocessedArg)) : [],
-				getVariablesDefined: command.getVariablesDefined,
-				getVariablesUsed: command.getVariablesUsed,
-				port: command.port
-			};
-			if(command.replace instanceof Array){
-				processedCommand.replace = function(args:string[]){
-					return (command.replace as string[]).map(replaceLine => {
-						for(let i = 1; i < args.length; i ++){
-							replaceLine = replaceLine.replace(new RegExp(`%${i}`, "g"), args[i]);
-						}
-						return replaceLine;
-					});
-				};
-			} else if(typeof command.replace == "function"){
-				processedCommand.replace = command.replace;
-			}
-			out[name]!.push(processedCommand);
-		}
-	}
-	return out as CommandDefinitions<IDs>;
-}
-
-export function processCompilerCommands(preprocessedCommands:PreprocessedCompilerCommandDefinitions):CompilerCommandDefinitions {
-	const out:Partial<CompilerCommandDefinitions> = {};
-	for(const [id, group] of Object.entries(preprocessedCommands) as [keyof StackElementMapping, PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[keyof StackElementMapping]>][]){
-		out[id] = {
-			stackElement: group.stackElement,
-			overloads: []
-		};
-
-		type _PreprocessedCompilerCommandDefinitionGroup<T> = T extends infer A ? PreprocessedCompilerCommandDefinitionGroup<A> : never;
-		// interface SusCompilerCommandDefinition<StackEl> {
-		// 	type: "CompilerCommand"
-		// 	args: Arg[];
-		// 	name: string;
-		// 	description: string;
-		// 	onbegin?: CompilerCommandDefinition<StackEl>["onbegin"] | PreprocessedCompilerCommandDefinition<StackEl>["onbegin"];
-		// 	oninblock?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
-		// 		compiledCode:CompiledLine[];
-		// 		skipTypeChecks?:boolean;
-		// 	}
-		// 	onend?: (line:Line, removedStackElement:StackEl) => {
-		// 		compiledCode:CompiledLine[];
-		// 		skipTypeChecks?:boolean;
-		// 	};
-		// }
-		// type SussierCompilerCommandDefinition<T> = T extends infer A ? SusCompilerCommandDefinition<A> : never;
-		for(const command of (group as _PreprocessedCompilerCommandDefinitionGroup<StackElement>).overloads){
-			/**
-			 * Time for a rant.
-			 * The onbegin() function of a command definition must return a stack element which points back to the command definition.
-			 * This means I have to create the command definition and then modify the onbegin() prop.
-			 * This causes typescript to yell at me.
-			 * I tried low-level black magic for 30 minutes but couldn't get it to work.
-			 * Therefore:
-			 */
-			//eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const commandDefinition:any = {
-				type: "CompilerCommand",
-				description: command.description,
-				name: id,
-				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as PreprocessedArg)) : [],
-				onbegin: command.onbegin,
-				oninblock: command.oninblock,
-				onend: command.onend
-			};
-			if(commandDefinition.onbegin){
-				const oldFunction = commandDefinition.onbegin!;
-				commandDefinition.onbegin = (args:string[], line:Line, stack:StackElement[]) => {
-					const outputData = oldFunction(args, line, stack);
-					return {
-						...outputData,
-						element: {
-							...outputData.element,
-							commandDefinition
-						}
-					};
-				};
-			}
-			(out[id]!.overloads as CompilerCommandDefinitionGroup<StackElement>["overloads"]).push(commandDefinition as CompilerCommandDefinition<StackElement>);
-		}
-	}
-	return out as CompilerCommandDefinitions;
-}
 
 /**Returns a list of numbers within two bounds inclusive */
 export function range(min:number, max:number):number[];

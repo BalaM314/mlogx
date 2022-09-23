@@ -9,6 +9,6 @@ You should have received a copy of the GNU Lesser General Public License along w
 
 Runs the app.
 */
-
+import "./index.js";
 import { mlogx } from "./src/mlogx.js";
 mlogx.run(process.argv);

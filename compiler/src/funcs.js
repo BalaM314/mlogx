@@ -1,91 +1,11 @@
-import { Log } from "./classes.js";
-import { commands, compilerCommands } from "./commands.js";
-import { CommandErrorType } from "./types.js";
-import * as readline from "readline";
 import chalk from "chalk";
-import { GenericArgs } from "./generic_args.js";
+import * as readline from "readline";
+import { GenericArgs, isArgValidFor, isArgValidForType, typeofArg } from "./args.js";
+import { commands, compilerCommands } from "./commands.js";
 import { bugReportUrl } from "./consts.js";
-export function isGenericArg(val) {
-    return GenericArgs.has(val);
-}
-export function typeofArg(arg) {
-    if (arg == "")
-        return "invalid";
-    if (arg == undefined)
-        return "invalid";
-    for (const [name, argKey] of GenericArgs.entries()) {
-        if (argKey.doNotGuess)
-            continue;
-        if (typeof argKey.validator == "function") {
-            if (argKey.validator(arg))
-                return name;
-        }
-        else {
-            for (const argString of argKey.validator) {
-                if (argString instanceof RegExp) {
-                    if (argString.test(arg))
-                        return name;
-                }
-                else {
-                    if (argString == arg)
-                        return name;
-                }
-            }
-        }
-    }
-    return "invalid";
-}
-export function isArgValidForValidator(argToCheck, validator) {
-    if (typeof validator == "function") {
-        return validator(argToCheck);
-    }
-    else {
-        for (const argString of validator) {
-            if (argString instanceof RegExp) {
-                if (argString.test(argToCheck))
-                    return true;
-            }
-            else {
-                if (argString == argToCheck)
-                    return true;
-            }
-        }
-        return false;
-    }
-}
-export function isArgValidForType(argToCheck, arg, checkAlsoAccepts = true) {
-    if (argToCheck == "")
-        return false;
-    if (argToCheck == undefined)
-        return false;
-    if (!isGenericArg(arg)) {
-        return argToCheck === arg;
-    }
-    const argKey = GenericArgs.get(arg);
-    if (!argKey)
-        impossible();
-    for (const excludedArg of argKey.exclude) {
-        if (!isKey(GenericArgs, excludedArg)) {
-            throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies exclude option ${excludedArg} which is not a known generic arg type`);
-        }
-        const excludedArgKey = GenericArgs.get(excludedArg);
-        if (isArgValidForValidator(argToCheck, excludedArgKey.validator))
-            return false;
-    }
-    if (checkAlsoAccepts) {
-        for (const otherType of argKey.alsoAccepts) {
-            if (isArgValidForType(argToCheck, otherType, false))
-                return true;
-        }
-    }
-    return isArgValidForValidator(argToCheck, argKey.validator);
-}
-export function isArgValidFor(str, arg) {
-    if (arg.isVariable) {
-        return isArgValidForType(str, "variable");
-    }
-    return isArgValidForType(str, arg.type);
-}
+import { Log } from "./Log.js";
+import { hasElement } from "./stack_elements.js";
+import { CommandErrorType } from "./types.js";
 export function cleanLine(line) {
     return removeTrailingSpaces(removeComments(line));
 }
@@ -304,15 +224,6 @@ export function getJumpLabelUsed(line) {
 export function getJumpLabel(cleanedLine) {
     return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0] ?? null;
 }
-export function hasElement(stack, type) {
-    return stack.filter(el => el.type == type).length != 0;
-}
-export function hasDisabledIf(stack) {
-    return stack.filter(el => el.type == "&if" && !el.enabled).length != 0;
-}
-export function topForLoop(stack) {
-    return stack.filter(el => el.type == "&for").at(-1) ?? null;
-}
 export function areAnyOfInputsCompatibleWithType(inputs, output) {
     for (const input of inputs) {
         if (typesAreCompatible(input, output) || typesAreCompatible(output, input))
@@ -479,89 +390,6 @@ export function askQuestion(question) {
 }
 export async function askYesOrNo(question) {
     return ["y", "yes"].includes(await askQuestion(question));
-}
-export function arg(str) {
-    const matchResult = str.match(/(\.\.\.)?(\w+):(\*)?(\w+)(\?)?/);
-    if (!matchResult) {
-        if (str.includes(":")) {
-            Log.warn(`Possibly bad arg string ${str}, assuming it means a non-generic arg`);
-        }
-        return makeArg(str, str, false, false, false);
-    }
-    const [, spread, name, isVariable, type, isOptional] = matchResult;
-    return makeArg(type, name, !!isOptional, isGenericArg(type), !!isVariable, !!spread);
-}
-export function makeArg(type, name = "WIP", isOptional = false, isGeneric = true, isVariable = false, spread = false) {
-    return {
-        type, name, isOptional, isGeneric, isVariable, spread
-    };
-}
-export function processCommands(preprocessedCommands) {
-    const out = {};
-    for (const [name, commands] of Object.entries(preprocessedCommands)) {
-        out[name] = [];
-        for (const command of commands) {
-            const processedCommand = {
-                type: "Command",
-                description: command.description,
-                name: name,
-                args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
-                getVariablesDefined: command.getVariablesDefined,
-                getVariablesUsed: command.getVariablesUsed,
-                port: command.port
-            };
-            if (command.replace instanceof Array) {
-                processedCommand.replace = function (args) {
-                    return command.replace.map(replaceLine => {
-                        for (let i = 1; i < args.length; i++) {
-                            replaceLine = replaceLine.replace(new RegExp(`%${i}`, "g"), args[i]);
-                        }
-                        return replaceLine;
-                    });
-                };
-            }
-            else if (typeof command.replace == "function") {
-                processedCommand.replace = command.replace;
-            }
-            out[name].push(processedCommand);
-        }
-    }
-    return out;
-}
-export function processCompilerCommands(preprocessedCommands) {
-    const out = {};
-    for (const [id, group] of Object.entries(preprocessedCommands)) {
-        out[id] = {
-            stackElement: group.stackElement,
-            overloads: []
-        };
-        for (const command of group.overloads) {
-            const commandDefinition = {
-                type: "CompilerCommand",
-                description: command.description,
-                name: id,
-                args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
-                onbegin: command.onbegin,
-                oninblock: command.oninblock,
-                onend: command.onend
-            };
-            if (commandDefinition.onbegin) {
-                const oldFunction = commandDefinition.onbegin;
-                commandDefinition.onbegin = (args, line, stack) => {
-                    const outputData = oldFunction(args, line, stack);
-                    return {
-                        ...outputData,
-                        element: {
-                            ...outputData.element,
-                            commandDefinition
-                        }
-                    };
-                };
-            }
-            out[id].overloads.push(commandDefinition);
-        }
-    }
-    return out;
 }
 export function range(min, max, strings) {
     if (min > max)

@@ -8,8 +8,10 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains the generic args AST.
 */
 
-import { MindustryContent, buildingNameRegex, shortOperandMapping } from "./consts.js";
-import { PreprocessedArgKey, ArgKey } from "./types.js";
+import { buildingNameRegex, MindustryContent, shortOperandMapping } from "../consts.js";
+import type { ArgKey, PreprocessedArgKey } from "./types.js";
+
+
 
 export const GenericArgs = (
 ///////warning: black magic below

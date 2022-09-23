@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /**
 Copyright © <BalaM314>, 2022.
 This file is part of mlogx.
@@ -9,19 +9,6 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains various classes.
 */
 
-import chalk from "chalk";
-import { extend, isKey } from "./funcs.js";
-import { ArgType } from "./types.js";
-
-/**Represents an argument(type) for a command.*/
-export interface Arg {
-	type:ArgType,
-	name:string,
-	isOptional:boolean,
-	isGeneric:boolean,
-	isVariable:boolean,
-	spread:boolean
-}
 
 export class CompilerError extends Error {
 	constructor(message:string){
@@ -29,80 +16,3 @@ export class CompilerError extends Error {
 		this.name = "CompilerError";
 	}
 }
-
-//TODO move this to a file called Log.ts
-interface LogLevels {
-	[index:string]: [color: (input:string) => string, tag:string]
-}
-const logLevels = extend<LogLevels>()({
-	"debug": [chalk.gray, "[DEBUG]"],
-	"info": [chalk.white, "[INFO]"],
-	"warn": [chalk.yellow, "[WARN]"],
-	"err": [chalk.red, "[ERROR]"],
-	"fatal": [chalk.bgRed.white, "[FATAL]"],
-	"announce": [chalk.blueBright, ""],
-	"none": [m => m, ""],
-});
-type logLevel = keyof typeof logLevels;
-
-interface Messages {
-	[id:string]: {
-		for: (data:never) => string,
-		level: logLevel
-	}
-}
-type none = Record<string, never>
-
-const messages = extend<Messages>()({
-	"unknown require": {for:(d:{requiredVar:string}) => `Unknown require ${d.requiredVar}`, level: "warn"},
-	"wrong file ran": {for:(d:none) => `Running index.js is deprecated, please run cli.js instead.`, level: "warn"},
-	"statement port failed": {for:(d:{name:string, statement:string, reason?:string}) => `Cannot port ${d.name} statement "${d.statement}" because ${d.reason ?? "it is invalid"}`, level: "err"},
-	"if statement condition not boolean": {for:(d:{condition:string}) => `Condition in &if statement was "${d.condition}", expected true or false.`, level:"warn"},
-	"compiler mode project but no src directory": {for:(d:none) => `Compiler mode set to "project" but no src directory found.`, level:"warn"},
-	"files to compile": {for:(filelist:string[]) => `Files to compile: [${filelist.map(file => chalk.green(file)).join(", ")}]`, level:"announce"},
-	//"name": {for:(d:{}) => ``, level:""},
-});
-
-export class Logger<_LogLevels extends LogLevels, _Messages extends Messages> {
-	level:keyof _LogLevels = "info";
-	constructor(public logLevels:_LogLevels, public messages:_Messages){}
-	printWithLevel(level:logLevel, message:string){
-		this.level = level;
-		console.log(this.logLevels[level][0](`${logLevels[level][1]}${logLevels[level][1].length == 0 ? "" : "\t"}${message}`));
-	}
-	/**For debug information. */
-	debug(message:string){this.printWithLevel("debug", message);}
-	/**Dumps objects */
-	dump(level:logLevel, ...objects:unknown[]):void;
-	dump(...objects:unknown[]):void;
-	dump(...objects:unknown[]){
-		const firstArg = objects[0];
-		if(isKey(this.logLevels, firstArg)){
-			this.level = firstArg;
-			console.log(this.logLevels[this.level][1] + "\t", ...(objects.slice(1)));
-		} else {
-			console.log(this.logLevels[this.level][1] + "\t", ...objects);
-		}
-	}
-	/**For general info. */
-	info(message:string){this.printWithLevel("info", message);}
-	/**Warnings */
-	warn(message:string){this.printWithLevel("warn", message);}
-	/**Errors */
-	err(message:string){this.printWithLevel("err", message);}
-	/**Fatal errors */
-	fatal(message:string){this.printWithLevel("fatal", message);}
-	/**Used by the program to announce what it is doing. */
-	announce(message:string){this.printWithLevel("announce", message);}
-	/**Just prints a message without any formatting */
-	none(message:string){this.printWithLevel("none", message);}
-
-	printMessage<ID extends keyof _Messages, MData extends _Messages[ID]>(
-		messageID:ID, data:Parameters<MData["for"]>[0]
-	){
-		const message = this.messages[messageID] as MData;
-		//cursed
-		this[message.level](message.for(data as never));
-	}
-}
-export const Log = new Logger(logLevels, messages);

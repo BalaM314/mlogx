@@ -1,8 +1,10 @@
-import { CommandErrorType } from "./types.js";
-import { cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined, parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType, getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel, addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop, prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps, addSourcesToCode, transformCommand, hasDisabledIf, getCompilerCommandDefinitions, } from "./funcs.js";
+import { CompilerError } from "./classes.js";
+import { commands } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
-import { CompilerError, Log } from "./classes.js";
-import commands from "./commands.js";
+import { addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsCompatibleWithType, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand } from "./funcs.js";
+import { Log } from "./Log.js";
+import { hasDisabledIf, hasElement, topForLoop } from "./stack_elements.js";
+import { CommandErrorType } from "./types.js";
 export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
     const [programType, requiredVars] = parsePreprocessorDirectives(mlogxProgram);
     const isMain = programType == "main" || settings.compilerOptions.mode == "single";

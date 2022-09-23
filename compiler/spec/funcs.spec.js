@@ -1,6 +1,7 @@
-import { commands, compilerCommands } from "../src/commands.js";
-import { processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed, getParameters, getVariablesUsed, isArgValidForType, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined, cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable, prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives, hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType, isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg, getCompilerCommandDefinitions, makeArg, removeComments, removeTrailingSpaces, isArgValidFor, isArgValidForValidator, } from "../src/funcs.js";
-import { GenericArgs } from "../src/generic_args.js";
+import { arg, GenericArgs, isArgValidFor, isArgValidForType, isArgValidForValidator, isGenericArg, makeArg, typeofArg } from "../src/args.js";
+import { commands, compilerCommands, processCommands } from "../src/commands.js";
+import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsCompatibleWithType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, getVariablesUsed, isCommand, parseIcons, parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, typesAreCompatible } from "../src/funcs.js";
+import { hasElement, topForLoop } from "../src/stack_elements.js";
 import { commandErrOfType, makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 describe("templateFunction", () => {
     it("should ", () => {

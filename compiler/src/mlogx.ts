@@ -9,16 +9,17 @@ Contains the mlogx Application.
 */
 
 import chalk from "chalk";
-import path from "path";
-import * as fs from "fs";
 import { Application } from "cli-app";
-import { Log } from "./classes.js";
+import * as fs from "fs";
+import path from "path";
+import { GenericArgs } from "./args.js";
 import { commands } from "./commands.js";
 import { addJumpLabels, portCode } from "./compile.js";
-import { createProject, compileDirectory, compileFile } from "./compile_fs.js";
-import { PartialRecursive, PortingMode, Settings } from "./types.js";
-import { GenericArgs } from "./generic_args.js";
+import { compileDirectory, compileFile, createProject } from "./compile_fs.js";
+import { Log } from "./Log.js";
 import { isKey, parseIcons } from "./funcs.js";
+import { Settings } from "./settings.js";
+import { PartialRecursive, PortingMode } from "./types.js";
 
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {

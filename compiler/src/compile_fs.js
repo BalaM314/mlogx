@@ -1,11 +1,13 @@
-import * as fs from "fs";
-import * as yup from "yup";
-import path from "path";
 import deepmerge from "deepmerge";
-import { Log, CompilerError } from "./classes.js";
+import * as fs from "fs";
+import path from "path";
+import * as yup from "yup";
+import { CompilerError } from "./classes.js";
 import { compileMlogxToMlog } from "./compile.js";
-import { compilerMark, settingsSchema } from "./consts.js";
-import { getCompilerConsts, askQuestion } from "./funcs.js";
+import { compilerMark } from "./consts.js";
+import { Log } from "./Log.js";
+import { askQuestion, getCompilerConsts } from "./funcs.js";
+import { settingsSchema } from "./settings.js";
 export function compileDirectory(directory, stdlibPath, defaultSettings, icons) {
     const settings = getSettings(directory, defaultSettings);
     const srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();

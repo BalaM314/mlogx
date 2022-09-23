@@ -4,23 +4,28 @@ This file is part of mlogx.
 The Mindustry Logic Extended Compiler(mlogx) is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>.
+
+Contains tests of all functions.
 */
 
 
-import { commands, compilerCommands } from "../src/commands.js";
+
 import {
-	processCommands, addNamespacesToLine, getAllPossibleVariablesUsed, getJumpLabelUsed,
-	getParameters, getVariablesUsed, isArgValidForType, removeUnusedJumps, replaceCompilerConstants,
-	splitLineIntoArguments, transformCommand, transformVariables, getVariablesDefined,
-	cleanLine, isGenericArg, typeofArg, parseIcons, addNamespacesToVariable,
-	prependFilenameToArg, getJumpLabel, topForLoop, parsePreprocessorDirectives,
-	hasElement, getCommandDefinitions, getCommandDefinition, areAnyOfInputsCompatibleWithType,
-	isCommand, typesAreCompatible, acceptsVariable, addSourcesToCode, range, arg,
-	getCompilerCommandDefinitions, getCompilerConsts, hasDisabledIf, makeArg,
-	processCompilerCommands, removeComments, removeTrailingSpaces, isArgValidFor, isArgValidForValidator,
+	arg, ArgType, GenericArgs, isArgValidFor, isArgValidForType, isArgValidForValidator,
+	isGenericArg, makeArg, typeofArg
+} from "../src/args.js";
+import { commands, compilerCommands, processCommands } from "../src/commands.js";
+import {
+	acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode,
+	areAnyOfInputsCompatibleWithType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition,
+	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
+	getParameters, getVariablesDefined, getVariablesUsed, isCommand, parseIcons,
+	parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces,
+	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand,
+	transformVariables, typesAreCompatible
 } from "../src/funcs.js";
-import { GenericArgs } from "../src/generic_args.js";
-import { ArgType, CompilerConst } from "../src/types.js";
+import { hasElement, topForLoop } from "../src/stack_elements.js";
+import { CompilerConst } from "../src/types.js";
 import { commandErrOfType, makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 
 

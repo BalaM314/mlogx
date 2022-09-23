@@ -1,4 +1,4 @@
-import { MindustryContent, buildingNameRegex, shortOperandMapping } from "./consts.js";
+import { buildingNameRegex, MindustryContent, shortOperandMapping } from "../consts.js";
 export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
         alsoAccepts: obj.alsoAccepts ?? [],
         validator: obj.validator instanceof RegExp ? [obj.validator] : obj.validator,

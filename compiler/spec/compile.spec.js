@@ -1,7 +1,7 @@
 import { compilerCommands } from "../src/commands.js";
 import { compileLine, compileMlogxToMlog } from "../src/compile.js";
-import { settingsSchema } from "../src/consts.js";
 import { range } from "../src/funcs.js";
+import { settingsSchema } from "../src/settings.js";
 import { allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
 import { makeForEl, makeIfEl, makeNamespaceEl } from "./test_utils.js";
 function settingsForFilename(name, checkTypes = false) {

@@ -8,15 +8,17 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains impure functions related to compiling that interact with the filesystem.
 */
 
-import * as fs from "fs";
-import * as yup from "yup";
-import path from "path";
 import deepmerge from "deepmerge";
-import { Log, CompilerError } from "./classes.js";
+import * as fs from "fs";
+import path from "path";
+import * as yup from "yup";
+import { CompilerError } from "./classes.js";
 import { compileMlogxToMlog } from "./compile.js";
-import { compilerMark, settingsSchema } from "./consts.js";
-import { getCompilerConsts, askQuestion } from "./funcs.js";
-import { PartialRecursive, Settings } from "./types";
+import { compilerMark } from "./consts.js";
+import { Log } from "./Log.js";
+import { askQuestion, getCompilerConsts } from "./funcs.js";
+import { Settings, settingsSchema } from "./settings.js";
+import { PartialRecursive } from "./types.js";
 
 export function compileDirectory(directory:string, stdlibPath:string, defaultSettings:PartialRecursive<Settings>, icons:Map<string, string>){
 

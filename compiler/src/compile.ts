@@ -9,21 +9,23 @@ Contains pure-ish functions related to compiling.
 */
 
 
-import {
-	Settings, CommandDefinition, CommandErrorType, StackElement, Line, TData,
-	TypeCheckingData, CompiledLine, CompilerConsts, CompilerCommandDefinition, PortingMode
-} from "./types.js";
-import {
-	cleanLine, getAllPossibleVariablesUsed, getCommandDefinitions, getVariablesDefined,
-	parsePreprocessorDirectives, splitLineIntoArguments, areAnyOfInputsCompatibleWithType,
-	getParameters, replaceCompilerConstants, getJumpLabelUsed, getJumpLabel,
-	addNamespacesToVariable, addNamespacesToLine, hasElement, topForLoop,
-	prependFilenameToArg, getCommandDefinition, formatLineWithPrefix, removeUnusedJumps,
-	addSourcesToCode, transformCommand, hasDisabledIf, getCompilerCommandDefinitions,
-} from "./funcs.js";
+import { Arg } from "./args.js";
+import { CompilerError } from "./classes.js";
+import { CommandDefinition, commands, CompilerCommandDefinition } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
-import { Arg, CompilerError, Log } from "./classes.js";
-import commands from "./commands.js";
+import {
+	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsCompatibleWithType,
+	cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition,
+	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
+	getParameters, getVariablesDefined, parsePreprocessorDirectives, prependFilenameToArg,
+	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand
+} from "./funcs.js";
+import { Log } from "./Log.js";
+import { Settings } from "./settings.js";
+import { hasDisabledIf, hasElement, StackElement, topForLoop } from "./stack_elements.js";
+import {
+	CommandErrorType, CompiledLine, CompilerConsts, Line, PortingMode, TData, TypeCheckingData
+} from "./types.js";
 
 export function compileMlogxToMlog(
 	mlogxProgram:string[],

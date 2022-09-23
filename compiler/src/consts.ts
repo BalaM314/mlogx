@@ -8,8 +8,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains various constants.
 */
 
-import * as yup from "yup";
-import { ArgType, Line, GAT } from "./types.js";
+import type { ArgType, GAT } from "./args.js";
+import type { Line } from "./types.js";
 
 export const compilerMark = [
 	`print "Made with mlogx"`,
@@ -17,24 +17,6 @@ export const compilerMark = [
 ];
 
 export const bugReportUrl = `https://github.com/BalaM314/mlogx/issues/new`;
-
-export const settingsSchema = yup.object({
-	name: yup.string().default("Untitled Project"),
-	authors: yup.array().of(yup.string()).default(["Unknown"]),
-	filename: yup.string().default("unknown.mlogx"),
-	compilerOptions: yup.object({
-		include: yup.array().of(yup.string()).default([]),
-		verbose: yup.bool().default(false),
-		removeComments: yup.bool().default(true),
-		compileWithErrors: yup.bool().default(true),
-		mode: yup.string().oneOf(["project", "single"]),
-		prependFileName: yup.bool().default(true),
-		checkTypes: yup.bool().default(true),
-		removeUnusedJumpLabels: yup.bool().default(true),
-		removeCompilerMark: yup.bool().default(false),
-	}).required(),
-	compilerConstants: yup.object().default({})
-}).required();
 
 
 export const buildingInternalNames: string[] = [
