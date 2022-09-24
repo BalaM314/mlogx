@@ -3,7 +3,7 @@ import { Application } from "cli-app";
 import * as fs from "fs";
 import path from "path";
 import { argToString, GenericArgs } from "./args.js";
-import { commands } from "./commands.js";
+import { commands, compilerCommands } from "./commands.js";
 import { addJumpLabels, portCode } from "./compile.js";
 import { compileDirectory, compileFile, createProject } from "./compile_fs.js";
 import { Log } from "./Log.js";
@@ -21,6 +21,16 @@ mlogx.command("info", "Shows information about a logic command", (opts) => {
 Usage:
 
 ${commands[name].map(commandDefinition => name + " " + commandDefinition.args
+            .map(argToString)
+            .join(" ") + "\n" + commandDefinition.description).join("\n\n")}
+`));
+        return 0;
+    }
+    else if (isKey(compilerCommands, name)) {
+        Log.none(chalk.white(`Info for compiler command "${name}"
+Usage:
+
+${compilerCommands[name].overloads.map(commandDefinition => name + " " + commandDefinition.args
             .map(argToString)
             .join(" ") + "\n" + commandDefinition.description).join("\n\n")}
 `));
