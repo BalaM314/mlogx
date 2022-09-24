@@ -18,7 +18,7 @@ export const commands = processCommands({
     increment: [{
             args: "variable:variable amount:number",
             replace: ["op add %1 %1 %2"],
-            description: "Adds a (amount) to (variable)."
+            description: "Adds (amount) to (variable)."
         }],
     return: [{
             args: "",
@@ -31,7 +31,7 @@ export const commands = processCommands({
                 "set err %1",
                 "jump err always"
             ],
-            description: "Throws (error). May or may not work."
+            description: "Throws (error). Requires you to include \"err\"."
         }],
     uflag: [{
             args: "type:unitType",
@@ -44,7 +44,7 @@ export const commands = processCommands({
         }],
     read: [{
             args: "output:*number cell:building index:number",
-            description: "Reads a value at index (index) from memory cell (cell) and outputs to (output)."
+            description: "Reads a value at index (index) from memory cell (cell) and stores it in (output)."
         }],
     write: [{
             args: "value:number cell:building index:number",
@@ -83,13 +83,13 @@ export const commands = processCommands({
             description: "Displays an image of (image) centered at (x,y) with size (size) and rotated (rotation) degrees."
         },
     ],
-    print: [{
-            args: "message:any",
-            description: "Prints (message) to the message buffer."
-        }],
     drawflush: [{
             args: "display:building",
             description: "Flushes queued draw instructions to (display)."
+        }],
+    print: [{
+            args: "message:any",
+            description: "Prints (message) to the message buffer."
         }],
     printflush: [
         {
@@ -102,7 +102,7 @@ export const commands = processCommands({
     ],
     getlink: [{
             args: "output:*building n:number",
-            description: "Gets the (n)th linked building. Useful when looping over all buildings."
+            description: "Gets the (n)th linked building and stores it in (building). Useful when looping over all buildings."
         }],
     control: [
         {
@@ -125,7 +125,7 @@ export const commands = processCommands({
     radar: [
         {
             args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*unit",
-            description: "Finds units of specified type within the range of (turret).",
+            description: "Finds a unit of specified type within the range of (turret) and stores it in (output).",
             port(args, mode) {
                 if (mode >= PortingMode.shortenSyntax && ((args[1] == args[2] && args[2] == args[3]) || (args[2] == "any" && args[3] == "any")))
                     return `${args[0]} ${args[1]} ${args[4]} ${args[5]} ${args[6]} ${args[7]}`;
@@ -134,19 +134,19 @@ export const commands = processCommands({
             },
         }, {
             args: "targetClass:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*unit",
-            description: "Finds units of specified type within the range of (turret).",
+            description: "Finds a unit of specified type within the range of (turret) and stores it in (output). Shortened form of the regular radar instruction.",
             replace: [
                 "radar %1 any any %2 %3 %4 %5"
             ]
         }, {
             args: "targetClass:targetClass sortCriteria:unitSortCriteria sortOrder:number turret:building output:*unit",
-            description: "Finds units of specified type within the range of (turret).",
+            description: "Finds a unit of specified type within the range of (turret) and stores it in (output). Shortened form of the regular radar instruction with sortOrder and turret swapped.",
             replace: [
-                "radar %1 any any %2 %3 %4 %5"
+                "radar %1 any any %2 %4 %3 %5"
             ]
         }, {
             args: "targetClass:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number turret:building output:*unit",
-            description: "Finds units of specified type within the range of (turret).",
+            description: "Finds a unit of specified type within the range of (turret) and stores it in (output). sortOrder and turret are swapped.",
             replace: [
                 "radar %1 %2 %3 %4 %6 %5 %7"
             ]
@@ -155,7 +155,7 @@ export const commands = processCommands({
     sensor: [
         {
             args: "output:*any building:building value:senseable",
-            description: "Gets information about (building) and outputs to (output), does not need to be linked or on the same team.",
+            description: "Gets information about (building) and stores it in (output), does not need to be linked or on the same team.",
             port(args, mode) {
                 if (args[1] == `${args[2]}.${args[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
                     return `sensor ${args[1]}`;
@@ -164,7 +164,7 @@ export const commands = processCommands({
             },
         }, {
             args: "output:*any unit:unit value:senseable",
-            description: "Gets information about (unit) and outputs to (output), does not need to be on the same team.",
+            description: "Gets information about (unit) and stores it in (output), does not need to be on the same team.",
             port(args, mode) {
                 if (args[1] == `${args[2]}.${args[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
                     return `sensor ${args[1]}`;
@@ -172,7 +172,7 @@ export const commands = processCommands({
                     return args.join(" ");
             },
         }, {
-            args: "output:*any",
+            args: "thing.property:*any",
             replace: (args) => {
                 if (args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)) {
                     const [, target, property] = args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i);
@@ -186,7 +186,7 @@ export const commands = processCommands({
                     throw new CompilerError(`Invalid command, ${args[1]} must be of type thing.property and cannot contain certain special characters`);
                 }
             },
-            description: "sensor turret.x instead of sensor turret.x turret @x"
+            description: "Gets information about a unit or building and stores it in (thing.property), does not need to be linked or on the same team. Example usage: sensor player.shootX will read the player's shootX into the variable player.shootX"
         }
     ],
     set: [
@@ -217,14 +217,14 @@ export const commands = processCommands({
             }
         }, {
             args: "variable:*number arg1:number operand:sOperandDouble arg2:number",
-            description: "Alternative op syntax",
+            description: "Alternative syntax for the op statement: sets (variable) to (arg1) (operand) (arg2). Example: set reactor.tooHot reactor.heat => 0.1 will compile to op greaterThanEq reactor.tooHot reactor.heat 0.1",
             replace: (args) => [`op ${shortOperandMapping[args[3]]} ${args[1]} ${args[2]} ${args[4]}`]
         }
     ],
     op: [
         {
             args: "operand:operandSingle output:*number arg1:number zero:0?",
-            description: "Performs an operation on (arg1), storing the result in (output).",
+            description: "Sets (output) to (operand) (arg1).",
             replace: ["op %1 %2 %3 0"],
             port(args, mode) {
                 if (mode >= PortingMode.removeZeroes) {
@@ -239,7 +239,7 @@ export const commands = processCommands({
             },
         }, {
             args: "operand:operandDouble output:*number arg1:number arg2:number",
-            description: "Performs an operation between (arg1) and (arg2), storing the result in (output).",
+            description: "Sets (output) to (arg1) (operand) (arg2).",
             port(args, mode) {
                 if (mode >= PortingMode.shortenSyntax) {
                     if (args[2] == args[3])
@@ -249,11 +249,11 @@ export const commands = processCommands({
             },
         }, {
             args: "operand:operandDouble output:*number arg1:number",
-            description: "Performs an operation on (arg1) and (output), storing the result in (output).",
+            description: "Sets (output) to (output) (operand) (arg1). Useful for doubling a number, or adding 1 to it.",
             replace: ["op %1 %2 %2 %3"]
         }, {
             args: "operand:operandSingle arg1:*number",
-            description: "Performs an operation on arg1, mutating it. Example: `op abs xDiff`",
+            description: "Sets (arg1) to (operand) (arg1). Example: `op abs xDiff`",
             replace: ["op %1 %2 %2 0"]
         }
     ],
@@ -264,16 +264,16 @@ export const commands = processCommands({
     lookup: [
         {
             args: "item output:*itemType n:number",
-            description: "Looks up the (n)th item."
+            description: "Looks up the (n)th item and stores it in (output)."
         }, {
             args: "block output:*buildingType n:number",
-            description: "Looks up the (n)th building."
+            description: "Looks up the (n)th building and stores it in (output)."
         }, {
             args: "liquid output:*unitType n:number",
-            description: "Looks up the (n)th fluid."
+            description: "Looks up the (n)th fluid and stores it in (output)."
         }, {
             args: "unit output:*unitType n:number",
-            description: "Looks up the (n)th unit."
+            description: "Looks up the (n)th unit and stores it in (output)."
         },
     ],
     end: [{
@@ -283,7 +283,7 @@ export const commands = processCommands({
     jump: [
         {
             args: "jumpAddress:jumpAddress always zero:0? zero:0?",
-            description: "Jumps to an address or label.",
+            description: "Jumps to (jumpAddress).",
             replace: ["jump %1 always 0 0"],
             port(args, mode) {
                 if (mode >= PortingMode.shortenSyntax) {
@@ -295,8 +295,8 @@ export const commands = processCommands({
                 return args.join(" ");
             }
         }, {
-            args: "jumpAddress:jumpAddress operandTest:operandTest var1:any var2:any",
-            description: "Jumps to an address or label if a condition is met.",
+            args: "jumpAddress:jumpAddress operand:operandTest var1:any var2:any",
+            description: "Jumps to (jumpAddress) if (var1) (operand) (var2).",
             port(args, mode) {
                 if (mode >= PortingMode.shortenSyntax) {
                     if (args[2] == "always")
@@ -310,7 +310,7 @@ export const commands = processCommands({
             },
         }, {
             args: "jumpAddress:jumpAddress",
-            description: "Jumps to an address or label.",
+            description: "Jumps to (jumpAddress).",
             replace: ["jump %1 always 0 0"]
         },
     ],
@@ -329,7 +329,7 @@ export const commands = processCommands({
     ucontrol: [
         {
             args: "idle",
-            description: "Tells the bound unit to continue current actions, except moving."
+            description: "Tells the bound unit to stop moving, but continue other actions."
         }, {
             args: "stop",
             description: "Tells the bound unit to stop all actions."
@@ -362,13 +362,13 @@ export const commands = processCommands({
             description: "Tells the bound unit to drop its payload."
         }, {
             args: "payTake takeUnits:boolean",
-            description: "Tells the bound unit to pick up a payload and if to take units."
+            description: "Tells the bound unit to pick up a payload and whether or not to grab units."
         }, {
             args: "payEnter",
             description: "Tells the bound unit to enter a building(usually a reconstructor)."
         }, {
             args: "mine x:number y:number",
-            description: "Tells the unit to mine at (x,y)"
+            description: "Tells the unit to mine at (x,y)."
         }, {
             args: "flag flag:number",
             description: "Sets the flag of the bound unit."
@@ -377,7 +377,7 @@ export const commands = processCommands({
             description: "Tells the unit to build (block) with (rotation) and (config) at (x,y)."
         }, {
             args: "getBlock x:number y:number buildingType:*buildingType building:*building",
-            description: "Gets the building type and building at (x,y) and outputs to (buildingType) and (building)."
+            description: "Gets the building type and building at (x,y) and outputs to (buildingType) and (building). Required if you want to get the building object for a building on another team."
         }, {
             args: "within x:number y:number radius:number output:*boolean",
             description: "Checks if the unit is within (radius) tiles of (x,y) and outputs to (output)."
@@ -386,7 +386,7 @@ export const commands = processCommands({
     uradar: [
         {
             args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
-            description: "Finds units of specified type within the range of the bound unit.",
+            description: "Finds a unit of specified type within the range of the bound unit and stores it in (output).",
             replace: [
                 "uradar %1 %2 %3 %4 0 %5 %6"
             ]
@@ -403,7 +403,7 @@ export const commands = processCommands({
             },
         }, {
             args: "targetClass:targetClass sortCriteria:unitSortCriteria sortOrder:number output:*unit",
-            description: "Finds units of specified type within the range of the bound unit.",
+            description: "Finds a unit of specified type within the range of the bound unit and stores it in (output). Sorter version of the regular uradar instruction.",
             replace: [
                 "uradar %1 any any %2 0 %3 %4"
             ]
@@ -412,19 +412,19 @@ export const commands = processCommands({
     ulocate: [
         {
             args: "ore ore:itemType outX:*number outY:*number found:*boolean",
-            description: "Finds ores of specified type near the bound unit.",
+            description: "Finds an (ore) ore near the bound unit and stores its position in (outX, outY).",
             replace: ["ulocate ore core _ %2 %3 %4 %5 _"]
         }, {
             args: "spawn outX:*number outY:*number found:*boolean",
-            description: "Finds enemy spawns near the bound unit.",
+            description: "Finds an enemy spawnpoint near the bound unit and stores its position in (outX, outY).",
             replace: ["ulocate spawn core _ _ %2 %3 %4 _"]
         }, {
             args: "damaged outX:*number outY:*number found:*boolean building:*building",
-            description: "Finds damaged buildings near the bound unit.",
+            description: "Finds a damaged building near the bound unit and stores its position in (outX, outY).",
             replace: ["ulocate damaged core _ _ %2 %3 %4 %5"]
         }, {
             args: "building buildingGroup:buildingGroup enemy:boolean outX:*number outY:*number found:*boolean building:*building",
-            description: "Finds buildings of specified group near the bound unit.",
+            description: "Finds a building of specified group near the bound unit, storing its position in (outX, outY) and the building in (building) if it is on the same team.",
             replace: ["ulocate building %2 %3 _ %4 %5 %6 %7"]
         }, {
             args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:locateable buildingGroup:buildingGroup enemy:boolean ore:itemType outX:*number outY:*number found:*boolean building:*building",
@@ -457,7 +457,7 @@ export const compilerCommands = processCompilerCommands({
         overloads: [
             {
                 args: "variable:variable in lowerBound:number upperBound:number {",
-                description: "&for in loops allow you to emit the same code multiple times but with a number incrementing. (variable) is set as a compiler constant and goes from (lowerBound) through (upperBound) inclusive.",
+                description: "&for in loops allow you to emit the same code multiple times but with a number incrementing. (variable) is set as a compiler constant and goes from (lowerBound) through (upperBound) inclusive, and the code between the bracket is emitted once for each value..",
                 onbegin(args, line) {
                     const lowerBound = parseInt(args[3]);
                     const upperBound = parseInt(args[4]);
@@ -501,7 +501,7 @@ export const compilerCommands = processCompilerCommands({
                 },
             }, {
                 args: "variable:variable of ...elements:any {",
-                description: "&for of loops allow you to emit the same code multiple times but with a value changed. (variable) is set as a compiler constant and goes through each element of (elements).",
+                description: "&for of loops allow you to emit the same code multiple times but with a value changed. (variable) is set as a compiler constant and goes through each element of (elements), and the code between the brackets is emitted once for each value.",
                 onbegin(args, line) {
                     return {
                         element: {
@@ -585,7 +585,7 @@ export const compilerCommands = processCompilerCommands({
         overloads: [
             {
                 args: "name:string {",
-                description: "[WIP] Prepends _(name)_ to all variable names to prevent name conflicts.",
+                description: "[WIP] Prepends _(name)_ to all variable names inside the block to prevent name conflicts. Doesn't work that well.",
                 onbegin(args, line) {
                     return {
                         element: {
