@@ -23,7 +23,7 @@ import { PartialRecursive, PortingMode } from "./types.js";
 
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
-	const name = opts.positionalArgs[0]!;
+	const name = opts.positionalArgs[0];
 	if(name.includes(" ")){
 		Log.err(`Commands cannot contain spaces.`);
 		return 1;
@@ -61,7 +61,8 @@ ${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof R
 	namedArgs: {},
 	positionalArgs: [{
 		name: "command",
-		description: "The command to get information about"
+		description: "The command to get information about",
+		required: true,
 	}]
 }, ["i"]);
 

@@ -43,7 +43,8 @@ ${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof R
     namedArgs: {},
     positionalArgs: [{
             name: "command",
-            description: "The command to get information about"
+            description: "The command to get information about",
+            required: true,
         }]
 }, ["i"]);
 mlogx.command("version", "Displays the version of mlogx", (opts, app) => {
