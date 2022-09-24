@@ -1,7 +1,7 @@
 import { CompilerError } from "./classes.js";
 import { commands } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
-import { addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsCompatibleWithType, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand } from "./funcs.js";
+import { addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsCompatibleWithType, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, impossible, parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand } from "./funcs.js";
 import { Log } from "./Log.js";
 import { hasDisabledIf, hasElement, topForLoop } from "./stack_elements.js";
 import { CommandErrorType } from "./types.js";
@@ -323,7 +323,7 @@ export function addJumpLabels(code) {
             if (label == "0") {
                 jumps[label] = "0";
             }
-            else if (!isNaN(parseInt(label))) {
+            else if (!isNaN(parseInt(label)) && !jumps[label]) {
                 jumps[label] = `jump_${lastJumpNameIndex}_`;
                 lastJumpNameIndex += 1;
             }
@@ -335,10 +335,13 @@ export function addJumpLabels(code) {
             const label = getJumpLabelUsed(line);
             if (label == undefined)
                 throw new CompilerError("invalid jump statement");
-            transformedCode.push(transformCommand(splitLineIntoArguments(line), commandDefinition, (arg) => jumps[arg] ?? (() => { throw new CompilerError(`Unknown jump label ${arg}`); })(), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
+            transformedCode.push(transformCommand(splitLineIntoArguments(line), commandDefinition, (arg) => jumps[arg] ?? (isNaN(parseInt(arg)) ? arg : impossible()), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
+        }
+        else if (commandDefinition != undefined || getJumpLabel(line)) {
+            transformedCode.push(line);
         }
         else {
-            transformedCode.push(line);
+            Log.err(`Line "${line}" is invalid.`);
         }
     }
     for (const lineNumber in transformedCode) {

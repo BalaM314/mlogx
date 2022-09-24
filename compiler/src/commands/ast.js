@@ -493,7 +493,8 @@ export const compilerCommands = processCompilerCommands({
                                 text: replaceCompilerConstants(line[1].text, new Map([
                                     [removedStackElement.variableName, el]
                                 ])),
-                                lineNumber: line[1].lineNumber
+                                lineNumber: line[1].lineNumber,
+                                sourceFilename: "unknown"
                             }]));
                     }
                     return { compiledCode };

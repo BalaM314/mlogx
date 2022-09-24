@@ -17,7 +17,7 @@ import {
 	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsCompatibleWithType,
 	cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition,
 	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
-	getParameters, getVariablesDefined, parsePreprocessorDirectives, prependFilenameToArg,
+	getParameters, getVariablesDefined, impossible, parsePreprocessorDirectives, prependFilenameToArg,
 	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand
 } from "./funcs.js";
 import { Log } from "./Log.js";
@@ -413,7 +413,7 @@ export function getOutputForCommand(args:string[], command:CommandDefinition, st
 	return [ addNamespacesToLine(args, command, stack) ];
 }
 
-/**Adds jump labels to vanilla MLOG code that uses jump indexes. */
+/**Adds jump labels to vanilla MLOG code that uses hardcoded jump indexes. */
 export function addJumpLabels(code:string[]):string[] {
 	let lastJumpNameIndex = 0;
 	const jumps: {
@@ -430,7 +430,7 @@ export function addJumpLabels(code:string[]):string[] {
 		if(label){
 			if(label == "0"){
 				jumps[label] = "0";
-			} else if(!isNaN(parseInt(label))){
+			} else if(!isNaN(parseInt(label)) && !jumps[label]){
 				jumps[label] = `jump_${lastJumpNameIndex}_`;
 				lastJumpNameIndex += 1;
 			}
@@ -448,13 +448,15 @@ export function addJumpLabels(code:string[]):string[] {
 					splitLineIntoArguments(line),
 					commandDefinition,
 					//Replace arguments
-					(arg:string) => jumps[arg] ?? (() => {throw new CompilerError(`Unknown jump label ${arg}`);})(),
+					(arg:string) => jumps[arg] ?? (isNaN(parseInt(arg)) ? arg : impossible()),
 					//But only if the argument is a jump address
 					(arg:string, carg:Arg) => carg.isGeneric && carg.type == "jumpAddress"
 				).join(" ")
 			);
-		} else {
+		} else if(commandDefinition != undefined || getJumpLabel(line)){
 			transformedCode.push(line);
+		} else {
+			Log.err(`Line "${line}" is invalid.`);
 		}
 	}
 
