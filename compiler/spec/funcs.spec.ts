@@ -11,6 +11,7 @@ Contains tests of all functions.
 
 
 import {
+	Arg,
 	arg, ArgType, GenericArgs, isArgValidFor, isArgValidForType, isArgValidForValidator,
 	isGenericArg, makeArg, typeofArg
 } from "../src/args.js";
@@ -274,6 +275,12 @@ describe("transformCommand", () => {
 			x => x.toUpperCase(),
 			(arg, commandArg) => !(commandArg?.isGeneric ?? true))
 		).toEqual(["ulocate", "BUILDING", "core", "true", "outX", "outY", "found", "building"]);
+		expect(transformCommand(
+			["jump", "5", "lessThan", "x", "4"],
+			commands["jump"][1],
+			(arg:string) => `jump_${arg}_`,
+			(arg:string, carg:Arg) => carg.isGeneric && carg.type == "jumpAddress"
+		)).toEqual(["jump", "jump_5_", "lessThan", "x", "4"]);
 	});
 });
 

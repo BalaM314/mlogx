@@ -218,6 +218,7 @@ describe("transformCommand", () => {
     it("should accept a custom function", () => {
         expect(transformCommand(["set", "x", "5"], commands["set"][0], x => x.toUpperCase(), (arg, commandArg) => !(commandArg?.isGeneric ?? true))).toEqual(["set", "x", "5"]);
         expect(transformCommand(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3], x => x.toUpperCase(), (arg, commandArg) => !(commandArg?.isGeneric ?? true))).toEqual(["ulocate", "BUILDING", "core", "true", "outX", "outY", "found", "building"]);
+        expect(transformCommand(["jump", "5", "lessThan", "x", "4"], commands["jump"][1], (arg) => `jump_${arg}_`, (arg, carg) => carg.isGeneric && carg.type == "jumpAddress")).toEqual(["jump", "jump_5_", "lessThan", "x", "4"]);
     });
 });
 describe("addNamespacesToVariable", () => {

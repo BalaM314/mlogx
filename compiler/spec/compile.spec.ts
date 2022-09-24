@@ -11,11 +11,12 @@ Contains tests related to compilation.
 
 
 import { compilerCommands } from "../src/commands.js";
-import { compileLine, compileMlogxToMlog } from "../src/compile.js";
+import { addJumpLabels, compileLine, compileMlogxToMlog } from "../src/compile.js";
 import { range } from "../src/funcs.js";
 import { Settings, settingsSchema } from "../src/settings.js";
 import { ForStackElement, StackElement } from "../src/stack_elements.js";
 import {
+	addLabelsTests,
 	allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace,
 	testPrograms
 } from "./samplePrograms.js";
@@ -125,10 +126,10 @@ describe("compileLine", () => {
 	it("should unroll nested &for loops", () => {
 		let stack:StackElement[] = [
 			makeForEl(
-				"I", range(1, 3, true), [`loop_$I:`]
+				"I", range(1, 3, true), [`loop_$I:`], makeLine("[test]", 1, "unknown")
 			),
 			makeForEl(
-				"J", range(5, 6, true), [`set x 5`, `print "j is $J"`]
+				"J", range(5, 6, true), [`set x 5`, `print "j is $J"`], makeLine("[test]", 1, "unknown")
 			)
 		];
 		const compiledOutput = compileLine(makeLine("}"), new Map(), settingsForFilename("sample.mlogx"), false, stack);
@@ -137,7 +138,7 @@ describe("compileLine", () => {
 		expect(compiledOutput.compiledCode.map(line => line[0]))
 			.toEqual([`set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]);
 		expect(compiledOutput.modifiedStack).toEqual([
-			makeForEl("I", range(1, 3, true), [`loop_$I:`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`])
+			makeForEl("I", range(1, 3, true), [`loop_$I:`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`], makeLine("[test]", 1, "unknown"))
 		]);
 		const secondOutput = compileLine(makeLine("}"), new Map(), settingsForFilename("sample.mlogx"), false, stack);
 		expect(secondOutput.compiledCode.map(line => line[0]))
@@ -200,6 +201,16 @@ describe("compileMlogxToMlog", () => {
 			).toEqual([output]);
 		}
 	});
+});
+
+describe("addJumpLabels", () => {
+	for(const program of Object.values(addLabelsTests)){
+		it(program.message, () => {
+			expect(
+				addJumpLabels(program.source)
+			).toEqual(program.expectedOutput);
+		});
+	}
 });
 
 // This is a catch-all to make sure everything works.
