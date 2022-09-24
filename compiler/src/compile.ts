@@ -423,6 +423,9 @@ export function addJumpLabels(code:string[]):string[] {
 	const outputCode:string[] = [];
 
 	const cleanedCode = code.map(line => cleanLine(line)).filter(line => line);
+	cleanedCode.forEach(line => {
+		if(getJumpLabel(line)) throw new CompilerError(`Line ${line} contains a jump label. This code is only meant for direct processor output.`);
+	});
 
 	//Identify all jump addresses
 	for(const line of cleanedCode){

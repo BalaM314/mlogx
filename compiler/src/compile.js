@@ -317,6 +317,10 @@ export function addJumpLabels(code) {
     const transformedCode = [];
     const outputCode = [];
     const cleanedCode = code.map(line => cleanLine(line)).filter(line => line);
+    cleanedCode.forEach(line => {
+        if (getJumpLabel(line))
+            throw new CompilerError(`Line ${line} contains a jump label. This code is only meant for direct processor output.`);
+    });
     for (const line of cleanedCode) {
         const label = getJumpLabelUsed(line);
         if (label) {
