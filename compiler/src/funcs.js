@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import * as readline from "readline";
 import { GenericArgs, isArgValidFor, isArgValidForType, typeofArg } from "./args.js";
+import { CompilerError } from "./classes.js";
 import { commands, compilerCommands } from "./commands.js";
 import { bugReportUrl } from "./consts.js";
 import { Log } from "./Log.js";
@@ -94,20 +95,22 @@ export function replaceCompilerConstants(line, variables, ignoreUnknownCompilerC
 }
 export function splitLineIntoArguments(cleanedLine) {
     if (cleanedLine.includes(`"`)) {
-        const replacementLine = [];
+        const args = [""];
         let isInString = false;
         for (const char of cleanedLine) {
             if (char == `"`) {
                 isInString = !isInString;
             }
-            if (isInString && char == " ") {
-                replacementLine.push("\u{F4321}");
+            if (!isInString && char == " ") {
+                args.push("");
             }
             else {
-                replacementLine.push(char);
+                args[args.length - 1] += char;
             }
         }
-        return replacementLine.join("").split(" ").map(arg => arg.replaceAll("\u{F4321}", " "));
+        if (isInString)
+            throw new CompilerError("Unterminated string literal");
+        return args;
     }
     else {
         return cleanedLine.split(" ");

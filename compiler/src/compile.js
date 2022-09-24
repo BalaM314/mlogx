@@ -201,9 +201,6 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, "\t\t")}`);
     }
 }
 export function compileLine(line, compilerConstants, settings, isMain, stack) {
-    if (line.text.includes("\u{F4321}")) {
-        Log.printMessage("line contains U+F4321", { line });
-    }
     const cleanedLine = {
         ...line,
         text: cleanLine(line.text)

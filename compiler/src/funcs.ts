@@ -11,6 +11,7 @@ Contains a lot of utility functions.
 import chalk from "chalk";
 import * as readline from "readline";
 import { Arg, ArgType, GenericArgs, isArgValidFor, isArgValidForType, typeofArg } from "./args.js";
+import { CompilerError } from "./classes.js";
 import {
 	CommandDefinition, commands, CompilerCommandDefinition, compilerCommands
 } from "./commands.js";
@@ -119,20 +120,20 @@ export function replaceCompilerConstants(line:string, variables:CompilerConsts, 
 /**Splits a line into arguments, taking quotes into account. */
 export function splitLineIntoArguments(cleanedLine:string):string[] {
 	if(cleanedLine.includes(`"`)){
-		//aaaaaaaaaaaaaaaaa
-		const replacementLine = [];
+		const args:string[] = [""];
 		let isInString = false;
 		for(const char of cleanedLine){
 			if(char == `"`){
 				isInString = !isInString;
 			}
-			if(isInString && char == " "){
-				replacementLine.push("\u{F4321}");
+			if(!isInString && char == " "){
+				args.push("");
 			} else {
-				replacementLine.push(char);
+				args[args.length - 1] += char;
 			}
 		}
-		return replacementLine.join("").split(" ").map(arg => arg.replaceAll("\u{F4321}", " "));
+		if(isInString) throw new CompilerError("Unterminated string literal");
+		return args;
 		//smort logic so `"amogus sus"` is parsed as one arg
 	} else {
 		return cleanedLine.split(" ");

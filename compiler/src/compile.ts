@@ -286,10 +286,6 @@ export function compileLine(
 } {
 
 	
-	if(line.text.includes("\u{F4321}")){
-		Log.printMessage("line contains U+F4321", {line});
-	}
-	
 	const cleanedLine:Line = {
 		...line,
 		text: cleanLine(line.text)

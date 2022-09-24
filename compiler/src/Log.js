@@ -37,9 +37,6 @@ ${formatLineWithPrefix(d.line)}`,
         level: "warn" },
     "jump label redefined": { for: (d) => `Jump label "${d.jumpLabel}" was defined ${d.numDefinitions} times.`, level: "warn" },
     "jump label missing": { for: (d) => `Jump label "${d.jumpLabel}" is missing.`, level: "warn" },
-    "line contains U+F4321": { for: (d) => `Line includes the character U+F4321 which may cause issues with argument parsing
-${formatLineWithPrefix(d.line)}`,
-        level: "warn" },
     "cannot port invalid line": { for: (d) => `Line cannot be ported as it is not valid for any known command definition
 ${formatLineWithPrefix(d.line)}`,
         level: "warn" },

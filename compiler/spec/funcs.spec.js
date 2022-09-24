@@ -206,6 +206,9 @@ describe("splitLineIntoArguments", () => {
     it("should not split strings", () => {
         expect(splitLineIntoArguments(`print "amogus sussy" and "a eea "`)).toEqual(["print", `"amogus sussy"`, "and", `"a eea "`]);
     });
+    it("should throw an error on unterminated string literals", () => {
+        expect(() => splitLineIntoArguments(`print "amogus sussy" and "a eea '`)).toThrow();
+    });
 });
 describe("transformVariables", () => {
     it("should only edit variables", () => {
