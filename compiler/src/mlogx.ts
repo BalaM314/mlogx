@@ -59,8 +59,9 @@ ${compilerCommands[name].overloads.map(commandDefinition =>
 		Log.none(chalk.white(
 `Info for generic arg type ${name}:
 
+${arg.description ?? ""}
 Accepts:
-${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof RegExp ? `* Any string matching the regex /${thing.source}/` : `* "${thing}"`).join("\n") : `Anything accepted by the function ${arg.validator.toString()}`}
+${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof RegExp ? `* Any string matching the regex /${thing.source}/` : `* "${thing}"`).join("\n") : `* Anything accepted by the function ${arg.validator.toString()}`}
 `
 		));
 		return 0;

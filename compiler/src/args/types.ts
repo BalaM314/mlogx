@@ -41,6 +41,7 @@ export interface PreprocessedArgKey {
 	exclude?: string[];
 	/**If this is true, typeofArg() will not estimate this as the type of an arg. Useful for things like jumpAddress. */
 	doNotGuess?: true;
+	description?: string;
 }
 export interface ArgKey {
 	/**Checks if a string is valid for this arg. Can be an array of strings or regexes or a function. */
@@ -54,4 +55,5 @@ export interface ArgKey {
 	exclude: string[];
 	/**If this is true, typeofArg() will not estimate this as the type of an arg. Useful for things like jumpAddress. */
 	doNotGuess: boolean;
+	description?: string;
 }
