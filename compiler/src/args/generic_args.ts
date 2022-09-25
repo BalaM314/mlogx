@@ -143,7 +143,7 @@ export const GenericArgs = (
 		description: "Used in the typed set statement, specifies the type of a variable. Example: :building :unitType"
 	}],
 	["sOperandDouble", { //short (or symbol) operand double
-		validator: (arg:string) => arg in shortOperandMapping,
+		validator: Object.keys(shortOperandMapping),
 		description: "An operand that requires 2 values. Outputs either a boolean or a number. Unlike operandDouble, this uses symbols such as <= instead of lessThanEq."
 	}],
 	["targetClass", {

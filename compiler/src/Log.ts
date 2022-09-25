@@ -11,8 +11,7 @@ Handles everything related to console output.
 
 import chalk from "chalk";
 import { extend, formatLineWithPrefix, isKey } from "./funcs.js";
-import { Settings } from "./settings.js";
-import type { CompiledLine, Line, none, TData } from "./types.js";
+import type { CompiledLine, Line, none } from "./types.js";
 
 export interface LogLevels {
 	[index:string]: [color: (input:string) => string, tag:string]
