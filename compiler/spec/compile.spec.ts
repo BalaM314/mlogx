@@ -13,6 +13,7 @@ Contains tests related to compilation.
 import { compilerCommands } from "../src/commands.js";
 import { addJumpLabels, compileLine, compileMlogxToMlog } from "../src/compile.js";
 import { range } from "../src/funcs.js";
+import { Log } from "../src/Log.js";
 import { Settings, settingsSchema } from "../src/settings.js";
 import { ForStackElement, StackElement } from "../src/stack_elements.js";
 import {
@@ -22,6 +23,8 @@ import {
 } from "./samplePrograms.js";
 import { makeForEl, makeIfEl, makeLine, makeNamespaceEl, anyLine } from "./test_utils.js";
 
+
+Log.throwWarnAndErr = true;
 
 function settingsForFilename(name:string, checkTypes:boolean = false): Settings {
 	return settingsSchema.validateSync({

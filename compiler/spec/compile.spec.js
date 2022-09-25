@@ -1,9 +1,11 @@
 import { compilerCommands } from "../src/commands.js";
 import { addJumpLabels, compileLine, compileMlogxToMlog } from "../src/compile.js";
 import { range } from "../src/funcs.js";
+import { Log } from "../src/Log.js";
 import { settingsSchema } from "../src/settings.js";
 import { addLabelsTests, allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
 import { makeForEl, makeIfEl, makeLine, makeNamespaceEl, anyLine } from "./test_utils.js";
+Log.throwWarnAndErr = true;
 function settingsForFilename(name, checkTypes = false) {
     return settingsSchema.validateSync({
         filename: name,

@@ -60,9 +60,12 @@ export class Logger {
         this.logLevels = logLevels;
         this.messages = messages;
         this.level = "info";
+        this.throwWarnAndErr = false;
     }
     printWithLevel(level, message) {
         this.level = level;
+        if (this.throwWarnAndErr && (level == "warn" || level == "err" || level == "fatal"))
+            throw new Error(`${level} ${message}`);
         console.log(this.logLevels[level][0](`${logLevels[level][1]}${logLevels[level][1].length == 0 ? "" : "\t"}${message}`));
     }
     debug(message) { this.printWithLevel("debug", message); }
