@@ -99,7 +99,7 @@ export function removeComments(line:string):string {
 
 /**Replaces compiler constants in a line. */
 export function replaceCompilerConstants(line:string, variables:CompilerConsts, ignoreUnknownCompilerConsts:boolean = false):string {
-	const specifiedConsts = line.match(/(?<!\\\$\()(?<=\$\()[\w-.]+(?=\))/g);
+	const specifiedConsts = line.match(/(?<!\\\$\()(?<=\$\()[^()]+(?=\))/g);
 	specifiedConsts?.forEach(key => {
 		if(variables.has(key)){
 			const value = variables.get(key)!;
@@ -315,10 +315,6 @@ export function getJumpLabelUsed(line:string): string | null {
 export function getJumpLabel(cleanedLine:string):string | null {
 	return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0] ?? null;
 }
-
-//#endregion
-//#region stack
-
 
 //#endregion
 //#region typechecking

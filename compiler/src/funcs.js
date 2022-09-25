@@ -74,7 +74,7 @@ export function removeComments(line) {
     return parsedChars.join("");
 }
 export function replaceCompilerConstants(line, variables, ignoreUnknownCompilerConsts = false) {
-    const specifiedConsts = line.match(/(?<!\\\$\()(?<=\$\()[\w-.]+(?=\))/g);
+    const specifiedConsts = line.match(/(?<!\\\$\()(?<=\$\()[^()]+(?=\))/g);
     specifiedConsts?.forEach(key => {
         if (variables.has(key)) {
             const value = variables.get(key);
