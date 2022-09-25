@@ -78,8 +78,13 @@ export interface CompilerCommandDefinition<StackEl> {
 		element:StackEl | null;
 		skipTypeChecks?:boolean;
 	};
+	/**Called on each line in a block before it compiles. */
+	onprecompile?: (line:Line, stack:StackElement[]) => {
+		output:Line;
+		skipCompilation?:boolean;
+	}
 	/**Called on each line in a block. */
-	oninblock?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
+	onpostcompile?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
 		compiledCode:CompiledLine[];
 		skipTypeChecks?:boolean;
 	}
@@ -104,8 +109,13 @@ export interface PreprocessedCompilerCommandDefinition<StackEl> {
 		element:Omit<StackEl, "commandDefinition"> | null;
 		skipTypeChecks?:boolean;
 	};
-	/**Called on each line in a block. */
-	oninblock?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
+	/**Called on each line in a block before it compiles. */
+	onprecompile?: (line:Line, stack:StackElement[]) => {
+		output:Line;
+		skipCompilation?:boolean;
+	}
+	/**Called on each line in a block after it compiles. */
+	onpostcompile?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
 		compiledCode:CompiledLine[];
 		skipTypeChecks?:boolean;
 	}

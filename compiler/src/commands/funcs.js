@@ -45,8 +45,9 @@ export function processCompilerCommands(preprocessedCommands) {
                 name: id,
                 args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
                 onbegin: command.onbegin,
-                oninblock: command.oninblock,
-                onend: command.onend
+                onprecompile: command.onprecompile,
+                onpostcompile: command.onpostcompile,
+                onend: command.onend,
             };
             if (commandDefinition.onbegin) {
                 const oldFunction = commandDefinition.onbegin;
