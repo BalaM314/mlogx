@@ -342,7 +342,7 @@ export function addJumpLabels(code) {
             transformedCode.push(line);
         }
         else {
-            Log.err(`Line "${line}" is invalid.`);
+            Log.printMessage("line invalid", { line });
         }
     }
     for (const lineNumber in transformedCode) {

@@ -69,6 +69,19 @@ ${formatLineWithPrefix(d.line)}`
 ${formatLineWithPrefix(d.line)}`
 	, level:"warn"},
 	"unknown compiler const": {for:(d:{name:string}) => `Unknown compiler const "${d.name}"`, level:"warn"},
+	"line invalid": {for:(d:{line:string}) => `Line "${d.line}" is invalid.`, level:"err"},
+	"commands cannot contain spaces": {for:(d:none) => `Commands cannot contain spaces.`, level:"err"},
+	"unknown command or gat": {for:(d:{name:string}) => `Unknown command or generic arg type "${d.name}"`, level:"err"},
+	"command moved": {for:(d:{appname:string, command:string}) => `"${d.appname} --${d.command}" was moved to "${d.appname} ${d.command}"`, level:"err"},
+	"verbose mode on": {for:(d:none) => `Verbose mode enabled`, level:"debug"},
+	"file changes detected": {for:(d:{filename:string}) => `\nFile changes detected: ${d.filename}`, level:"announce"},
+	"compiling folder": {for:(d:{name:string}) => `Compiling folder ${d.name}`, level:"announce"},
+	"invalid path": {for:(d:{name:string, reason?:string}) => `Invalid path specified. Path ${d.name} ${d.reason ?? "does not exist."}.`, level:"err"},
+	"adding jump labels": {for:(d:{filename:string}) => `Adding jump labels to file ${d.filename}`, level:"announce"},
+	"writing to": {for:(d:{outPath:string}) => `Writing to ${d.outPath}`, level:"announce"},
+	"cannot port mlogx": {for:(d:{path:string}) => `File ${d.path} is already mlogx. If you would like to port it again, please rename it to .mlog.`, level:"err"},
+	"port successful": {for:(d:{filename:string}) => `Ported file ${d.filename} to mlogx.`, level:"announce"},
+	"bad arg string": {for:(d:{name:string}) => `Possibly bad arg string "${d.name}", assuming it means a non-generic arg`, level:"warn"},
 	//"name": {for:(d:{}) => ``, level:""},
 });
 

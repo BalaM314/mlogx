@@ -455,7 +455,7 @@ export function addJumpLabels(code:string[]):string[] {
 		} else if(commandDefinition != undefined || getJumpLabel(line)){
 			transformedCode.push(line);
 		} else {
-			Log.err(`Line "${line}" is invalid.`);
+			Log.printMessage("line invalid", {line});
 		}
 	}
 

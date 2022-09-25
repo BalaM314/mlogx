@@ -13,7 +13,7 @@ export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command", (opts) => {
     const name = opts.positionalArgs[0];
     if (name.includes(" ")) {
-        Log.err(`Commands cannot contain spaces.`);
+        Log.printMessage("commands cannot contain spaces", {});
         return 1;
     }
     if (isKey(commands, name)) {
@@ -47,7 +47,7 @@ ${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof R
         return 0;
     }
     else {
-        Log.err(`Unknown command or generic arg type "${name}"`);
+        Log.printMessage("unknown command or gat", { name });
         return 1;
     }
 }, false, {
@@ -83,12 +83,10 @@ mlogx.command("init", "Creates a new project", (opts) => {
 }, ["new", "n"]);
 mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
     if ("init" in opts.namedArgs) {
-        Log.err(`"${app.name} --init" was moved to "${app.name} init".`);
-        return 1;
+        Log.printMessage("command moved", { appname: app.name, command: "init" });
     }
     if ("info" in opts.namedArgs) {
-        Log.err(`"${app.name} --info" was moved to "${app.name} info".`);
-        return 1;
+        Log.printMessage("command moved", { appname: app.name, command: "info" });
     }
     const target = opts.positionalArgs[0] ?? process.cwd();
     const settingsOverrides = {
@@ -100,7 +98,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
     const cacheDirectory = fs.existsSync(path.join(app.sourceDirectory, "cache")) ? path.join(app.sourceDirectory, "cache") : path.join(app.sourceDirectory, "../cache");
     const icons = parseIcons(fs.readFileSync(path.join(cacheDirectory, "icons.properties"), "utf-8").split(/\r?\n/));
     if (settingsOverrides.compilerOptions?.verbose) {
-        Log.announce("Using verbose mode");
+        Log.printMessage("verbose mode on", {});
     }
     if ("watch" in opts.namedArgs) {
         let lastCompiledTime = Date.now();
@@ -110,7 +108,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
         }, (type, filename) => {
             if (filename?.toString().endsWith(".mlogx")) {
                 if (Date.now() - lastCompiledTime > 1000) {
-                    Log.announce(`\nFile changes detected! ${filename.toString()}`);
+                    Log.printMessage("file changes detected", { filename });
                     const parentdirs = filename.toString().split(path.sep).slice(0, -1);
                     let dirToCompile;
                     if (parentdirs.at(-1) != undefined) {
@@ -129,7 +127,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
                     else {
                         dirToCompile = process.cwd();
                     }
-                    Log.announce(`Compiling directory ${dirToCompile}`);
+                    Log.printMessage("compiling folder", { name: dirToCompile });
                     compileDirectory(dirToCompile, stdlibDirectory, settingsOverrides, icons);
                     lastCompiledTime = Date.now();
                 }
@@ -138,16 +136,16 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
         return -1;
     }
     if (!fs.existsSync(target)) {
-        Log.err(`Invalid path specified.\nPath ${target} does not exist.`);
+        Log.printMessage("invalid path", { name: target });
         return 1;
     }
     if (fs.lstatSync(target).isDirectory()) {
-        Log.announce(`Compiling folder ${target}`);
+        Log.printMessage("compiling folder", { name: target });
         compileDirectory(target, stdlibDirectory, settingsOverrides, icons);
         return 0;
     }
     else {
-        Log.announce(`Compiling file ${target}`);
+        Log.printMessage("compiling file", { filename: target });
         compileFile(target, settingsOverrides, icons);
         return 0;
     }
@@ -171,19 +169,18 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded jumps.", (opts) => {
     const target = opts.positionalArgs[0];
     if (!fs.existsSync(target)) {
-        Log.err(`Invalid path specified.\nPath ${target} does not exist.`);
+        Log.printMessage("invalid path", { name: target });
         return 1;
     }
     if (fs.lstatSync(target).isDirectory()) {
-        Log.err(`Invalid path specified.\nPath ${target} is a directory.`);
+        Log.printMessage("invalid path", { name: target, reason: "is a directory" });
         return 1;
     }
     else {
-        Log.none(chalk.gray(`This command was made possible by looking at SByte's python code.`));
-        Log.announce(`Adding jump labels to file ${target}`);
+        Log.printMessage("adding jump labels", { filename: target });
         const data = fs.readFileSync(target, "utf-8").split(/\r?\n/g);
         const output = addJumpLabels(data);
-        Log.announce(`Writing to ${opts.namedArgs["output"]}`);
+        Log.printMessage("writing to", { outPath: opts.namedArgs["output"] });
         fs.writeFileSync(opts.namedArgs["output"], output.join("\r\n"));
         return 0;
     }
@@ -208,18 +205,18 @@ mlogx.command("port", "Ports MLOG code.", (opts) => {
     }
     catch (err) {
         if (err.message.startsWith("ENOENT")) {
-            Log.err(`Filepath "${sourcePath}" does not exist or cannot be written to.`);
+            Log.printMessage("invalid path", { name: outputPath, reason: "does not exist or cannot be written to" });
         }
         return 1;
     }
     if (sourcePath.endsWith(".mlogx")) {
-        Log.err(`File ${sourcePath} is already mlogx. If you would like to port it again, please rename it to .mlog`);
+        Log.printMessage("cannot port mlogx", { path: sourcePath });
         return 1;
     }
     const program = fs.readFileSync(sourcePath, "utf-8").split(/\r?\n/g);
     const portedProgram = portCode(program, PortingMode.shortenSyntax);
     fs.writeFileSync(outputPath, portedProgram.join("\r\n"), "utf-8");
-    Log.announce(`Ported file ${sourcePath} to mlogx.`);
+    Log.printMessage("port successful", { filename: sourcePath });
     return 0;
 }, false, {
     namedArgs: {
