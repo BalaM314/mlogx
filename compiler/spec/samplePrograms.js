@@ -131,8 +131,8 @@ print "sus 3"`.split("\n"),
     "complicated &for test": {
         program: `#&for test
 print "amogus"
-&for x in 1 3 {
-	set thing_$x :number null
+&for z in 1 3 {
+	set thing_$z :number null
 }
 set a thing_2 + 0
 &for x of a d E {
