@@ -96,6 +96,68 @@ export const testPrograms = {
         expectedOutput: [],
         compilerConsts: new Map()
     },
+    "&if test": {
+        program: `#&if test
+print "amogus"
+&if true {
+	print "true"
+}
+&if false {
+	print "false"
+}
+&if true {
+	print "true!"
+	&if false {
+		print "false!"
+	}
+}`.split("\n"),
+        expectedOutput: `print "amogus"
+print "true"
+print "true!"`.split("\n"),
+        compilerConsts: new Map()
+    },
+    "&for test": {
+        program: `#&for test
+print "amogus"
+&for x in 1 3 {
+	print "sus $(x)"
+}`.split("\n"),
+        expectedOutput: `print "amogus"
+print "sus 1"
+print "sus 2"
+print "sus 3"`.split("\n"),
+        compilerConsts: new Map()
+    },
+    "complicated &for test": {
+        program: `#&for test
+print "amogus"
+&for x in 1 3 {
+	set thing_$x :number null
+}
+set a thing_2 + 0
+&for x of a d E {
+	print "sus $(x)"
+	&for Y in 5 6 {
+		print "amogus $(x) $Y"
+	}
+}
+`.split("\n"),
+        expectedOutput: `print "amogus"
+set thing_1 null
+set thing_2 null
+set thing_3 null
+op add a thing_2 0
+print "sus a"
+print "amogus a 5"
+print "amogus a 6"
+print "sus d"
+print "amogus d 5"
+print "amogus d 6"
+print "sus E"
+print "amogus E 5"
+print "amogus E 6"`.split("\n"),
+        compilerConsts: new Map()
+    },
     throughputCounter: {
         program: `#Item ThroughputCounter by BalaM314
 set stdout message1
