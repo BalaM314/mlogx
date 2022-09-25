@@ -83,9 +83,9 @@ export interface CompilerCommandDefinition<StackEl> {
 		output:Line;
 		skipCompilation?:boolean;
 	}
-	/**Called on each line in a block. */
+	/**Called on each line in a block after it compiles. */
 	onpostcompile?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
-		compiledCode:CompiledLine[];
+		modifiedOutput:CompiledLine[];
 		skipTypeChecks?:boolean;
 	}
 	/**Called when a block ends. */
@@ -116,7 +116,7 @@ export interface PreprocessedCompilerCommandDefinition<StackEl> {
 	}
 	/**Called on each line in a block after it compiles. */
 	onpostcompile?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
-		compiledCode:CompiledLine[];
+		modifiedOutput:CompiledLine[];
 		skipTypeChecks?:boolean;
 	}
 	/**Called when a block ends. */

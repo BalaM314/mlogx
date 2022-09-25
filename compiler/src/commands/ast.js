@@ -483,7 +483,7 @@ export const compilerCommands = processCompilerCommands({
                 onpostcompile(compiledOutput, stack) {
                     topForLoop(stack)?.loopBuffer.push(...compiledOutput);
                     return {
-                        compiledCode: []
+                        modifiedOutput: []
                     };
                 },
                 onend(line, removedStackElement) {
@@ -517,7 +517,7 @@ export const compilerCommands = processCompilerCommands({
                 onpostcompile(compiledOutput, stack) {
                     topForLoop(stack)?.loopBuffer.push(...compiledOutput);
                     return {
-                        compiledCode: []
+                        modifiedOutput: []
                     };
                 },
                 onend(line, removedStackElement) {
@@ -569,12 +569,12 @@ export const compilerCommands = processCompilerCommands({
                 onpostcompile(compiledOutput, stack) {
                     if (hasDisabledIf(stack)) {
                         return {
-                            compiledCode: []
+                            modifiedOutput: []
                         };
                     }
                     else {
                         return {
-                            compiledCode: compiledOutput
+                            modifiedOutput: compiledOutput
                         };
                     }
                 },
@@ -598,7 +598,7 @@ export const compilerCommands = processCompilerCommands({
                 },
                 onpostcompile(compiledOutput, stack) {
                     return {
-                        compiledCode: compiledOutput.map(line => {
+                        modifiedOutput: compiledOutput.map(line => {
                             const commandDefinition = getCommandDefinition(line[0]);
                             if (!commandDefinition) {
                                 impossible();

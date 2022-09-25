@@ -3,7 +3,7 @@ import { commands } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsCompatibleWithType, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, impossible, parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand } from "./funcs.js";
 import { Log } from "./Log.js";
-import { hasDisabledIf, hasElement, topForLoop } from "./stack_elements.js";
+import { hasElement } from "./stack_elements.js";
 import { CommandErrorType } from "./types.js";
 export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
     const [programType, requiredVars] = parsePreprocessorDirectives(mlogxProgram);
@@ -51,13 +51,29 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
             sourceFilename: settings.filename
         };
         try {
-            const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(sourceLine, compilerConstants, settings, isMain, stack);
+            let modifiedLine = sourceLine;
+            for (const def of stack.map(el => el.commandDefinition).reverse()) {
+                if (def.onprecompile) {
+                    const { output, skipCompilation } = def.onprecompile(modifiedLine, stack);
+                    if (skipCompilation)
+                        continue;
+                    modifiedLine = output;
+                }
+            }
+            const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(modifiedLine, compilerConstants, settings, isMain, stack);
             if (modifiedStack)
                 stack = modifiedStack;
-            if (hasDisabledIf(stack)) {
-                continue;
+            let doTypeChecks = !skipTypeChecks;
+            let modifiedCode = compiledCode;
+            for (const def of stack.map(el => el.commandDefinition).reverse()) {
+                if (def.onpostcompile) {
+                    const { modifiedOutput, skipTypeChecks } = def.onpostcompile(modifiedCode, stack);
+                    if (skipTypeChecks)
+                        doTypeChecks = false;
+                    modifiedCode = modifiedOutput;
+                }
             }
-            if (!hasInvalidStatements && !skipTypeChecks && !hasElement(stack, "&for")) {
+            if (doTypeChecks) {
                 try {
                     for (const compiledLine of compiledCode) {
                         typeCheckLine(compiledLine, typeCheckingData);
@@ -74,12 +90,7 @@ ${formatLineWithPrefix(sourceLine)}`);
                     }
                 }
             }
-            if (hasElement(stack, "&for")) {
-                topForLoop(stack)?.loopBuffer.push(...compiledCode);
-            }
-            else {
-                compiledProgram.push(...compiledCode.map(line => line[0]));
-            }
+            compiledProgram.push(...modifiedCode.map(line => line[0]));
         }
         catch (err) {
             if (err instanceof CompilerError) {

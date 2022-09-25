@@ -22,7 +22,7 @@ import {
 } from "./funcs.js";
 import { Log } from "./Log.js";
 import { Settings } from "./settings.js";
-import { hasDisabledIf, hasElement, StackElement, topForLoop } from "./stack_elements.js";
+import { hasElement, StackElement } from "./stack_elements.js";
 import {
 	CommandErrorType, CompiledLine, CompilerConsts, Line, PortingMode, TData, TypeCheckingData
 } from "./types.js";
@@ -87,12 +87,26 @@ export function compileMlogxToMlog(
 			sourceFilename: settings.filename
 		};
 		try {
-			const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(sourceLine, compilerConstants, settings, isMain, stack);
-			if(modifiedStack) stack = modifiedStack; //ew mutable data
-			if(hasDisabledIf(stack)){
-				continue;
+			let modifiedLine = sourceLine;
+			for(const def of stack.map(el => el.commandDefinition).reverse()){
+				if(def.onprecompile){
+					const { output, skipCompilation } = def.onprecompile(modifiedLine, stack);
+					if(skipCompilation) continue;
+					modifiedLine = output;
+				}
 			}
-			if(!hasInvalidStatements && !skipTypeChecks && !hasElement(stack, "&for")){
+			const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(modifiedLine, compilerConstants, settings, isMain, stack);
+			if(modifiedStack) stack = modifiedStack; //ew mutable data
+			let doTypeChecks = !skipTypeChecks;
+			let modifiedCode = compiledCode;
+			for(const def of stack.map(el => el.commandDefinition).reverse()){
+				if(def.onpostcompile){
+					const { modifiedOutput, skipTypeChecks } = def.onpostcompile(modifiedCode, stack);
+					if(skipTypeChecks) doTypeChecks = false;
+					modifiedCode = modifiedOutput;
+				}
+			}
+			if(doTypeChecks){
 				try {
 					for(const compiledLine of compiledCode){
 						typeCheckLine(compiledLine, typeCheckingData);
@@ -109,11 +123,7 @@ ${formatLineWithPrefix(sourceLine)}`
 					}
 				}
 			}
-			if(hasElement(stack, "&for")){
-				topForLoop(stack)?.loopBuffer.push(...compiledCode);
-			} else {
-				compiledProgram.push(...compiledCode.map(line => line[0]));
-			}
+			compiledProgram.push(...modifiedCode.map(line => line[0]));
 		} catch(err){
 			if(err instanceof CompilerError){
 				Log.err(

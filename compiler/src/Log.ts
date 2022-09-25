@@ -105,6 +105,7 @@ export class Logger<_LogLevels extends LogLevels, _Messages extends Messages> {
 			this.level = firstArg;
 			console.log(this.logLevels[this.level][1] + "\t", ...(objects.slice(1)));
 		} else {
+			if(this.level == "announce" || this.level == "none") this.level = "debug";
 			console.log(this.logLevels[this.level][1] + "\t", ...objects);
 		}
 	}
