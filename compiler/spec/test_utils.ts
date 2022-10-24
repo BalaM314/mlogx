@@ -9,7 +9,6 @@ Contains test-related utility functions.
 */
 
 import { compilerCommands } from "../src/commands.js";
-import { addSourcesToCode } from "../src/funcs.js";
 import { ForStackElement, IfStackElement, NamespaceStackElement } from "../src/stack_elements.js";
 import { CommandError, CommandErrorType, Line } from "../src/types.js";
 
@@ -25,7 +24,7 @@ export function makeForEl(varname:string, elements:string[], loopBuffer:string[]
 		commandDefinition: compilerCommands["&for"].overloads[isNumbers ? 0 : 1],
 		variableName: varname,
 		elements,
-		loopBuffer: addSourcesToCode(loopBuffer, sourceLine),
+		loopBuffer: loopBuffer.map(line => makeLine(line)),
 		line: sourceLine ?? {lineNumber:1, text: isNumbers ? `&for ${varname} in ${elements.map(el => parseInt(el)).sort((a, b) => a - b)[0]} ${elements.map(el => parseInt(el)).sort((a, b) => a - b).at(-1)} {` : `&for ${varname} of ${elements.join(" ")} {`, sourceFilename: "[test]"}
 	};
 }
@@ -45,8 +44,18 @@ export function makeLine(text:string, lineNumber:number = 1, sourceFilename:stri
 	};
 }
 
+export function makeCompileLineInput(text:string, sourceText?:string):[cleanedLine: Line, sourceLine: Line] {
+	return [makeLine(text), sourceText ? makeLine(sourceText) : makeLine(text)];
+}
+
 export const anyLine:jasmine.ExpectedRecursive<Line> = {
 	lineNumber: jasmine.any(Number),
 	text: jasmine.any(String),
 	sourceFilename: jasmine.any(String)
+};
+
+export const blankLine = {
+	text: "[test]",
+	lineNumber: 1,
+	sourceFilename: "[test]"
 };

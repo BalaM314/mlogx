@@ -1,3 +1,4 @@
+import deepmerge from "deepmerge";
 import { CompilerError } from "./classes.js";
 import { commands } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
@@ -5,14 +6,19 @@ import { addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyO
 import { Log } from "./Log.js";
 import { hasElement } from "./stack_elements.js";
 import { CommandErrorType } from "./types.js";
-export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
+export function compileMlogxToMlog(mlogxProgram, settings, compilerConsts, typeDefinitions = {
+    jumpLabelsDefined: {},
+    jumpLabelsUsed: {},
+    variableDefinitions: {},
+    variableUsages: {},
+}) {
+    const cleanedProgram = cleanProgram(mlogxProgram, settings);
     const [programType, requiredVars] = parsePreprocessorDirectives(mlogxProgram);
     const isMain = programType == "main" || settings.compilerOptions.mode == "single";
     const compiledProgram = [];
     let stack = [];
-    let typeCheckingData = {
-        jumpLabelsDefined: {},
-        jumpLabelsUsed: {},
+    let pseudoStack = [];
+    let typeCheckingData = deepmerge(typeDefinitions, {
         variableDefinitions: {
             ...processorVariables,
             ...(mlogxProgram ? getParameters(mlogxProgram).reduce((accumulator, [name, type]) => {
@@ -24,12 +30,19 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
                     } });
                 return accumulator;
             }, {}) : {})
-        },
-        variableUsages: {}
-    };
+        }
+    });
     for (const requiredVar of requiredVars) {
         if (requiredVarCode[requiredVar]) {
-            compiledProgram.push(...requiredVarCode[requiredVar][0]);
+            compiledProgram.push(...requiredVarCode[requiredVar][0].map(line => [line, {
+                    text: `[#require'd variable]`,
+                    lineNumber: 0,
+                    sourceFilename: "[#require'd variable]",
+                }, {
+                    text: `[#require'd variable]`,
+                    lineNumber: 0,
+                    sourceFilename: "[#require'd variable]",
+                }]));
             typeCheckingData.variableDefinitions[requiredVar] = [{
                     variableType: requiredVarCode[requiredVar][1],
                     line: {
@@ -44,30 +57,27 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
         }
     }
     let hasInvalidStatements = false;
-    for (const line in mlogxProgram) {
-        const sourceLine = {
-            lineNumber: +line + 1,
-            text: mlogxProgram[line],
-            sourceFilename: settings.filename
-        };
+    toNextLine: for (const line of cleanedProgram) {
         try {
-            let modifiedLine = sourceLine;
-            for (const def of stack.map(el => el.commandDefinition).reverse()) {
-                if (def.onprecompile) {
-                    const { output, skipCompilation } = def.onprecompile(modifiedLine, stack);
-                    if (skipCompilation)
-                        continue;
-                    modifiedLine = output;
+            let modifiedLine = line[0];
+            if (line[0].text != "}") {
+                for (const def of stack.map(el => el.commandDefinition).reverse()) {
+                    if (def.onprecompile) {
+                        const output = def.onprecompile({ compilerConsts, line: modifiedLine, settings, stack });
+                        if ("skipCompilation" in output)
+                            continue toNextLine;
+                        modifiedLine = output.output;
+                    }
                 }
             }
-            const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(modifiedLine, compilerConstants, settings, isMain, stack);
+            const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData } = compileLine([modifiedLine, line[1]], compilerConsts, settings, isMain, stack);
             if (modifiedStack)
                 stack = modifiedStack;
             let doTypeChecks = !skipTypeChecks;
             let modifiedCode = compiledCode;
             for (const def of stack.map(el => el.commandDefinition).reverse()) {
                 if (def.onpostcompile) {
-                    const { modifiedOutput, skipTypeChecks } = def.onpostcompile(modifiedCode, stack);
+                    const { modifiedOutput, skipTypeChecks } = def.onpostcompile({ compiledOutput: compiledCode, compilerConsts, settings, stack });
                     if (skipTypeChecks)
                         doTypeChecks = false;
                     modifiedCode = modifiedOutput;
@@ -75,14 +85,14 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConstants) {
             }
             if (doTypeChecks) {
                 try {
-                    for (const compiledLine of compiledCode) {
+                    for (const compiledLine of modifiedCode) {
                         typeCheckLine(compiledLine, typeCheckingData);
                     }
                 }
                 catch (err) {
                     if (err instanceof CompilerError) {
                         Log.err(`${err.message}
-${formatLineWithPrefix(sourceLine)}`);
+${formatLineWithPrefix(line[1])}`);
                         hasInvalidStatements = true;
                     }
                     else {
@@ -90,12 +100,14 @@ ${formatLineWithPrefix(sourceLine)}`);
                     }
                 }
             }
-            compiledProgram.push(...modifiedCode.map(line => line[0]));
+            compiledProgram.push(...modifiedCode);
+            if (outputTypeCheckingData)
+                typeCheckingData = deepmerge(typeCheckingData, outputTypeCheckingData);
         }
         catch (err) {
             if (err instanceof CompilerError) {
                 Log.err(`${err.message}
-${formatLineWithPrefix(sourceLine)}`);
+${formatLineWithPrefix(line[1])}`);
             }
             else {
                 throw err;
@@ -117,36 +129,54 @@ ${formatLineWithPrefix(element.line)}`);
     if (outputProgram.length > maxLines) {
         Log.printMessage("program too long", {});
     }
+    return { outputProgram, typeCheckingData };
+}
+export function cleanProgram(program, settings) {
+    const outputProgram = [];
+    for (const line in program) {
+        const sourceLine = {
+            lineNumber: +line + 1,
+            text: program[line],
+            sourceFilename: settings.filename
+        };
+        const cleanedText = cleanLine(sourceLine.text);
+        if (cleanedText != "")
+            outputProgram.push([{
+                    ...sourceLine,
+                    text: cleanedText
+                }, sourceLine]);
+    }
     return outputProgram;
 }
 export function typeCheckLine(compiledLine, typeCheckingData) {
-    const cleanedCompiledLine = cleanLine(compiledLine[0]);
-    const cleanedUncompiledLine = cleanLine(compiledLine[1].text);
-    if (cleanedCompiledLine == "")
+    const compiledText = compiledLine[0];
+    const uncompiledText = compiledLine[2].text;
+    const sourceLine = compiledLine[1];
+    if (compiledText == "")
         return;
-    const labelName = getJumpLabel(cleanedCompiledLine);
+    const labelName = getJumpLabel(compiledText);
     if (labelName) {
         typeCheckingData.jumpLabelsDefined[labelName] ??= [];
         typeCheckingData.jumpLabelsDefined[labelName].push({
-            line: compiledLine[1]
+            line: sourceLine
         });
         return;
     }
-    const compiledCommandArgs = splitLineIntoArguments(cleanedCompiledLine).slice(1);
-    const compiledCommandDefinitions = getCommandDefinitions(cleanedCompiledLine);
-    const uncompiledCommandArgs = splitLineIntoArguments(cleanedUncompiledLine).slice(1);
-    const uncompiledCommandDefinitions = getCommandDefinitions(cleanedUncompiledLine);
+    const compiledCommandArgs = splitLineIntoArguments(compiledText).slice(1);
+    const compiledCommandDefinitions = getCommandDefinitions(compiledText);
+    const uncompiledCommandArgs = splitLineIntoArguments(uncompiledText).slice(1);
+    const uncompiledCommandDefinitions = getCommandDefinitions(uncompiledText);
     if (compiledCommandDefinitions.length == 0) {
         throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
     }
     if (uncompiledCommandDefinitions.length == 0) {
         Log.printMessage("invalid uncompiled command definition", { line: compiledLine });
     }
-    const jumpLabelUsed = getJumpLabelUsed(cleanedCompiledLine);
+    const jumpLabelUsed = getJumpLabelUsed(compiledText);
     if (jumpLabelUsed) {
         typeCheckingData.jumpLabelsUsed[jumpLabelUsed] ??= [];
         typeCheckingData.jumpLabelsUsed[jumpLabelUsed].push({
-            line: compiledLine[1]
+            line: sourceLine
         });
     }
     for (const commandDefinition of compiledCommandDefinitions) {
@@ -154,15 +184,15 @@ export function typeCheckLine(compiledLine, typeCheckingData) {
             typeCheckingData.variableDefinitions[variableName] ??= [];
             typeCheckingData.variableDefinitions[variableName].push({
                 variableType,
-                line: compiledLine[1]
+                line: sourceLine
             });
         });
     }
-    getAllPossibleVariablesUsed(cleanedCompiledLine, compiledLine[1].text).forEach(([variableName, variableTypes]) => {
+    getAllPossibleVariablesUsed(compiledText, compiledLine[1].text).forEach(([variableName, variableTypes]) => {
         typeCheckingData.variableUsages[variableName] ??= [];
         typeCheckingData.variableUsages[variableName].push({
             variableTypes,
-            line: compiledLine[1]
+            line: sourceLine
         });
     });
     return;
@@ -211,33 +241,19 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, "\t\t")}`);
         }
     }
 }
-export function compileLine(line, compilerConstants, settings, isMain, stack) {
+export function compileLine(line, compilerConsts, settings, isMain, stack) {
     const cleanedLine = {
-        ...line,
-        text: cleanLine(line.text)
+        ...line[0],
+        text: replaceCompilerConstants(line[0].text, compilerConsts, false)
     };
-    cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConstants, hasElement(stack, '&for'));
-    if (cleanedLine.text == "") {
-        if (settings.compilerOptions.removeComments) {
-            return {
-                compiledCode: []
-            };
-        }
-        else {
-            return {
-                compiledCode: [[line.text, line]]
-            };
-        }
-    }
     const cleanedText = cleanedLine.text;
     if (getJumpLabel(cleanedText)) {
         return {
             compiledCode: [
                 [
                     hasElement(stack, "namespace") ?
-                        `${addNamespacesToVariable(getJumpLabel(cleanedText), stack)}:` :
-                        settings.compilerOptions.removeComments ? cleanedText : line.text,
-                    line
+                        `${addNamespacesToVariable(getJumpLabel(cleanedText), stack)}:` : cleanedLine.text,
+                    line[1], cleanedLine
                 ]
             ]
         };
@@ -246,13 +262,13 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
         .map(arg => prependFilenameToArg(arg, isMain, settings.filename));
     if (args[0] == "}") {
         const modifiedStack = stack.slice();
-        const endedBlock = modifiedStack.pop();
-        if (!endedBlock) {
+        const removedElement = modifiedStack.pop();
+        if (!removedElement) {
             throw new CompilerError("No block to end");
         }
-        if (endedBlock.commandDefinition.onend) {
+        if (removedElement.commandDefinition.onend) {
             return {
-                ...endedBlock.commandDefinition.onend(cleanedLine, endedBlock),
+                ...removedElement.commandDefinition.onend({ line: cleanedLine, removedElement, settings, compilerConsts, stack }),
                 modifiedStack
             };
         }
@@ -266,7 +282,7 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
     const [commandList, errors] = (args[0].startsWith("&") || args[0] == "namespace" ? getCompilerCommandDefinitions : getCommandDefinitions)(cleanedText, true);
     if (commandList.length == 0) {
         if (errors.length == 0) {
-            throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${line.text}"\nPlease copy this and file an issue on Github.`);
+            throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${line[1].text}"\nPlease copy this and file an issue on Github.`);
         }
         if (errors.length == 1) {
             throw new CompilerError(errors[0].message);
@@ -288,7 +304,7 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
     }
     if (commandList[0].type == "CompilerCommand") {
         if (commandList[0].onbegin) {
-            const { compiledCode, element, skipTypeChecks } = commandList[0].onbegin(args, line, stack);
+            const { compiledCode, element, skipTypeChecks } = commandList[0].onbegin({ line: cleanedLine, stack, settings, compilerConsts });
             return {
                 compiledCode,
                 modifiedStack: element ? stack.concat(element) : undefined,
@@ -302,7 +318,7 @@ export function compileLine(line, compilerConstants, settings, isMain, stack) {
         }
     }
     return {
-        compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), line)
+        compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), line[1], cleanedLine)
     };
 }
 export function getOutputForCommand(args, command, stack) {

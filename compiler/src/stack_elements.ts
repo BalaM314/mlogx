@@ -9,7 +9,7 @@ Contains various constants.
 */
 
 import { CompilerCommandDefinition } from "./commands.js";
-import { CompiledLine, Line } from "./types.js";
+import { Line } from "./types.js";
 
 
 
@@ -25,7 +25,7 @@ export interface ForStackElement extends BaseStackElement {
 	type: "&for";
 	elements: string[];
 	variableName: string;
-	loopBuffer: CompiledLine[];
+	loopBuffer: Line[];
 }
 export interface IfStackElement extends BaseStackElement {
 	type: "&if";

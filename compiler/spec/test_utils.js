@@ -1,5 +1,4 @@
 import { compilerCommands } from "../src/commands.js";
-import { addSourcesToCode } from "../src/funcs.js";
 import { CommandErrorType } from "../src/types.js";
 export function makeNamespaceEl(name) {
     return { type: "namespace", commandDefinition: compilerCommands["namespace"].overloads[0], name, line: { lineNumber: 1, text: `namespace ${name} {`, sourceFilename: "[test]" } };
@@ -11,7 +10,7 @@ export function makeForEl(varname, elements, loopBuffer = [], sourceLine) {
         commandDefinition: compilerCommands["&for"].overloads[isNumbers ? 0 : 1],
         variableName: varname,
         elements,
-        loopBuffer: addSourcesToCode(loopBuffer, sourceLine),
+        loopBuffer: loopBuffer.map(line => makeLine(line)),
         line: sourceLine ?? { lineNumber: 1, text: isNumbers ? `&for ${varname} in ${elements.map(el => parseInt(el)).sort((a, b) => a - b)[0]} ${elements.map(el => parseInt(el)).sort((a, b) => a - b).at(-1)} {` : `&for ${varname} of ${elements.join(" ")} {`, sourceFilename: "[test]" }
     };
 }
@@ -29,8 +28,16 @@ export function makeLine(text, lineNumber = 1, sourceFilename = "[test]") {
         text, lineNumber, sourceFilename
     };
 }
+export function makeCompileLineInput(text, sourceText) {
+    return [makeLine(text), sourceText ? makeLine(sourceText) : makeLine(text)];
+}
 export const anyLine = {
     lineNumber: jasmine.any(Number),
     text: jasmine.any(String),
     sourceFilename: jasmine.any(String)
+};
+export const blankLine = {
+    text: "[test]",
+    lineNumber: 1,
+    sourceFilename: "[test]"
 };

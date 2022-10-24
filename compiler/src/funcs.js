@@ -138,7 +138,7 @@ export function prependFilenameToArg(arg, isMain, filename) {
     return arg.startsWith("__") ? `__${isMain ? "" : filename.replace(/\.mlogx?/gi, "")}${arg}` : arg;
 }
 export function removeUnusedJumps(compiledProgram, jumpLabelUsages) {
-    return compiledProgram.filter(line => !getJumpLabel(line) || getJumpLabel(line) in jumpLabelUsages);
+    return compiledProgram.filter(line => !getJumpLabel(line[0]) || getJumpLabel(line[0]) in jumpLabelUsages);
 }
 export function parseIcons(data) {
     const icons = new Map();
@@ -374,8 +374,8 @@ export function formatLine(line) {
 export function formatLineWithPrefix(line, prefix = "\t\tat ") {
     return chalk.gray(`${prefix}${line.sourceFilename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
-export function addSourcesToCode(code, sourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }) {
-    return code.map(compiledLine => [compiledLine, sourceLine]);
+export function addSourcesToCode(code, sourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }, modifiedSourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }) {
+    return code.map(compiledLine => [compiledLine, sourceLine, modifiedSourceLine]);
 }
 export function exit(message) {
     Log.fatal(message);
@@ -426,4 +426,12 @@ export function isKey(obj, thing) {
         return obj.has(thing);
     else
         return thing in obj;
+}
+export function is(input) {
+}
+export function concat(input1, input2) {
+    return new Map([
+        ...input1.entries(),
+        ...(input2 instanceof Array ? input2 : input2.entries())
+    ]);
 }

@@ -45,7 +45,7 @@ export function compileDirectory(directory, stdlibPath, defaultSettings, icons) 
             }, getCompilerConsts(icons, {
                 ...settings,
                 filename
-            }));
+            })).outputProgram.map(line => line[0]);
         }
         catch (err) {
             Log.printMessage("compiling file failed", { filename });
@@ -124,7 +124,7 @@ export function compileFile(name, givenSettings, icons) {
         ...givenSettings
     });
     try {
-        outputData = compileMlogxToMlog(data, settings, getCompilerConsts(icons, settings));
+        outputData = compileMlogxToMlog(data, settings, getCompilerConsts(icons, settings)).outputProgram.map(line => line[0]);
     }
     catch (err) {
         Log.printMessage("compiling file failed", { filename: name });

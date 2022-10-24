@@ -331,31 +331,31 @@ describe("prependFilenameToArg", () => {
 
 describe("removeUnusedJumps", () => {
 	it("should not remove used jumps", () => {
-		expect(removeUnusedJumps([
+		expect(removeUnusedJumps(addSourcesToCode([
 			"label5:",
 			"jump label5 always"
-		], {
+		]), {
 			label5: [{
 				line: makeLine("jump label5 always")
 			}]
-		})).toEqual([
+		})).toEqual(addSourcesToCode([
 			"label5:",
 			"jump label5 always"
-		]);
+		]));
 	});
 	it("should remove unused jumps", () => {
-		expect(removeUnusedJumps([
+		expect(removeUnusedJumps(addSourcesToCode([
 			"label5:",
 			"jump label5 always",
 			"label6:"
-		], {
+		]), {
 			label5: [{
 				line: makeLine("jump label5 always")
 			}]
-		})).toEqual([
+		})).toEqual(addSourcesToCode([
 			"label5:",
 			"jump label5 always"
-		]);
+		]));
 	});
 });
 
@@ -821,14 +821,15 @@ describe("processCommands", () => {
 
 describe("addSourcesToCode", () => {
 	it("should add sources to code", () => {
+		const susLine = makeLine(`print "hello"`, 420, "amogus.mlogx");
 		expect(addSourcesToCode([
 			`print "hello"`,
 			`printflush message1`,
 			`//sussy baka`
-		], makeLine(`print "hello"`, 420, "amogus.mlogx"))).toEqual([
-			[`print "hello"`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
-			[`printflush message1`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
-			[`//sussy baka`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
+		], susLine, susLine)).toEqual([
+			[`print "hello"`, susLine, susLine],
+			[`printflush message1`, susLine, susLine],
+			[`//sussy baka`, susLine, susLine],
 		]);
 	});
 });

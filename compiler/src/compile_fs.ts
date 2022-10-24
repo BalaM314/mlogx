@@ -84,7 +84,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 					...settings,
 					filename
 				})
-			);
+			).outputProgram.map(line => line[0]);
 		} catch(err){
 			Log.printMessage("compiling file failed", {filename});
 			if(err instanceof CompilerError)
@@ -187,7 +187,7 @@ export function compileFile(name:string, givenSettings:PartialRecursive<Settings
 			data,
 			settings,
 			getCompilerConsts(icons, settings)
-		);
+		).outputProgram.map(line => line[0]);
 	} catch(err){
 		Log.printMessage("compiling file failed", {filename:name});
 		if(err instanceof CompilerError){
