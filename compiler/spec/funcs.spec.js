@@ -457,7 +457,15 @@ describe("getCommandDefinitions", () => {
         ]);
         expect(getCommandDefinitions(`jump label always`, true)).toEqual([
             [commands.jump[0]],
-            [commandErrOfType("argumentCount"), commandErrOfType("argumentCount")]
+            [commandErrOfType("argumentCount"), commandErrOfType("argumentCount"), commandErrOfType("argumentCount")]
+        ]);
+        expect(getCommandDefinitions(`lookup amogus output 3`, true)).toEqual([
+            [],
+            [commandErrOfType("badStructure"), commandErrOfType("badStructure"), commandErrOfType("badStructure"), commandErrOfType("badStructure")]
+        ]);
+        expect(getCommandDefinitions(`drawflush 5`, true)).toEqual([
+            [],
+            [commandErrOfType("type")]
         ]);
     });
     it("should return empty if no valid definitions", () => {
