@@ -45,6 +45,14 @@ export function makeLine(text:string, lineNumber:number = 1, sourceFilename:stri
 	};
 }
 
+export function makeCompileLineInput(text:string, lineNumber:number = 1, sourceFilename:string = "[test]"):[cleanedLine:Line, sourceLine:Line] {
+	return [{
+		text, lineNumber, sourceFilename
+	}, {
+		text, lineNumber, sourceFilename
+	}];
+}
+
 export const anyLine:jasmine.ExpectedRecursive<Line> = {
 	lineNumber: jasmine.any(Number),
 	text: jasmine.any(String),

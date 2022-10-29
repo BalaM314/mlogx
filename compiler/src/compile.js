@@ -52,14 +52,9 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConsts, typeD
         }
     }
     let hasInvalidStatements = false;
-    for (const line in mlogxProgram) {
-        const sourceLine = {
-            lineNumber: +line + 1,
-            text: mlogxProgram[line],
-            sourceFilename: settings.filename
-        };
+    for (const [cleanedLine, sourceLine] of cleanedProgram) {
         try {
-            let modifiedLine = sourceLine;
+            let modifiedLine = cleanedLine;
             for (const def of stack.map(el => el.commandDefinition).reverse()) {
                 if (def.onprecompile) {
                     const outputData = def.onprecompile({ line: modifiedLine, stack, settings, compilerConsts });
@@ -68,7 +63,7 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConsts, typeD
                     modifiedLine = outputData.output;
                 }
             }
-            const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData } = compileLine(modifiedLine, compilerConsts, settings, isMain, stack);
+            const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData } = compileLine([modifiedLine, sourceLine], compilerConsts, settings, isMain, stack);
             if (modifiedStack)
                 stack = modifiedStack;
             let doTypeChecks = !skipTypeChecks;
@@ -238,24 +233,8 @@ export function cleanProgram(program, settings) {
     }
     return outputProgram;
 }
-export function compileLine(line, compilerConsts, settings, isMain, stack) {
-    const cleanedLine = {
-        ...line,
-        text: cleanLine(line.text)
-    };
+export function compileLine([cleanedLine, sourceLine], compilerConsts, settings, isMain, stack) {
     cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConsts, hasElement(stack, '&for'));
-    if (cleanedLine.text == "") {
-        if (settings.compilerOptions.removeComments) {
-            return {
-                compiledCode: []
-            };
-        }
-        else {
-            return {
-                compiledCode: [[line.text, line]]
-            };
-        }
-    }
     const cleanedText = cleanedLine.text;
     if (getJumpLabel(cleanedText)) {
         return {
@@ -263,8 +242,8 @@ export function compileLine(line, compilerConsts, settings, isMain, stack) {
                 [
                     hasElement(stack, "namespace") ?
                         `${addNamespacesToVariable(getJumpLabel(cleanedText), stack)}:` :
-                        settings.compilerOptions.removeComments ? cleanedText : line.text,
-                    line
+                        cleanedText,
+                    sourceLine
                 ]
             ]
         };
@@ -293,7 +272,7 @@ export function compileLine(line, compilerConsts, settings, isMain, stack) {
     const [commandList, errors] = (args[0].startsWith("&") || args[0] == "namespace" ? getCompilerCommandDefinitions : getCommandDefinitions)(cleanedText, true);
     if (commandList.length == 0) {
         if (errors.length == 0) {
-            throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${line.text}"\nPlease copy this and file an issue on Github.`);
+            throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${sourceLine.text}"\nPlease copy this and file an issue on Github.`);
         }
         if (errors.length == 1) {
             throw new CompilerError(errors[0].message);
@@ -329,7 +308,7 @@ export function compileLine(line, compilerConsts, settings, isMain, stack) {
         }
     }
     return {
-        compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), line)
+        compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), sourceLine)
     };
 }
 export function getOutputForCommand(args, command, stack) {

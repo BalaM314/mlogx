@@ -88,14 +88,9 @@ export function compileMlogxToMlog(
 	let hasInvalidStatements = false;
 	//Loop through each line and compile it
 
-	for(const line in mlogxProgram){
-		const sourceLine:Line = {
-			lineNumber: +line+1,
-			text: mlogxProgram[line],
-			sourceFilename: settings.filename
-		};
+	for(const [cleanedLine, sourceLine] of cleanedProgram){
 		try {
-			let modifiedLine = sourceLine;
+			let modifiedLine = cleanedLine;
 			for(const def of stack.map(el => el.commandDefinition).reverse()){
 				if(def.onprecompile){
 					const outputData = def.onprecompile({line: modifiedLine, stack, settings, compilerConsts});
@@ -103,7 +98,7 @@ export function compileMlogxToMlog(
 					modifiedLine = outputData.output;
 				}
 			}
-			const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData } = compileLine(modifiedLine, compilerConsts, settings, isMain, stack);
+			const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData } = compileLine([modifiedLine, sourceLine], compilerConsts, settings, isMain, stack);
 			if(modifiedStack) stack = modifiedStack; //ew mutable data
 			let doTypeChecks = !skipTypeChecks;
 			let modifiedCode = compiledCode;
@@ -311,7 +306,7 @@ export function cleanProgram(program:string[], settings:Settings){
 }
 
 export function compileLine(
-	line:Line, compilerConsts: CompilerConsts,
+	[cleanedLine, sourceLine]: [cleanedLine:Line, sourceLine:Line], compilerConsts: CompilerConsts,
 	settings:Settings,
 	isMain:boolean,
 	stack:StackElement[]
@@ -323,22 +318,7 @@ export function compileLine(
 } {
 
 	
-	const cleanedLine:Line = {
-		...line,
-		text: cleanLine(line.text)
-	};
 	cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConsts, hasElement(stack, '&for'));
-	if(cleanedLine.text == ""){
-		if(settings.compilerOptions.removeComments){
-			return {
-				compiledCode: []
-			};
-		} else {
-			return {
-				compiledCode: [[line.text, line]]
-			};
-		}
-	}
 	const cleanedText = cleanedLine.text;
 
 	//If the text is a jump label, return
@@ -348,8 +328,8 @@ export function compileLine(
 				[
 					hasElement(stack, "namespace") ?
 						`${addNamespacesToVariable(getJumpLabel(cleanedText)!, stack)}:` :
-						settings.compilerOptions.removeComments ? cleanedText : line.text,
-					line
+						cleanedText,
+					sourceLine
 				] as CompiledLine
 			]
 		};
@@ -388,7 +368,7 @@ export function compileLine(
 	if(commandList.length == 0){
 		//No commands were valid
 		if(errors.length == 0){
-			throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${line.text}"\nPlease copy this and file an issue on Github.`);
+			throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${sourceLine.text}"\nPlease copy this and file an issue on Github.`);
 		}
 		if(errors.length == 1){
 			throw new CompilerError(errors[0].message);
@@ -425,7 +405,7 @@ export function compileLine(
 		}
 	}
 	return {
-		compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), line)
+		compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), sourceLine)
 	};
 
 }

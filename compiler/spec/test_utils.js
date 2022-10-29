@@ -29,6 +29,13 @@ export function makeLine(text, lineNumber = 1, sourceFilename = "[test]") {
         text, lineNumber, sourceFilename
     };
 }
+export function makeCompileLineInput(text, lineNumber = 1, sourceFilename = "[test]") {
+    return [{
+            text, lineNumber, sourceFilename
+        }, {
+            text, lineNumber, sourceFilename
+        }];
+}
 export const anyLine = {
     lineNumber: jasmine.any(Number),
     text: jasmine.any(String),
