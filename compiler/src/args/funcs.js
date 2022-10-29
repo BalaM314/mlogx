@@ -1,4 +1,4 @@
-import { impossible, isKey } from "../funcs.js";
+import { isKey } from "../funcs.js";
 import { GenericArgs } from "./generic_args.js";
 import { Log } from "../Log.js";
 export function arg(str) {
@@ -78,12 +78,9 @@ export function isArgValidForType(argToCheck, arg, checkAlsoAccepts = true) {
         return false;
     if (argToCheck == undefined)
         return false;
-    if (!isGenericArg(arg)) {
-        return argToCheck === arg;
-    }
     const argKey = GenericArgs.get(arg);
     if (!argKey)
-        impossible();
+        throw new Error(`Arg ${arg} is not a GAT`);
     for (const excludedArg of argKey.exclude) {
         if (!isKey(GenericArgs, excludedArg)) {
             throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies exclude option ${excludedArg} which is not a known generic arg type`);
@@ -94,6 +91,9 @@ export function isArgValidForType(argToCheck, arg, checkAlsoAccepts = true) {
     }
     if (checkAlsoAccepts) {
         for (const otherType of argKey.alsoAccepts) {
+            if (!isKey(GenericArgs, otherType)) {
+                throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies alsoAccepts option ${otherType} which is not a known generic arg type`);
+            }
             if (isArgValidForType(argToCheck, otherType, false))
                 return true;
         }
@@ -101,8 +101,10 @@ export function isArgValidForType(argToCheck, arg, checkAlsoAccepts = true) {
     return isArgValidForValidator(argToCheck, argKey.validator);
 }
 export function isArgValidFor(str, arg) {
-    if (arg.isVariable) {
+    if (arg.isVariable)
         return isArgValidForType(str, "variable");
-    }
-    return isArgValidForType(str, arg.type);
+    else if (!arg.isGeneric)
+        return str == arg.type;
+    else
+        return isArgValidForType(str, arg.type);
 }

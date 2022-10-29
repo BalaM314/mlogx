@@ -86,14 +86,11 @@ export function isArgValidForValidator(argToCheck:string, validator:ArgKey["vali
 }
 
 /**Returns if an arg is of a specified type. */
-export function isArgValidForType(argToCheck:string, arg:ArgType, checkAlsoAccepts:boolean = true):boolean {
+export function isArgValidForType(argToCheck:string, arg:GAT, checkAlsoAccepts:boolean = true):boolean {
 	if(argToCheck == "") return false;
 	if(argToCheck == undefined) return false;
-	if(!isGenericArg(arg)){
-		return argToCheck === arg;
-	}
 	const argKey = GenericArgs.get(arg);
-	if(!argKey) impossible();
+	if(!argKey) throw new Error(`Arg ${arg} is not a GAT`);
 
 	//Check if the string is valid for any excluded arg
 	for(const excludedArg of argKey.exclude){
@@ -108,6 +105,9 @@ export function isArgValidForType(argToCheck:string, arg:ArgType, checkAlsoAccep
 	//If function is not being called recursively
 	if(checkAlsoAccepts){
 		for(const otherType of argKey.alsoAccepts){
+			if(!isKey(GenericArgs, otherType)){
+				throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies alsoAccepts option ${otherType} which is not a known generic arg type`);
+			}
 			//If the arg is valid for another accepted type, return true
 			if(isArgValidForType(argToCheck, otherType, false)) return true;
 		}
@@ -118,8 +118,10 @@ export function isArgValidForType(argToCheck:string, arg:ArgType, checkAlsoAccep
 }
 
 export function isArgValidFor(str:string, arg:Arg):boolean {
-	if(arg.isVariable){
+	if(arg.isVariable)
 		return isArgValidForType(str, "variable");
-	}
-	return isArgValidForType(str, arg.type);
+	else if(!arg.isGeneric)
+		return str == arg.type;
+	else
+		return isArgValidForType(str, arg.type as GAT);
 }

@@ -1,4 +1,4 @@
-import { arg, GenericArgs, isArgValidFor, isArgValidForType, isArgValidForValidator, isGenericArg, makeArg, typeofArg } from "../src/args.js";
+import { arg, argToString, GenericArgs, isArgValidFor, isArgValidForType, isArgValidForValidator, isGenericArg, makeArg, typeofArg } from "../src/args.js";
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
 import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsCompatibleWithType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, getVariablesUsed, isCommand, parseIcons, parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, typesAreCompatible } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
@@ -8,6 +8,37 @@ describe("templateFunction", () => {
         expect("functionThing").toEqual("functionThing");
     });
 });
+const argTypeData = {
+    correctTypes: [
+        ["@unit", "unit"],
+        ["@thisx", "number"],
+        ["@this", "building"],
+        ["greaterThanEq", "operandTest"],
+        ["-50.2", "number"],
+        [`"amogus"`, "string"],
+        ["sussyFlarogus", "unit"],
+        [`:number`, "ctype"],
+        [`add`, "operandDouble"],
+        [`cos`, "operandSingle"],
+    ],
+    wrongTypes: [
+        ["@unit", "building"],
+        ["@thisx", "operandTest"],
+        ["@this", "string"],
+        ["greaterThanEq", "buildingGroup"],
+        ["-50.2", "unit"],
+        [`"amogus"`, "number"],
+        [`:number`, "variable"],
+    ],
+    correctArgs: [
+        ["amogus", makeArg("amogus", "amogus", false, false)],
+        ["x", makeArg("number")],
+    ],
+    wrongArgs: [
+        ["item", makeArg("unit", "unit", false, false)],
+        ["sus", makeArg("amogus", "amogus", false, false)],
+    ]
+};
 describe("isGenericArg", () => {
     it("should determine if an arg is generic", () => {
         for (const genericArg of Object.keys(GenericArgs)) {
@@ -33,72 +64,36 @@ describe("typeofArg", () => {
 });
 describe("isArgValidForType", () => {
     it("should determine if an arg is of specified type", () => {
-        const correctTypes = [
-            ["@unit", "unit"],
-            ["@thisx", "number"],
-            ["@this", "building"],
-            ["greaterThanEq", "operandTest"],
-            ["-50.2", "number"],
-            [`"amogus"`, "string"],
-            ["sussyFlarogus", "unit"],
-            [`:number`, "ctype"],
-            [`add`, "operandDouble"],
-            [`cos`, "operandSingle"],
-        ];
-        for (const [arg, expectedType] of correctTypes) {
+        for (const [arg, expectedType] of argTypeData.correctTypes) {
             expect(isArgValidForType(arg, expectedType)).withContext(`${arg} should be of type ${expectedType}`).toBe(true);
         }
     });
     it("should determine if an arg is not of specified type", () => {
-        const wrongTypes = [
-            ["@unit", "building"],
-            ["@thisx", "operandTest"],
-            ["@this", "string"],
-            ["greaterThanEq", "buildingGroup"],
-            ["-50.2", "unit"],
-            [`"amogus"`, "number"],
-            [`:number`, "variable"],
-        ];
-        for (const [arg, unexpectedType] of wrongTypes) {
+        for (const [arg, unexpectedType] of argTypeData.wrongTypes) {
             expect(isArgValidForType(arg, unexpectedType)).withContext(`${arg} should not be of type ${unexpectedType}`).toBe(false);
         }
     });
 });
 describe("isArgValidFor", () => {
-    it("should determine if an arg is valid for Arg", () => {
-        const correctTypes = [
-            ["@unit", "unit"],
-            ["@thisx", "number"],
-            ["@this", "building"],
-            ["greaterThanEq", "operandTest"],
-            ["-50.2", "number"],
-            [`"amogus"`, "string"],
-            ["sussyFlarogus", "unit"],
-            [`:number`, "ctype"],
-            [`add`, "operandDouble"],
-            [`cos`, "operandSingle"],
-        ];
-        for (const [arg, expectedType] of correctTypes) {
-            expect(isArgValidFor(arg, makeArg(expectedType))).toBe(true);
+    it("should determine if an arg is valid for an arg type", () => {
+        for (const [arg, expectedType] of argTypeData.correctTypes) {
+            expect(isArgValidFor(arg, makeArg(expectedType))).withContext(`${arg} should be of type ${expectedType}`).toBe(true);
         }
-        expect(isArgValidFor("amogus", makeArg("amogus"))).toBe(true);
-        expect(isArgValidFor("x", makeArg("number"))).toBe(true);
     });
     it("should determine if an arg is not of specified type", () => {
-        const wrongTypes = [
-            ["@unit", "building"],
-            ["@thisx", "operandTest"],
-            ["@this", "string"],
-            ["greaterThanEq", "buildingGroup"],
-            ["-50.2", "unit"],
-            [`"amogus"`, "number"],
-            [`:number`, "variable"],
-        ];
-        for (const [arg, unexpectedType] of wrongTypes) {
-            expect(isArgValidFor(arg, makeArg(unexpectedType))).toBe(false);
+        for (const [arg, unexpectedType] of argTypeData.wrongTypes) {
+            expect(isArgValidFor(arg, makeArg(unexpectedType))).withContext(`${arg} should not be of type ${unexpectedType}`).toBe(false);
         }
-        expect(isArgValidFor("amogus", makeArg("sus"))).toBe(false);
-        expect(isArgValidFor("x", makeArg("operandTest"))).toBe(false);
+    });
+    it("should determine if an arg is valid for an Arg", () => {
+        for (const [str, correctArg] of argTypeData.correctArgs) {
+            expect(isArgValidFor(str, correctArg)).withContext(`${str} should be of type ${argToString(correctArg)}`).toBe(true);
+        }
+    });
+    it("should determine if an arg is invalid for an Arg", () => {
+        for (const [str, wrongArg] of argTypeData.wrongArgs) {
+            expect(isArgValidFor(str, wrongArg)).withContext(`${str} should not be of type ${argToString(wrongArg)}`).toBe(false);
+        }
     });
 });
 describe("isArgValidForValidator", () => {
