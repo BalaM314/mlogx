@@ -1,4 +1,4 @@
-import { buildingNameRegex, MindustryContent, shortOperandMapping } from "../consts.js";
+import { buildingNameRegex, MindustryContent, shortOperandMappings } from "../consts.js";
 export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
         alsoAccepts: obj.alsoAccepts ?? [],
         validator: obj.validator instanceof RegExp ? [obj.validator] : obj.validator,
@@ -116,8 +116,12 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             description: "Used in the typed set statement, specifies the type of a variable. Example: :building :unitType"
         }],
     ["sOperandDouble", {
-            validator: Object.keys(shortOperandMapping),
+            validator: Object.keys(shortOperandMappings.double),
             description: "An operand that requires 2 values. Outputs either a boolean or a number. Unlike operandDouble, this uses symbols such as <= instead of lessThanEq."
+        }],
+    ["sOperandTest", {
+            validator: Object.keys(shortOperandMappings.test),
+            description: "An operand that compares two values, returning true or false. Unlike operandDouble, this uses symbols such as <= instead of lessThanEq."
         }],
     ["targetClass", {
             validator: [

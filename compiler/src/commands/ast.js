@@ -1,6 +1,6 @@
 import { GenericArgs, typeofArg } from "../args.js";
 import { CompilerError } from "../classes.js";
-import { maxLoops, MindustryContent, shortOperandMapping } from "../consts.js";
+import { maxLoops, MindustryContent, shortOperandMappings } from "../consts.js";
 import { Log } from "../Log.js";
 import { addNamespacesToLine, getCommandDefinition, impossible, isKey, range, replaceCompilerConstants, splitLineIntoArguments } from "../funcs.js";
 import { hasDisabledIf, topForLoop } from "../stack_elements.js";
@@ -218,7 +218,7 @@ export const commands = processCommands({
         }, {
             args: "variable:*number arg1:number operand:sOperandDouble arg2:number",
             description: "Alternative syntax for the op statement: sets (variable) to (arg1) (operand) (arg2). Example: set reactor.tooHot reactor.heat => 0.1 will compile to op greaterThanEq reactor.tooHot reactor.heat 0.1",
-            replace: (args) => [`op ${shortOperandMapping[args[3]]} ${args[1]} ${args[2]} ${args[4]}`]
+            replace: (args) => [`op ${shortOperandMappings.double[args[3]]} ${args[1]} ${args[2]} ${args[4]}`]
         }
     ],
     op: [
@@ -312,6 +312,10 @@ export const commands = processCommands({
             args: "jumpAddress:jumpAddress",
             description: "Jumps to (jumpAddress).",
             replace: ["jump %1 always 0 0"]
+        }, {
+            args: "jumpAddress:jumpAddress var1:any operand:sOperandTest var2:any",
+            description: "Alternative jump syntax: Jumps to (jumpAddress) if (var1) (operand) (var2). Uses short operands like <= instead of lessThanEq.",
+            replace: (args) => [`jump ${args[1]} ${shortOperandMappings.test[args[3]]} ${args[2]} ${args[4]}`]
         },
     ],
     ubind: [

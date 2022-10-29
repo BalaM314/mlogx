@@ -69,30 +69,47 @@ export const processorVariables:{
 };
 
 export const maxLines = 999;
-export const shortOperandMapping: {
-	[shortop:string]: string;
+export const shortOperandMappings: {
+	double: {
+		[shortop:string]: string;
+	};
+	test: {
+		[shortop:string]: string;
+	};
 } = {
-	"+": "add",
-	"-": "sub",
-	"*": "mul",
-	"/": "div",
-	"//": "idiv",
-	"**": "pow",
-	"~=": "equal",
-	"==": "strictEqual",
-	"!=": "notEqual",
-	"<>": "notEqual",
-	"&&": "land",
-	"<": "lessThan",
-	"<=": "lessThanEq",
-	">": "greaterThan",
-	">=": "greaterThanEq",
-	"<<": "shl",
-	">>": "shr",
-	"|": "or",
-	"||": "or",
-	"&": "and",
-	"^": "xor",
+	double: {
+		"+": "add",
+		"-": "sub",
+		"*": "mul",
+		"/": "div",
+		"//": "idiv",
+		"**": "pow",
+		"~=": "equal",
+		"==": "strictEqual",
+		"!=": "notEqual",
+		"<>": "notEqual",
+		"&&": "land",
+		"<": "lessThan",
+		"<=": "lessThanEq",
+		">": "greaterThan",
+		">=": "greaterThanEq",
+		"<<": "shl",
+		">>": "shr",
+		"|": "or",
+		"||": "or",
+		"&": "and",
+		"^": "xor",
+	},
+	test: {
+		"~=": "equal",
+		"==": "strictEqual",
+		"!=": "notEqual",
+		"<>": "notEqual",
+		"<": "lessThan",
+		">": "greaterThan",
+		"<=": "lessThanEq",
+		">=": "greaterThanEq",
+	}
 };
 
 /**Brought to you by #id-s in the Mindustry Logic discord server */

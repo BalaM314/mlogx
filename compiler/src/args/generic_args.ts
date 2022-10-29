@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains the generic args AST.
 */
 
-import { buildingNameRegex, MindustryContent, shortOperandMapping } from "../consts.js";
+import { buildingNameRegex, MindustryContent, shortOperandMappings } from "../consts.js";
 import type { ArgKey, PreprocessedArgKey } from "./types.js";
 
 
@@ -143,8 +143,12 @@ export const GenericArgs = (
 		description: "Used in the typed set statement, specifies the type of a variable. Example: :building :unitType"
 	}],
 	["sOperandDouble", { //short (or symbol) operand double
-		validator: Object.keys(shortOperandMapping),
+		validator: Object.keys(shortOperandMappings.double),
 		description: "An operand that requires 2 values. Outputs either a boolean or a number. Unlike operandDouble, this uses symbols such as <= instead of lessThanEq."
+	}],
+	["sOperandTest", { //short (or symbol) operand test
+		validator: Object.keys(shortOperandMappings.test),
+		description: "An operand that compares two values, returning true or false. Unlike operandDouble, this uses symbols such as <= instead of lessThanEq."
 	}],
 	["targetClass", {
 		validator: [
