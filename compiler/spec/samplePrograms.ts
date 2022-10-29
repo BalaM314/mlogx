@@ -159,6 +159,25 @@ print "sus 2"
 print "sus 3"`.split("\n"),
 		compilerConsts: new Map()
 	},
+	"nested &for test": {
+		program:
+`
+&for x of a B {
+	print "sus $(x)"
+	&for Y in 5 6 {
+		print "amogus $(x) $Y"
+	}
+}
+`.split("\n"),
+		expectedOutput:
+`print "sus a"
+print "amogus a 5"
+print "amogus a 6"
+print "sus B"
+print "amogus B 5"
+print "amogus B 6"`.split("\n"),
+		compilerConsts: new Map()
+	},
 	"complicated &for test": {
 		program:
 `#&for test
