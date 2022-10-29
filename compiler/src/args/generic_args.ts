@@ -31,7 +31,11 @@ export const GenericArgs = (
 		validator: [
 			/^-?\d+((\.\d+)|(e-?\d+))?$/,
 			"@thisx", "@thisy", "@ipt", "@links",
-			"@time", "@tick", "@mapw", "@maph",
+			"@mapw", "@maph",
+			"@pi", "π", "@e", "@degToRad", "@radToDeg",
+			"@time", "@tick", "@second", "@minute", "@waveNumber", "@waveTime",
+			"@ctrlProcessor", "@ctrlPlayer", "@ctrlCommand",
+			"@itemCount", "@liquidCount", "@buildingCount", "@unitCount"
 		],
 		alsoAccepts: ["variable", "boolean"],
 		description: "Any numeric value. Can be a regular number like 5, -3.6, or a number in exponential notation like 1e2, which means 1 times 10 ^ 2."
