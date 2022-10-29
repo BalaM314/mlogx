@@ -17,7 +17,7 @@ import {
 	addNamespacesToLine, getCommandDefinition, impossible, isKey, range,replaceCompilerConstants,
 	splitLineIntoArguments
 } from "../funcs.js";
-import { hasDisabledIf, topForLoop } from "../stack_elements.js";
+import { hasDisabledIf, hasElement, topForLoop } from "../stack_elements.js";
 import { CompiledLine, PortingMode } from "../types.js";
 import { processCommands, processCompilerCommands } from "./funcs.js";
 
@@ -500,14 +500,14 @@ export const compilerCommands = processCompilerCommands({
 						modifiedOutput: []
 					};
 				},
-				onend({removedElement}){
+				onend({removedElement, stack}){
 					const compiledCode:CompiledLine[] = [];
 					for(const el of removedElement.elements){
 						compiledCode.push(
-							...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]])), {
+							...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")), {
 								text: replaceCompilerConstants(line[1].text, new Map([
 									[removedElement.variableName, el]
-								])),
+								]), hasElement(stack, "&for")),
 								lineNumber: line[1].lineNumber,
 								sourceFilename: "unknown"
 							}] as CompiledLine)
@@ -537,14 +537,14 @@ export const compilerCommands = processCompilerCommands({
 						modifiedOutput: []
 					};
 				},
-				onend({removedElement}){
+				onend({removedElement, stack}){
 					const compiledCode:CompiledLine[] = [];
 					for(const el of removedElement.elements){
 						compiledCode.push(
-							...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]])), {
+							...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")), {
 								text: replaceCompilerConstants(line[1].text, new Map([
 									[removedElement.variableName, el]
-								])),
+								]), hasElement(stack, "&for")),
 								lineNumber: line[1].lineNumber
 							}] as CompiledLine)
 						);

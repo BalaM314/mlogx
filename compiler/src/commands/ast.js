@@ -3,7 +3,7 @@ import { CompilerError } from "../classes.js";
 import { maxLoops, MindustryContent, shortOperandMappings } from "../consts.js";
 import { Log } from "../Log.js";
 import { addNamespacesToLine, getCommandDefinition, impossible, isKey, range, replaceCompilerConstants, splitLineIntoArguments } from "../funcs.js";
-import { hasDisabledIf, topForLoop } from "../stack_elements.js";
+import { hasDisabledIf, hasElement, topForLoop } from "../stack_elements.js";
 import { PortingMode } from "../types.js";
 import { processCommands, processCompilerCommands } from "./funcs.js";
 export const commands = processCommands({
@@ -491,13 +491,13 @@ export const compilerCommands = processCompilerCommands({
                         modifiedOutput: []
                     };
                 },
-                onend({ removedElement }) {
+                onend({ removedElement, stack }) {
                     const compiledCode = [];
                     for (const el of removedElement.elements) {
-                        compiledCode.push(...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]])), {
+                        compiledCode.push(...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")), {
                                 text: replaceCompilerConstants(line[1].text, new Map([
                                     [removedElement.variableName, el]
-                                ])),
+                                ]), hasElement(stack, "&for")),
                                 lineNumber: line[1].lineNumber,
                                 sourceFilename: "unknown"
                             }]));
@@ -526,13 +526,13 @@ export const compilerCommands = processCompilerCommands({
                         modifiedOutput: []
                     };
                 },
-                onend({ removedElement }) {
+                onend({ removedElement, stack }) {
                     const compiledCode = [];
                     for (const el of removedElement.elements) {
-                        compiledCode.push(...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]])), {
+                        compiledCode.push(...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")), {
                                 text: replaceCompilerConstants(line[1].text, new Map([
                                     [removedElement.variableName, el]
-                                ])),
+                                ]), hasElement(stack, "&for")),
                                 lineNumber: line[1].lineNumber
                             }]));
                     }
