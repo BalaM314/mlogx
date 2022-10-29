@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains pure-ish functions related to compiling.
 */
 
-
+import deepmerge from "deepmerge";
 import { Arg } from "./args.js";
 import { CompilerError } from "./classes.js";
 import { CommandDefinition, commands, CompilerCommandDefinition } from "./commands.js";
@@ -30,21 +30,25 @@ import {
 export function compileMlogxToMlog(
 	mlogxProgram:string[],
 	settings:Settings,
-	compilerConstants: CompilerConsts
-):string[] {
+	compilerConsts:CompilerConsts,
+	typeDefinitions:TypeCheckingData = {
+		jumpLabelsDefined: {},
+		jumpLabelsUsed: {},
+		variableDefinitions: {},
+		variableUsages: {},
+	},
+):{outputProgram:CompiledLine[], typeCheckingData:TypeCheckingData} {
 
 	const [programType, requiredVars] = parsePreprocessorDirectives(mlogxProgram);
 
 	const isMain = programType == "main" || settings.compilerOptions.mode == "single";
-	
-	const compiledProgram:string[] = [];
+	const cleanedProgram = cleanProgram(mlogxProgram, settings);
+	const compiledProgram:CompiledLine[] = [];
 	let stack:StackElement[] = [];
 
 	/** Warning: mutated in a function. */
 	// eslint-disable-next-line prefer-const
-	let typeCheckingData:TypeCheckingData = {
-		jumpLabelsDefined: {},
-		jumpLabelsUsed: {},
+	let typeCheckingData:TypeCheckingData = deepmerge<TypeCheckingData>(typeDefinitions, {
 		variableDefinitions: {
 			...processorVariables,
 			...(mlogxProgram ? getParameters(mlogxProgram).reduce((accumulator:TData.variableDefinitions, [name, type]) => {
@@ -56,14 +60,17 @@ export function compileMlogxToMlog(
 				}});
 				return accumulator;
 			},{}) : {})
-		},
-		variableUsages: {}
-	};
+		}
+	});
 
 	//Add required vars
 	for(const requiredVar of requiredVars){
 		if(requiredVarCode[requiredVar]){
-			compiledProgram.push(...requiredVarCode[requiredVar][0]);
+			compiledProgram.push(...requiredVarCode[requiredVar][0].map(line => [line, {
+				text: `[#require'd variable]`,
+				lineNumber: 0,
+				sourceFilename: "[#require'd variable]",
+			}] as CompiledLine));
 			typeCheckingData.variableDefinitions[requiredVar] = [{
 				variableType: requiredVarCode[requiredVar][1],
 				line: {
@@ -80,6 +87,7 @@ export function compileMlogxToMlog(
 
 	let hasInvalidStatements = false;
 	//Loop through each line and compile it
+
 	for(const line in mlogxProgram){
 		const sourceLine:Line = {
 			lineNumber: +line+1,
@@ -90,18 +98,18 @@ export function compileMlogxToMlog(
 			let modifiedLine = sourceLine;
 			for(const def of stack.map(el => el.commandDefinition).reverse()){
 				if(def.onprecompile){
-					const { output, skipCompilation } = def.onprecompile(modifiedLine, stack);
-					if(skipCompilation) continue;
-					modifiedLine = output;
+					const outputData = def.onprecompile({line: modifiedLine, stack, settings, compilerConsts});
+					if("skipCompilation" in outputData) continue;
+					modifiedLine = outputData.output;
 				}
 			}
-			const { compiledCode, modifiedStack, skipTypeChecks } = compileLine(modifiedLine, compilerConstants, settings, isMain, stack);
+			const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData } = compileLine(modifiedLine, compilerConsts, settings, isMain, stack);
 			if(modifiedStack) stack = modifiedStack; //ew mutable data
 			let doTypeChecks = !skipTypeChecks;
 			let modifiedCode = compiledCode;
 			for(const def of stack.map(el => el.commandDefinition).reverse()){
 				if(def.onpostcompile){
-					const { modifiedOutput, skipTypeChecks } = def.onpostcompile(modifiedCode, stack);
+					const { modifiedOutput, skipTypeChecks } = def.onpostcompile({compiledOutput: compiledCode, compilerConsts, settings, stack});
 					if(skipTypeChecks) doTypeChecks = false;
 					modifiedCode = modifiedOutput;
 				}
@@ -123,7 +131,8 @@ ${formatLineWithPrefix(sourceLine)}`
 					}
 				}
 			}
-			compiledProgram.push(...modifiedCode.map(line => line[0]));
+			compiledProgram.push(...modifiedCode);
+			if(outputTypeCheckingData) typeCheckingData = deepmerge(typeCheckingData, outputTypeCheckingData);
 		} catch(err){
 			if(err instanceof CompilerError){
 				Log.err(
@@ -160,7 +169,7 @@ ${formatLineWithPrefix(element.line)}`
 		Log.printMessage("program too long", {});
 	}
 
-	return outputProgram;
+	return {outputProgram, typeCheckingData};
 	
 }
 
@@ -284,8 +293,25 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, "\t\t")}`
 	}
 }
 
+export function cleanProgram(program:string[], settings:Settings){
+	const outputProgram:[cleanedLine:Line, sourceLine:Line][] = [];
+	for(const line in program){
+		const sourceLine:Line = {
+			lineNumber: +line+1,
+			text: program[line],
+			sourceFilename: settings.filename
+		};
+		const cleanedText = cleanLine(sourceLine.text);
+		if(cleanedText != "") outputProgram.push([{
+			...sourceLine,
+			text: cleanedText
+		}, sourceLine]);
+	}
+	return outputProgram;
+}
+
 export function compileLine(
-	line:Line, compilerConstants: CompilerConsts,
+	line:Line, compilerConsts: CompilerConsts,
 	settings:Settings,
 	isMain:boolean,
 	stack:StackElement[]
@@ -293,6 +319,7 @@ export function compileLine(
 	compiledCode:CompiledLine[];
 	modifiedStack?:StackElement[];
 	skipTypeChecks?:boolean;
+	typeCheckingData?:TypeCheckingData;
 } {
 
 	
@@ -300,7 +327,7 @@ export function compileLine(
 		...line,
 		text: cleanLine(line.text)
 	};
-	cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConstants, hasElement(stack, '&for'));
+	cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConsts, hasElement(stack, '&for'));
 	if(cleanedLine.text == ""){
 		if(settings.compilerOptions.removeComments){
 			return {
@@ -337,13 +364,13 @@ export function compileLine(
 	//Handle ending of blocks
 	if(args[0] == "}"){
 		const modifiedStack = stack.slice();
-		const endedBlock = modifiedStack.pop();
-		if(!endedBlock){
+		const removedElement = modifiedStack.pop();
+		if(!removedElement){
 			throw new CompilerError("No block to end");
 		}
-		if(endedBlock.commandDefinition.onend){
+		if(removedElement.commandDefinition.onend){
 			return {
-				...(endedBlock.commandDefinition as CompilerCommandDefinition<StackElement>).onend!(cleanedLine, endedBlock),
+				...(removedElement.commandDefinition as CompilerCommandDefinition<StackElement>).onend!({line: cleanedLine, removedElement, settings, compilerConsts, stack}),
 				modifiedStack
 			};
 		} else {
@@ -385,7 +412,7 @@ export function compileLine(
 	//Otherwise, the command was valid, so output
 	if(commandList[0].type == "CompilerCommand"){
 		if(commandList[0].onbegin){
-			const { compiledCode, element, skipTypeChecks } = commandList[0].onbegin(args, line, stack);
+			const { compiledCode, element, skipTypeChecks } = commandList[0].onbegin({line: cleanedLine, stack, settings, compilerConsts});
 			return {
 				compiledCode,
 				modifiedStack: element ? stack.concat(element) : undefined,

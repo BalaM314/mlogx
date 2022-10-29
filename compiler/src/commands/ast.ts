@@ -467,7 +467,8 @@ export const compilerCommands = processCompilerCommands({
 			{
 				args: "variable:variable in lowerBound:number upperBound:number {",
 				description: "&for in loops allow you to emit the same code multiple times but with a number incrementing. (variable) is set as a compiler constant and goes from (lowerBound) through (upperBound) inclusive, and the code between the bracket is emitted once for each value..",
-				onbegin(args, line) {
+				onbegin({line}){
+					const args = splitLineIntoArguments(line.text);
 					const lowerBound = parseInt(args[3]);
 					const upperBound = parseInt(args[4]);
 					if(isNaN(lowerBound))
@@ -489,19 +490,19 @@ export const compilerCommands = processCompilerCommands({
 						compiledCode: []
 					};
 				},
-				onpostcompile(compiledOutput, stack) {
+				onpostcompile({compiledOutput, stack}){
 					topForLoop(stack)?.loopBuffer.push(...compiledOutput);
 					return {
 						modifiedOutput: []
 					};
 				},
-				onend(line, removedStackElement) {
+				onend({removedElement}){
 					const compiledCode:CompiledLine[] = [];
-					for(const el of removedStackElement.elements){
+					for(const el of removedElement.elements){
 						compiledCode.push(
-							...removedStackElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedStackElement.variableName, el]])), {
+							...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]])), {
 								text: replaceCompilerConstants(line[1].text, new Map([
-									[removedStackElement.variableName, el]
+									[removedElement.variableName, el]
 								])),
 								lineNumber: line[1].lineNumber,
 								sourceFilename: "unknown"
@@ -513,7 +514,8 @@ export const compilerCommands = processCompilerCommands({
 			},{
 				args: "variable:variable of ...elements:any {",
 				description: "&for of loops allow you to emit the same code multiple times but with a value changed. (variable) is set as a compiler constant and goes through each element of (elements), and the code between the brackets is emitted once for each value.",
-				onbegin(args, line) {
+				onbegin({line}) {
+					const args = splitLineIntoArguments(line.text);
 					return {
 						element: {
 							type: "&for",
@@ -525,19 +527,19 @@ export const compilerCommands = processCompilerCommands({
 						compiledCode: []
 					};
 				},
-				onpostcompile(compiledOutput, stack) {
+				onpostcompile({compiledOutput, stack}) {
 					topForLoop(stack)?.loopBuffer.push(...compiledOutput);
 					return {
 						modifiedOutput: []
 					};
 				},
-				onend(line, removedStackElement) {
+				onend({removedElement}){
 					const compiledCode:CompiledLine[] = [];
-					for(const el of removedStackElement.elements){
+					for(const el of removedElement.elements){
 						compiledCode.push(
-							...removedStackElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedStackElement.variableName, el]])), {
+							...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]])), {
 								text: replaceCompilerConstants(line[1].text, new Map([
-									[removedStackElement.variableName, el]
+									[removedElement.variableName, el]
 								])),
 								lineNumber: line[1].lineNumber
 							}] as CompiledLine)
@@ -553,7 +555,8 @@ export const compilerCommands = processCompilerCommands({
 		overloads: [{
 			args: "variable:boolean {",
 			description: "&if statements allow you to emit code only if a compiler const is true.",
-			onbegin(args, line) {
+			onbegin({line}) {
+				const args = splitLineIntoArguments(line.text);
 				let isEnabled = false;
 				if(args.length == 3){
 					if(!isNaN(parseInt(args[1]))){
@@ -576,7 +579,7 @@ export const compilerCommands = processCompilerCommands({
 					compiledCode: []
 				};
 			},
-			onpostcompile(compiledOutput, stack) {
+			onpostcompile({compiledOutput, stack}) {
 				if(hasDisabledIf(stack)){
 					return {
 						modifiedOutput: []
@@ -595,7 +598,8 @@ export const compilerCommands = processCompilerCommands({
 			{
 				args: "name:string {",
 				description: "[WIP] Prepends _(name)_ to all variable names inside the block to prevent name conflicts. Doesn't work that well.",
-				onbegin(args, line) {
+				onbegin({line}) {
+					const args = splitLineIntoArguments(line.text);
 					return {
 						element: {
 							name: args[1],
@@ -605,7 +609,7 @@ export const compilerCommands = processCompilerCommands({
 						compiledCode: []
 					};
 				},
-				onpostcompile(compiledOutput, stack) {
+				onpostcompile({compiledOutput, stack}) {
 					return {
 						modifiedOutput: compiledOutput.map(line => {
 							const commandDefinition = getCommandDefinition(line[0]);

@@ -15,7 +15,7 @@ import { addJumpLabels, compileLine, compileMlogxToMlog } from "../src/compile.j
 import { range } from "../src/funcs.js";
 import { Log } from "../src/Log.js";
 import { Settings, settingsSchema } from "../src/settings.js";
-import { ForStackElement, StackElement } from "../src/stack_elements.js";
+import { StackElement, ForStackElement } from "../src/stack_elements.js";
 import {
 	addLabelsTests,
 	allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace,
@@ -137,7 +137,7 @@ describe("compileLine", () => {
 		];
 		const compiledOutput = compileLine(makeLine("}"), new Map(), settingsForFilename("sample.mlogx"), false, stack);
 		stack = compiledOutput.modifiedStack ?? stack;
-		(stack.at(-1) as ForStackElement)?.loopBuffer?.push(...compiledOutput.compiledCode);
+		(stack.at(-1) as ForStackElement)?.loopBuffer.push(...compiledOutput.compiledCode);
 		expect(compiledOutput.compiledCode.map(line => line[0]))
 			.toEqual([`set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]);
 		expect(compiledOutput.modifiedStack).toEqual([
@@ -180,7 +180,7 @@ describe("compileMlogxToMlog", () => {
 			expect(
 				compileMlogxToMlog([line],
 					settingsForFilename("sample1.mlogx"), new Map()
-				)
+				).outputProgram.map(line => line[0])
 			).toEqual([line]);
 		}
 	});
@@ -190,7 +190,7 @@ describe("compileMlogxToMlog", () => {
 			expect(() =>
 				compileMlogxToMlog([line],
 					settingsForFilename("sample2.mlogx"), new Map()
-				)
+				).outputProgram.map(line => line[0])
 			).not.toThrow();
 		}
 	});
@@ -200,7 +200,7 @@ describe("compileMlogxToMlog", () => {
 			expect(
 				compileMlogxToMlog([input],
 					settingsForFilename("sample3.mlogx"), new Map()
-				)
+				).outputProgram.map(line => line[0])
 			).toEqual([output]);
 		}
 	});
@@ -222,6 +222,7 @@ describe("compilation", () => {
 		it(`should compile ${name} with expected output`, () => {
 			expect(
 				compileMlogxToMlog(program.program, settingsForFilename("sample3.mlogx"), program.compilerConsts)
+					.outputProgram.map(line => line[0])
 			).toEqual(program.expectedOutput);
 		});
 	}

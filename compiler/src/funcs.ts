@@ -186,9 +186,9 @@ export function prependFilenameToArg(arg:string, isMain:boolean, filename:string
 }
 
 /**Removes unused jumps from a compiled program. */
-export function removeUnusedJumps(compiledProgram:string[], jumpLabelUsages:TData.jumpLabelsUsed):string[] {
+export function removeUnusedJumps(compiledProgram:CompiledLine[], jumpLabelUsages:TData.jumpLabelsUsed):CompiledLine[] {
 	return compiledProgram.filter(line =>
-		!getJumpLabel(line) || getJumpLabel(line)! in jumpLabelUsages
+		!getJumpLabel(line[0]) || getJumpLabel(line[0])! in jumpLabelUsages
 	);
 }
 
@@ -575,6 +575,18 @@ export function isKey<T extends string>(obj:Record<T, unknown> | Map<T, unknown>
 		return obj.has(thing as T);
 	else
 		return (thing as string) in obj;
+}
+
+/**Asserts that a variable is of a particular type. */
+export function is<T>(input:unknown): asserts input is T {
+	//
+}
+
+export function concat<K, V>(input1:Map<K, V>, input2:Map<K, V> | [K, V][]):Map<K, V> {
+	return new Map<K, V>([
+		...input1.entries(),
+		...(input2 instanceof Array ? input2 : input2.entries())
+	]);
 }
 
 //#endregion

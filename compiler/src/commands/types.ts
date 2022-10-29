@@ -9,8 +9,9 @@ Contains type definitions related to commands.
 */
 
 import { Arg, ArgType } from "../args.js";
+import { Settings } from "../settings.js";
 import { StackElement, StackElementMapping } from "../stack_elements.js";
-import { CompiledLine, Line, PortingMode } from "../types.js";
+import { CompiledLine, CompilerConsts, Line, PortingMode, TypeCheckingData } from "../types.js";
 
 
 
@@ -73,25 +74,27 @@ export interface CompilerCommandDefinition<StackEl> {
 	name: string;
 	description: string;
 	/**Called when a block begins. */
-	onbegin?: (args:string[], line:Line, stack:StackElement[]) => {
+	onbegin?: ({line, stack, settings, compilerConsts}:{line:Line, stack:StackElement[], settings:Settings, compilerConsts:CompilerConsts}) => {
 		compiledCode:CompiledLine[];
 		element:StackEl | null;
 		skipTypeChecks?:boolean;
 	};
 	/**Called on each line in a block before it compiles. */
-	onprecompile?: (line:Line, stack:StackElement[]) => {
+	onprecompile?: ({line, stack, settings, compilerConsts}:{line:Line, stack:StackElement[], settings:Settings, compilerConsts:CompilerConsts}) => {
 		output:Line;
-		skipCompilation?:boolean;
+	} | {
+		skipCompilation:true;
 	}
 	/**Called on each line in a block after it compiles. */
-	onpostcompile?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
+	onpostcompile?: ({compiledOutput, stack, settings, compilerConsts}:{compiledOutput:CompiledLine[], stack:StackElement[], settings:Settings, compilerConsts:CompilerConsts}) => {
 		modifiedOutput:CompiledLine[];
 		skipTypeChecks?:boolean;
 	}
 	/**Called when a block ends. */
-	onend?: (line:Line, removedStackElement:StackEl) => {
+	onend?: ({line, removedElement, settings, compilerConsts, stack}:{line:Line, removedElement:StackEl, settings:Settings, compilerConsts:CompilerConsts, stack:StackElement[]}) => {
 		compiledCode:CompiledLine[];
 		skipTypeChecks?:boolean;
+		typeCheckingData?:TypeCheckingData;
 	};
 }
 
@@ -104,25 +107,27 @@ export interface PreprocessedCompilerCommandDefinition<StackEl> {
 	args: string;
 	description: string;
 	/**Called when a block begins. */
-	onbegin?: (args:string[], line:Line, stack:StackElement[]) => {
+	onbegin?: ({line, stack, settings, compilerConsts}:{line:Line, stack:StackElement[], settings:Settings, compilerConsts:CompilerConsts}) => {
 		compiledCode:CompiledLine[];
 		element:Omit<StackEl, "commandDefinition"> | null;
 		skipTypeChecks?:boolean;
 	};
 	/**Called on each line in a block before it compiles. */
-	onprecompile?: (line:Line, stack:StackElement[]) => {
+	onprecompile?: ({line, stack, settings, compilerConsts}:{line:Line, stack:StackElement[], settings:Settings, compilerConsts:CompilerConsts}) => {
 		output:Line;
-		skipCompilation?:boolean;
+	} | {
+		skipCompilation:true;
 	}
 	/**Called on each line in a block after it compiles. */
-	onpostcompile?: (compiledOutput:CompiledLine[], stack:StackElement[]) => {
+	onpostcompile?: ({compiledOutput, stack, settings, compilerConsts}:{compiledOutput:CompiledLine[], stack:StackElement[], settings:Settings, compilerConsts:CompilerConsts}) => {
 		modifiedOutput:CompiledLine[];
 		skipTypeChecks?:boolean;
 	}
 	/**Called when a block ends. */
-	onend?: (line:Line, removedStackElement:StackEl) => {
+	onend?: ({line, removedElement, settings, compilerConsts, stack}:{line:Line, removedElement:StackEl, settings:Settings, compilerConsts:CompilerConsts, stack:StackElement[]}) => {
 		compiledCode:CompiledLine[];
 		skipTypeChecks?:boolean;
+		typeCheckingData?:TypeCheckingData;
 	};
 }
 

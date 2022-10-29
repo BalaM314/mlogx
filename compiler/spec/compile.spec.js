@@ -82,7 +82,7 @@ describe("compileLine", () => {
         ];
         const compiledOutput = compileLine(makeLine("}"), new Map(), settingsForFilename("sample.mlogx"), false, stack);
         stack = compiledOutput.modifiedStack ?? stack;
-        stack.at(-1)?.loopBuffer?.push(...compiledOutput.compiledCode);
+        stack.at(-1)?.loopBuffer.push(...compiledOutput.compiledCode);
         expect(compiledOutput.compiledCode.map(line => line[0]))
             .toEqual([`set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]);
         expect(compiledOutput.modifiedStack).toEqual([
@@ -113,17 +113,17 @@ describe("compileLine", () => {
 describe("compileMlogxToMlog", () => {
     it("should not change any mlog commands", () => {
         for (const line of allMlogCommands) {
-            expect(compileMlogxToMlog([line], settingsForFilename("sample1.mlogx"), new Map())).toEqual([line]);
+            expect(compileMlogxToMlog([line], settingsForFilename("sample1.mlogx"), new Map()).outputProgram.map(line => line[0])).toEqual([line]);
         }
     });
     it("should mark all mlogx commands as valid", () => {
         for (const line of allMlogxCommands) {
-            expect(() => compileMlogxToMlog([line], settingsForFilename("sample2.mlogx"), new Map())).not.toThrow();
+            expect(() => compileMlogxToMlog([line], settingsForFilename("sample2.mlogx"), new Map()).outputProgram.map(line => line[0])).not.toThrow();
         }
     });
     it("should process all shorthands", () => {
         for (const [input, output] of allShorthandCommands) {
-            expect(compileMlogxToMlog([input], settingsForFilename("sample3.mlogx"), new Map())).toEqual([output]);
+            expect(compileMlogxToMlog([input], settingsForFilename("sample3.mlogx"), new Map()).outputProgram.map(line => line[0])).toEqual([output]);
         }
     });
 });
@@ -137,7 +137,8 @@ describe("addJumpLabels", () => {
 describe("compilation", () => {
     for (const [name, program] of Object.entries(testPrograms)) {
         it(`should compile ${name} with expected output`, () => {
-            expect(compileMlogxToMlog(program.program, settingsForFilename("sample3.mlogx"), program.compilerConsts)).toEqual(program.expectedOutput);
+            expect(compileMlogxToMlog(program.program, settingsForFilename("sample3.mlogx"), program.compilerConsts)
+                .outputProgram.map(line => line[0])).toEqual(program.expectedOutput);
         });
     }
 });

@@ -247,31 +247,31 @@ describe("prependFilenameToArg", () => {
 });
 describe("removeUnusedJumps", () => {
     it("should not remove used jumps", () => {
-        expect(removeUnusedJumps([
+        expect(removeUnusedJumps(addSourcesToCode([
             "label5:",
             "jump label5 always"
-        ], {
+        ]), {
             label5: [{
                     line: makeLine("jump label5 always")
                 }]
-        })).toEqual([
+        })).toEqual(addSourcesToCode([
             "label5:",
             "jump label5 always"
-        ]);
+        ]));
     });
     it("should remove unused jumps", () => {
-        expect(removeUnusedJumps([
+        expect(removeUnusedJumps(addSourcesToCode([
             "label5:",
             "jump label5 always",
             "label6:"
-        ], {
+        ]), {
             label5: [{
                     line: makeLine("jump label5 always")
                 }]
-        })).toEqual([
+        })).toEqual(addSourcesToCode([
             "label5:",
             "jump label5 always"
-        ]);
+        ]));
     });
 });
 describe("parseIcons", () => {
