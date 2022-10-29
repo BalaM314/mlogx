@@ -546,6 +546,7 @@ describe("areAnyOfInputsCompatibleWithType", () => {
     });
     it("should return false if types are incompatible", () => {
         expect(areAnyOfInputsCompatibleWithType(["building", "type"], "number")).toEqual(false);
+        expect(areAnyOfInputsCompatibleWithType(["jumpAddress", "unit"], "boolean")).toEqual(false);
     });
 });
 describe("typesAreCompatible", () => {
@@ -554,13 +555,14 @@ describe("typesAreCompatible", () => {
         expect(typesAreCompatible("operandSingle", "operandSingle")).toEqual(true);
     });
     it("should return true if types are compatible", () => {
-        expect(typesAreCompatible("number", "boolean")).toEqual(true);
+        expect(typesAreCompatible("boolean", "number")).toEqual(true);
         expect(typesAreCompatible("any", "jumpAddress")).toEqual(true);
-        expect(typesAreCompatible("any", "unit")).toEqual(true);
+        expect(typesAreCompatible("unit", "any")).toEqual(true);
     });
     it("should return false if types are incompatible", () => {
         expect(typesAreCompatible("number", "string")).toEqual(false);
         expect(typesAreCompatible("operandSingle", "ctype")).toEqual(false);
+        expect(typesAreCompatible("number", "boolean")).toEqual(true);
     });
 });
 describe("acceptsVariable", () => {

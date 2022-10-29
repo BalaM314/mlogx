@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import * as readline from "readline";
-import { GenericArgs, isArgValidFor, isArgValidForType, typeofArg } from "./args.js";
+import { GenericArgs, isArgValidFor, isArgValidForType, isGenericArg, typeofArg } from "./args.js";
 import { CompilerError } from "./classes.js";
 import { commands, compilerCommands } from "./commands.js";
 import { bugReportUrl } from "./consts.js";
@@ -229,24 +229,26 @@ export function getJumpLabel(cleanedLine) {
 }
 export function areAnyOfInputsCompatibleWithType(inputs, output) {
     for (const input of inputs) {
-        if (typesAreCompatible(input, output) || typesAreCompatible(output, input))
+        if (typesAreCompatible(input, output))
             return true;
     }
     return false;
 }
 export function typesAreCompatible(input, output) {
-    if (input == output)
-        return true;
-    if (output == "any")
-        return true;
-    if (output == "null")
-        return true;
-    switch (input) {
-        case "any": return true;
-        case "number": return output == "boolean";
-        case "boolean": return output == "number";
-        default: return false;
+    if (isGenericArg(output)) {
+        if (input == output)
+            return true;
+        if (output == "any" || output == "null")
+            return true;
+        if (input == "any" || input == "null")
+            return true;
+        const argKey = GenericArgs.get(output);
+        if (!argKey)
+            impossible();
+        return argKey.alsoAccepts.includes(input);
     }
+    else
+        return input == output;
 }
 export function acceptsVariable(arg) {
     if (arg == undefined)
