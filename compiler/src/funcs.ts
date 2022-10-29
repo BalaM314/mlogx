@@ -318,24 +318,32 @@ export function getJumpLabel(cleanedLine:string):string | null {
 
 //#endregion
 //#region typechecking
-/**Checks if any of the inputs are compatible with the output type.*/
-export function areAnyOfInputsCompatibleWithType(inputs:ArgType[], output:ArgType):boolean{
+/**Checks if any of the inputs are accepted by the output type.*/
+export function areAnyOfInputsAcceptedByType(inputs:ArgType[], type:ArgType):boolean{
 	for(const input of inputs){
-		if(typesAreCompatible(input, output)) return true;
+		if(typeIsAccepted(input, type)) return true;
 	}
 	return false;
 }
 
-/**Checks if two types are compatible. */
-export function typesAreCompatible(input:ArgType, output:ArgType):boolean {
-	if(isGenericArg(output)){
-		if(input == output) return true;
-		if(output == "any" || output == "null") return true;
+/**Checks if the input type is accepted by any output type.*/
+export function isInputAcceptedByAnyType(input:ArgType, types:ArgType[]):boolean{
+	for(const type of types){
+		if(typeIsAccepted(input, type)) return true;
+	}
+	return false;
+}
+
+/**Checks if an input type is accepted by a type. */
+export function typeIsAccepted(input:ArgType, type:ArgType):boolean {
+	if(isGenericArg(type)){
+		if(input == type) return true;
+		if(type == "any" || type == "null") return true;
 		if(input == "any" || input == "null") return true;
-		const argKey = GenericArgs.get(output);
+		const argKey = GenericArgs.get(type);
 		if(!argKey) impossible();
 		return argKey.alsoAccepts.includes(input);
-	} else return input == output;
+	} else return input == type;
 }
 
 /**Checks if an argument accepts a variable as input. */

@@ -227,28 +227,35 @@ export function getJumpLabelUsed(line) {
 export function getJumpLabel(cleanedLine) {
     return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0] ?? null;
 }
-export function areAnyOfInputsCompatibleWithType(inputs, output) {
+export function areAnyOfInputsAcceptedByType(inputs, type) {
     for (const input of inputs) {
-        if (typesAreCompatible(input, output))
+        if (typeIsAccepted(input, type))
             return true;
     }
     return false;
 }
-export function typesAreCompatible(input, output) {
-    if (isGenericArg(output)) {
-        if (input == output)
+export function isInputAcceptedByAnyType(input, types) {
+    for (const type of types) {
+        if (typeIsAccepted(input, type))
             return true;
-        if (output == "any" || output == "null")
+    }
+    return false;
+}
+export function typeIsAccepted(input, type) {
+    if (isGenericArg(type)) {
+        if (input == type)
+            return true;
+        if (type == "any" || type == "null")
             return true;
         if (input == "any" || input == "null")
             return true;
-        const argKey = GenericArgs.get(output);
+        const argKey = GenericArgs.get(type);
         if (!argKey)
             impossible();
         return argKey.alsoAccepts.includes(input);
     }
     else
-        return input == output;
+        return input == type;
 }
 export function acceptsVariable(arg) {
     if (arg == undefined)

@@ -18,12 +18,12 @@ import {
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
 import {
 	acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode,
-	areAnyOfInputsCompatibleWithType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition,
+	areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition,
 	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
-	getParameters, getVariablesDefined, getVariablesUsed, isCommand, parseIcons,
+	getParameters, getVariablesDefined, getVariablesUsed, isCommand, isInputAcceptedByAnyType, parseIcons,
 	parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces,
 	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand,
-	transformVariables, typesAreCompatible
+	transformVariables, typeIsAccepted
 } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
 import { CompilerConst } from "../src/types.js";
@@ -673,64 +673,85 @@ describe("getCompilerCommandDefinitions", () => {
 
 //#endregion
 //#region typeChecking
-describe("areAnyOfInputsCompatibleWithType", () => {
+describe("typeIsAccepted", () => {
 	it("should return true if types are the same", () => {
-		expect(
-			areAnyOfInputsCompatibleWithType(["number"], "number")
-		).toEqual(true);
-		expect(
-			areAnyOfInputsCompatibleWithType(["building", "type", "number"], "number")
-		).toEqual(true);
+		expect(typeIsAccepted("number", "number"))
+			.toEqual(true);
+		expect(typeIsAccepted("operandSingle", "operandSingle"))
+			.toEqual(true);
 	});
 	it("should return true if types are compatible", () => {
-		expect(
-			areAnyOfInputsCompatibleWithType(["boolean"], "number")
-		).toEqual(true);
-		expect(
-			areAnyOfInputsCompatibleWithType(["any", "operandTest"], "number")
-		).toEqual(true);
+		expect(typeIsAccepted("boolean", "number"))
+			.toEqual(true);
+		expect(typeIsAccepted("any", "jumpAddress"))
+			.toEqual(true);
+		expect(typeIsAccepted("unit", "any"))
+			.toEqual(true);
+		expect(typeIsAccepted("itemType", "senseable"))
+			.toEqual(true);
 	});
 	it("should return false if types are incompatible", () => {
-		expect(
-			areAnyOfInputsCompatibleWithType(["building", "type"], "number")
-		).toEqual(false);
-		expect(
-			areAnyOfInputsCompatibleWithType(["jumpAddress", "unit"], "boolean")
-		).toEqual(false);
+		expect(typeIsAccepted("number", "string"))
+			.toEqual(false);
+		expect(typeIsAccepted("operandSingle", "ctype"))
+			.toEqual(false);
+		expect(typeIsAccepted("number", "boolean"))
+			.toEqual(true);
 	});
 });
-describe("typesAreCompatible", () => {
+
+describe("areAnyOfInputsAcceptedByType", () => {
 	it("should return true if types are the same", () => {
-		expect(
-			typesAreCompatible("number", "number")
-		).toEqual(true);
-		expect(
-			typesAreCompatible("operandSingle", "operandSingle")
-		).toEqual(true);
+		expect(areAnyOfInputsAcceptedByType(["number"], "number"))
+			.toEqual(true);
+		expect(areAnyOfInputsAcceptedByType(["building", "type", "number"], "number"))
+			.toEqual(true);
 	});
 	it("should return true if types are compatible", () => {
-		expect(
-			typesAreCompatible("boolean", "number")
-		).toEqual(true);
-		expect(
-			typesAreCompatible("any", "jumpAddress")
-		).toEqual(true);
-		expect(
-			typesAreCompatible("unit", "any")
-		).toEqual(true);
+		expect(areAnyOfInputsAcceptedByType(["boolean"], "number"))
+			.toEqual(true);
+		expect(areAnyOfInputsAcceptedByType(["any", "operandTest"], "number"))
+			.toEqual(true);
+		expect(areAnyOfInputsAcceptedByType(["itemType"], "senseable"))
+			.toEqual(true);
 	});
 	it("should return false if types are incompatible", () => {
-		expect(
-			typesAreCompatible("number", "string")
-		).toEqual(false);
-		expect(
-			typesAreCompatible("operandSingle", "ctype")
-		).toEqual(false);
-		expect(
-			typesAreCompatible("number", "boolean")
-		).toEqual(true);
+		expect(areAnyOfInputsAcceptedByType(["building", "type"], "number"))
+			.toEqual(false);
+		expect(areAnyOfInputsAcceptedByType(["jumpAddress", "unit"], "boolean"))
+			.toEqual(false);
+		expect(areAnyOfInputsAcceptedByType(["senseable"], "itemType"))
+			.toEqual(false);
 	});
 });
+
+describe("isInputAcceptedByAnyType", () => {
+	it("should return true if types are the same", () => {
+		expect(isInputAcceptedByAnyType("number", ["number"]))
+			.toEqual(true);
+		expect(isInputAcceptedByAnyType("number", ["building", "type", "number"]))
+			.toEqual(true);
+	});
+	it("should return true if types are compatible", () => {
+		expect(isInputAcceptedByAnyType("number", ["boolean"]))
+			.toEqual(true);
+		expect(isInputAcceptedByAnyType("boolean", ["number"]))
+			.toEqual(true);
+		expect(isInputAcceptedByAnyType("number", ["any", "operandTest"]))
+			.toEqual(true);
+		expect(isInputAcceptedByAnyType("itemType", ["senseable"]))
+			.toEqual(true);
+	});
+	it("should return false if types are incompatible", () => {
+		expect(isInputAcceptedByAnyType("number", ["building", "type"]))
+			.toEqual(false);
+		expect(isInputAcceptedByAnyType("boolean", ["jumpAddress", "unit"]))
+			.toEqual(false);
+		expect(isInputAcceptedByAnyType("senseable", ["itemType"]))
+			.toEqual(false);
+	});
+});
+
 describe("acceptsVariable", () => {
 	it("should determine if an Arg accepts a variable as an input", () => {
 		expect(acceptsVariable(makeArg("unit", "target", true, true, false)))

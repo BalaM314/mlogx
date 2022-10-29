@@ -14,10 +14,10 @@ import { CompilerError } from "./classes.js";
 import { CommandDefinition, commands, CompilerCommandDefinition } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import {
-	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsCompatibleWithType,
+	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsAcceptedByType,
 	cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition,
 	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
-	getParameters, getVariablesDefined, impossible, parsePreprocessorDirectives, prependFilenameToArg,
+	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToArg,
 	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand
 } from "./funcs.js";
 import { Log } from "./Log.js";
@@ -259,7 +259,7 @@ export function printTypeErrors({variableDefinitions, variableUsages, jumpLabels
 				Log.printMessage("variable undefined", {
 					name, line: variableUsage.line
 				});
-			} else if(!areAnyOfInputsCompatibleWithType(variableUsage.variableTypes, variableDefinitions[name][0].variableType)){
+			} else if(!isInputAcceptedByAnyType(variableDefinitions[name][0].variableType, variableUsage.variableTypes)){
 				//If the list of possible types does not include the type of the first definition
 				Log.warn(
 `Variable "${name}" is of type "${variableDefinitions[name][0].variableType}", \
