@@ -19,12 +19,12 @@ import { Log } from './src/Log.js';
 import { mlogx } from './src/mlogx.js';
 
 export * from "./src/classes.js";
-export * from "./src/commands/funcs.js";
+export * from "./src/commands.js";
 export * from "./src/compile_fs.js";
 export * from "./src/compile.js";
 export * from "./src/consts.js";
 export * from "./src/funcs.js";
-export * from "./src/args/generic_args.js";
+export * from "./src/args.js";
 export { mlogx as app } from "./src/mlogx.js";
 export * from "./src/types.js";
 
