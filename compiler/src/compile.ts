@@ -107,6 +107,7 @@ export function compileMlogxToMlog(
 					const { modifiedOutput, skipTypeChecks } = def.onpostcompile({compiledOutput: compiledCode, compilerConsts, settings, stack});
 					if(skipTypeChecks) doTypeChecks = false;
 					modifiedCode = modifiedOutput;
+					if(modifiedOutput.length == 0) break;
 				}
 			}
 			if(doTypeChecks){

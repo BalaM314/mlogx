@@ -74,6 +74,8 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConsts, typeD
                     if (skipTypeChecks)
                         doTypeChecks = false;
                     modifiedCode = modifiedOutput;
+                    if (modifiedOutput.length == 0)
+                        break;
                 }
             }
             if (doTypeChecks) {
