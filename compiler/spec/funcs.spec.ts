@@ -55,6 +55,8 @@ const argTypeData: {
 		[`:number`, "ctype"],
 		[`add`, "operandDouble"],
 		[`cos`, "operandSingle"],
+		["@green", "team"],
+		["amogus", "team"],
 	],
 	wrongTypes: [
 		["@unit", "building"],
@@ -93,6 +95,7 @@ describe("typeofArg", () => {
 			["-50.2", "number"],
 			[`"amogus"`, "string"],
 			[`:number`, "ctype"],
+			["@malis", "team"]
 		];
 		for(const [arg, expectedOutput] of args){
 			expect(typeofArg(arg)).withContext(`${arg} should be of type ${expectedOutput}`).toBe(expectedOutput);

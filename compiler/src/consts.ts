@@ -121,6 +121,7 @@ export const MindustryContent = {
 	fluids: ["water", "slag", "oil", "cryofluid", "neoplasm", "hydrogen", "ozone", "cyanogen", "gallium", "nitrogen", "arkycite"],
 	units: ["dagger", "mace", "fortress", "scepter", "reign", "nova", "pulsar", "quasar", "vela", "corvus", "crawler", "atrax", "spiroct", "arkyid", "toxopid", "flare", "horizon", "zenith", "antumbra", "eclipse", "mono", "poly", "mega", "quad", "oct", "risso", "minke", "bryde", "sei", "omura", "retusa", "oxynoe", "cyerce", "aegires", "navanax", "alpha", "beta", "gamma", "stell", "locus", "precept", "vanquish", "conquer", "merui", "cleroi", "anthicus", "tecta", "collaris", "elude", "avert", "obviate", "quell", "disrupt", "evoke", "incite", "emanate"],
 	senseables: ["totalItems", "firstItem", "totalLiquids", "totalPower", "itemCapacity", "liquidCapacity", "powerCapacity", "powerNetStored", "powerNetCapacity", "powerNetIn", "powerNetOut", "ammo", "ammoCapacity", "health", "maxHealth", "heat", "efficiency", "progress", "timescale", "rotation", "x", "y", "shootX", "shootY", "size", "dead", "range", "shooting", "boosting", "mineX", "mineY", "mining", "speed", "team", "type", "flag", "controlled", "controller", "name", "payloadCount", "payloadType", "enabled", "shoot", "shootp", "config", "color"],
+	teams: ["derelict", "sharded", "crux", "malis", "green", "blue", "neoplastic"],
 };
 MindustryContent.senseables.push(...MindustryContent.items);
 MindustryContent.senseables.push(...MindustryContent.fluids);

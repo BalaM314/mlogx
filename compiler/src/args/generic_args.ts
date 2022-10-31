@@ -85,6 +85,13 @@ export const GenericArgs = (
 		alsoAccepts: ["variable"],
 		description: "Represents anything that has an image and can be drawn on a display, like @meltdown, @cryofluid, etc."
 	}],
+	["team", {
+		validator: (arg:string) =>
+			arg.startsWith("@") && 
+			MindustryContent.teams.includes(arg.slice(1)),
+		alsoAccepts: ["variable"],
+		description: "Represents a team, like @sharded or @purple."
+	}],
 	["senseable", {
 		validator: (arg:string) =>
 			arg.startsWith("@") && 
