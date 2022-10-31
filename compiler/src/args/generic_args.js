@@ -59,6 +59,12 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             alsoAccepts: ["variable"],
             description: "Represents anything that has an image and can be drawn on a display, like @meltdown, @cryofluid, etc."
         }],
+    ["team", {
+            validator: (arg) => arg.startsWith("@") &&
+                MindustryContent.teams.includes(arg.slice(1)),
+            alsoAccepts: ["variable"],
+            description: "Represents a team, like @sharded or @purple."
+        }],
     ["senseable", {
             validator: (arg) => arg.startsWith("@") &&
                 (MindustryContent.senseables.includes(arg.slice(1))),
