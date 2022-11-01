@@ -14,8 +14,7 @@ import { CompilerError } from "./classes.js";
 import { CommandDefinition, commands, CompilerCommandDefinition } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import {
-	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsAcceptedByType,
-	cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition,
+	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition,
 	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
 	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToArg,
 	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand

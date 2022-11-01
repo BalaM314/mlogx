@@ -8,10 +8,10 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains functions related to command args.
 */
 
-import { impossible, isKey } from "../funcs.js";
+import { isKey } from "../funcs.js";
 import { GenericArgs } from "./generic_args.js";
 import { Log } from "../Log.js";
-import { Arg, ArgKey, ArgType, GAT, PreprocessedArg } from "./types.js";
+import { Arg, ArgKey, GAT, PreprocessedArg } from "./types.js";
 
 
 
