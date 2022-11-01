@@ -464,9 +464,9 @@ export const commands = processCommands({
 	],
 /*
 all commands gonna be added prob (w/o the multi unique args like in ucontrol)
-getblock block result x y
-setblock block @floorType x y @team rotation
-spawn @unitType x y angle @team unit
+	getblock block result x y
+	setblock block @floorType x y @team rotation
+	spawn @unitType x y angle @team unit
 status false wet unit 10
 spawnwave x y false
 setrule waveSpacing 10 0 0 100 100
@@ -477,31 +477,50 @@ setrate ipt
 fetch unit result @team uniqueNum @conveyor
 getflag result "flag"
 setflag "flag" true
+
+draw col color:number
+stop
+packcolor output:*number r:number g:number b:number a:number
 */
 
-/*
-for getblock:
-getblock floor floorR x y
-getblock ore oreR x y
-getblock block blockType x y
-getblock building buildingR x y
-*/
+//world processor exclusive (data from 139)
+	//getblock [floor, ore, block, building] result x y
 	getblock: [
 		{
 		//idk if floor type is a thing here
-			args: "floor | output:*floorType | x:number | y:number",
+			args: "floor output:*floorType x:number y:number",
 			description: "outputs the floor type at coordinates (x,y)"
 		},{
 		//ore as well...
-			args: "ore | output:*oreType | x:number | y:number",
+			args: "ore output:*oreType x:number y:number",
 			description: "outputs the ore type at coordinates (x,y)"	
 		},{
 		//block = buildingType in mindus, TIL
-			args: "block | output:*buildingType | x:number | y:number",
+			args: "block output:*buildingType x:number y:number",
 			description: "outputs the building type at coordinates (x,y)"	
 		},{
-			args: "building | output:building | x:number | y:number",
+			args: "building output:building x:number y:number",
 			description: "outputs the building at coordinates (x,y)"	
+		}
+	],
+	//setblock [floor, ore, block] *type x y @team rotation
+	setblock: [
+		{
+			args: "floor floorType:*floorType x:number y:number",
+			description: "sets the floor type at coordinates (x,y)"
+		},{
+			args: "ore oreType:*oreType x:number y:number",
+			description: "sets the ore type at coordinates (x,y)"	
+		},{
+			args: "block buildingType:*buildingType x:number y:number team:*team rotation:number",
+			description: "sets the block at coordinates (x,y) with a team and a counter clockwise rotation starting at the right [0 - 3]"	
+		}
+	],
+	//spawn @unitType x y rotation-angle @team unitReference
+	spawn: [
+		{
+			args: "unitType:*unitType x:number y:number rotation-angle:number team:*team output:*unit",
+			description: "creates a unit at coordinates (x,y), with a team, rotation, and outputs the unit in a var",
 		}
 	],
 });
