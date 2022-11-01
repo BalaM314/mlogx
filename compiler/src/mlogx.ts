@@ -9,15 +9,16 @@ Contains the mlogx Application.
 */
 
 import chalk from "chalk";
-import { Application } from "cli-app";
 import * as fs from "fs";
 import path from "path";
+import * as os from "os";
+import { Application } from "cli-app";
 import { argToString, GenericArgs } from "./args.js";
 import { commands, compilerCommands } from "./commands.js";
 import { addJumpLabels, portCode } from "./compile.js";
 import { compileDirectory, compileFile, createProject } from "./compile_fs.js";
-import { Log } from "./Log.js";
 import { isKey, parseIcons } from "./funcs.js";
+import { Log } from "./Log.js";
 import { Settings } from "./settings.js";
 import { PartialRecursive, PortingMode } from "./types.js";
 
@@ -114,7 +115,11 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 		return 1;
 	}
 
-	const target = opts.positionalArgs[0] ?? process.cwd();
+	const target = path.resolve(opts.positionalArgs[0] ?? process.cwd());
+	if(target == os.homedir() || target == path.resolve("/")){
+		Log.printMessage("cannot compile home dir", {});
+		return 1;
+	}
 	const settingsOverrides:PartialRecursive<Settings> = {
 		compilerOptions: {
 			verbose: "verbose" in opts.namedArgs

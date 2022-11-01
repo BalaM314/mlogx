@@ -54,6 +54,7 @@ ${formatLineWithPrefix(d.line)}`,
     "cannot port mlogx": { for: (d) => `File ${d.path} is already mlogx. If you would like to port it again, please rename it to .mlog.`, level: "err" },
     "port successful": { for: (d) => `Ported file ${d.filename} to mlogx.`, level: "announce" },
     "bad arg string": { for: (d) => `Possibly bad arg string "${d.name}", assuming it means a non-generic arg`, level: "warn" },
+    "cannot compile home dir": { for: (d) => `Cannot compile your home directory. For help, run "mlogx help".`, level: "err" }
 });
 export class Logger {
     constructor(logLevels, messages) {
@@ -89,6 +90,8 @@ export class Logger {
     none(message) { this.printWithLevel("none", message); }
     printMessage(messageID, data) {
         const message = this.messages[messageID];
+        if (!message)
+            throw new Error(`Attempted to print unknown message ${messageID}`);
         this[message.level](message.for(data));
     }
 }
