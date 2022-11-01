@@ -10,7 +10,7 @@ import { Log } from "./Log.js";
 import { isKey, parseIcons } from "./funcs.js";
 import { PortingMode } from "./types.js";
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
-mlogx.command("info", "Shows information about a logic command", (opts) => {
+mlogx.command("info", "Shows information about a logic command or arg type", (opts) => {
     const name = opts.positionalArgs[0];
     if (name.includes(" ")) {
         Log.printMessage("commands cannot contain spaces", {});
@@ -84,9 +84,11 @@ mlogx.command("init", "Creates a new project", (opts) => {
 mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
     if ("init" in opts.namedArgs) {
         Log.printMessage("command moved", { appname: app.name, command: "init" });
+        return 1;
     }
     if ("info" in opts.namedArgs) {
         Log.printMessage("command moved", { appname: app.name, command: "info" });
+        return 1;
     }
     const target = opts.positionalArgs[0] ?? process.cwd();
     const settingsOverrides = {
@@ -158,11 +160,13 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
     namedArgs: {
         watch: {
             description: "Whether to watch for and compile on file changes instead of exiting immediately.",
-            needsValue: false
+            needsValue: false,
+            aliases: ["w"]
         },
         verbose: {
             description: "Whether to be verbose and output error messages for all overloads.",
-            needsValue: false
+            needsValue: false,
+            aliases: ["v"]
         }
     }
 }, ["build"]);
@@ -188,7 +192,8 @@ mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded j
     namedArgs: {
         output: {
             description: "Output file path",
-            required: true
+            required: true,
+            aliases: ["out", "o"]
         }
     },
     positionalArgs: [{
@@ -221,7 +226,8 @@ mlogx.command("port", "Ports MLOG code.", (opts) => {
 }, false, {
     namedArgs: {
         output: {
-            description: "Output file path"
+            description: "Output file path",
+            aliases: ["out", "o"]
         }
     },
     positionalArgs: [{
