@@ -82,7 +82,8 @@ ${formatLineWithPrefix(d.line)}`
 	"cannot port mlogx": {for:(d:{path:string}) => `File ${d.path} is already mlogx. If you would like to port it again, please rename it to .mlog.`, level:"err"},
 	"port successful": {for:(d:{filename:string}) => `Ported file ${d.filename} to mlogx.`, level:"announce"},
 	"bad arg string": {for:(d:{name:string}) => `Possibly bad arg string "${d.name}", assuming it means a non-generic arg`, level:"warn"},
-	"cannot compile home dir": {for:(d:none) => `Cannot compile your home directory. For help, run "mlogx help".`, level:"err"}
+	"cannot compile home dir": {for:(d:none) => `Cannot compile your home directory. For help, run "mlogx help".`, level:"err"},
+	"cannot compile mlog file": {for:(d:none) => `Cannot compile a .mlog file. If you are trying to port it, use mlogx port. If you really want to compile it, change the extension to .mlogx.`, level:"err"},
 	//"name": {for:(d:{}) => ``, level:""},
 });
 
