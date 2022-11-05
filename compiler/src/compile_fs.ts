@@ -182,6 +182,9 @@ export function compileFile(name:string, givenSettings:PartialRecursive<Settings
 		return;
 	}
 
+	const settingsPath = path.join(name, "../config.json");
+	// if(fs.existsSync(settingsPath)) JSON.parse(fs.readFileSync(settingsPath));
+
 	const data:string[] = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
 	let outputData:string[];
 	const settings = settingsSchema.validateSync({
