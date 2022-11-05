@@ -3,14 +3,16 @@ Documentation for mlogx(Mindustry Logic Extended)
 ## Guide to making programs
 This guide assumes you already know how to make mlog programs, but are frustrated when you try to make larger projects. You also need basic knowledge of the command line.
 
-Need help? I'm BalaM314#4781, you can ping me in the #logic channel of the official Mindustry discord or in .io community.
+Need help? I'm BalaM314#4781, you can ping me in the #logic channel of the official Mindustry discord or official logic server.
 
 ## Installation
 Prerequisites: Node.JS and npm(which should be bundled with node).
 
 1. `npm i -g mlogx`
 
-Restart your terminal window, then run `mlogx --version` . You should get the message "MLOGX compiler version ...". If you get the error "'mlogx' is not recognized...", installation did not work.
+Restart your terminal window, then run `mlogx version` . You should get the message "MLOGX compiler version ...". If you get the error "'mlogx' is not recognized...", installation did not work.
+
+To update, run `npm i -g mlogx` again. Using `npm upgrade` is not recommended as if you Ctrl+C it it deletes all your packages.
 
 ## Usage
 
@@ -42,6 +44,8 @@ mlogx remembers the type of all variables, so you will get an error if you:
 * set a variable with two different types
 * use a jump label that doesn't exist
 * define a jump label twice
+
+You will not get an error if you attempt to use a number as a boolean.
 
 ## Porting tool
 Run `mlogx port [file]` to port a .mlog file to .mlogx. This will apply shorthands and remove trailing zeroes from commands.
@@ -78,7 +82,7 @@ Lets you avoid needing to write "enemy" 3 times.
 ### set type annotation
 `set target :building null` => `set target null`
 
-Allows you to specify the type of a variable.
+Allows you to specify the type of a variable if mlogx can't infer it.
 ### op shorthands
 `op cos x theta` => `op cos x theta 0`
 
@@ -132,6 +136,8 @@ Calls a function. Equivalent instructions:
 Returns from a function. Equivalent instructions:
 
 `set @counter _stack1`
+
+More coming soon.
 
 ## Compiler constants
 Replace bits of your program with constants defined by the compiler.
@@ -248,6 +254,8 @@ sensor projector2.maxHealth
 jump mend lessThan projector2.health projector2.maxHealth
 ```
 if buildingsToManage is set to \["mender1", "mender2", "mender3", "projector1", "projector2"]
+
+For loops can be nested, but due to poor implementation this will cause issues with type checking. This will be fixed in the future.
 
 ## Functions
 
