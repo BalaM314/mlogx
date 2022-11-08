@@ -190,6 +190,31 @@ export const GenericArgs = (
 		exclude: ["number", "string", "boolean", "building", "buildingType", "unitType", "itemType", "fluidType", "imageType", "senseable", "unit", "null", "ctype"],
 		description: "Refers to a variable."
 	}],
+	["getblockable", {
+		validator: ["floor", "ore", "block", "building"],
+		doNotGuess: true,
+		description: "Anything that is getblockable."
+	}],
+	["setblockable", {
+		validator: ["floor", "ore", "block", "building"],
+		doNotGuess: true,
+		description: "Anything that is setblockable."
+	}],
+	["rule", {
+		validator: ["currentWaveTimer", "waveTimer", "waves", "wave", "waveSpacing", "waveSending", "attackMode", "enemyCoreBuildRadius", "dropZoneRadius", "unitCap", "lighting", "ambientLight", "solarMultiplier", "buildSpeed", "unitBuildSpeed", "unitCost", "unitDamage", "blockHealth", "blockDamage", "rtsMinWeight", "rtsMinSquad"],
+		doNotGuess: true,
+		description: "A rule that can be set with setrule, except mapArea."
+	}],
+	["fetchable", {
+		validator: ["unit", "player", "core", "build"],
+		doNotGuess: true,
+		description: "A set where the nth item can be obtained through the fetch statement."
+	}],
+	["fetchable", {
+		validator: ["unitCount", "playerCount", "coreCount", "buildCount"],
+		doNotGuess: true,
+		description: "The size of a fetchable set."
+	}],
 	["any", {
 		validator: /.+/,
 		alsoAccepts: ["variable"],
