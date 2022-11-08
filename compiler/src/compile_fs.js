@@ -117,6 +117,12 @@ function getSettings(directory, defaultSettings) {
     }
 }
 export function compileFile(name, givenSettings, icons) {
+    const extension = path.extname(name);
+    if (extension == ".mlog") {
+        Log.printMessage("cannot compile mlog file", {});
+        return;
+    }
+    const settingsPath = path.join(name, "../config.json");
     const data = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
     let outputData;
     const settings = settingsSchema.validateSync({

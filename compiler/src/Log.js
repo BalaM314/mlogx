@@ -54,7 +54,8 @@ ${formatLineWithPrefix(d.line)}`,
     "cannot port mlogx": { for: (d) => `File ${d.path} is already mlogx. If you would like to port it again, please rename it to .mlog.`, level: "err" },
     "port successful": { for: (d) => `Ported file ${d.filename} to mlogx.`, level: "announce" },
     "bad arg string": { for: (d) => `Possibly bad arg string "${d.name}", assuming it means a non-generic arg`, level: "warn" },
-    "cannot compile home dir": { for: (d) => `Cannot compile your home directory. For help, run "mlogx help".`, level: "err" }
+    "cannot compile home dir": { for: (d) => `Cannot compile your home directory. For help, run "mlogx help".`, level: "err" },
+    "cannot compile mlog file": { for: (d) => `Cannot compile a .mlog file. If you are trying to port it, use mlogx port. If you really want to compile it, change the extension to .mlogx.`, level: "err" },
 });
 export class Logger {
     constructor(logLevels, messages) {
