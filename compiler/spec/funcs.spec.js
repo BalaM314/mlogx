@@ -734,10 +734,10 @@ describe("addSourcesToCode", () => {
             `print "hello"`,
             `printflush message1`,
             `//sussy baka`
-        ], makeLine(`print "hello"`, 420, "amogus.mlogx"))).toEqual([
-            [`print "hello"`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
-            [`printflush message1`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
-            [`//sussy baka`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
+        ], makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx"))).toEqual([
+            [`print "hello"`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")],
+            [`printflush message1`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")],
+            [`//sussy baka`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")],
         ]);
     });
 });

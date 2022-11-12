@@ -45,7 +45,7 @@ export interface Line {
 	lineNumber: number;
 	sourceFilename: string;
 }
-export type CompiledLine = [compiledCode:string, source:Line];
+export type CompiledLine = [compiledCode:string, modifiedSource:Line, source:Line];
 
 export type CompilerConst = string | number | boolean | (string | number | boolean)[];
 export type CompilerConsts = Map<string, CompilerConst>;

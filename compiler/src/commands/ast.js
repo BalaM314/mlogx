@@ -565,13 +565,15 @@ export const compilerCommands = processCompilerCommands({
                 onend({ removedElement, stack }) {
                     const compiledCode = [];
                     for (const el of removedElement.elements) {
-                        compiledCode.push(...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")), {
-                                text: replaceCompilerConstants(line[1].text, new Map([
-                                    [removedElement.variableName, el]
-                                ]), hasElement(stack, "&for")),
+                        compiledCode.push(...removedElement.loopBuffer.map(line => [
+                            replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+                            {
+                                text: replaceCompilerConstants(line[1].text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
                                 lineNumber: line[1].lineNumber,
-                                sourceFilename: "unknown"
-                            }]));
+                                sourceFilename: line[1].sourceFilename
+                            },
+                            line[2]
+                        ]));
                     }
                     return { compiledCode };
                 },
@@ -600,12 +602,15 @@ export const compilerCommands = processCompilerCommands({
                 onend({ removedElement, stack }) {
                     const compiledCode = [];
                     for (const el of removedElement.elements) {
-                        compiledCode.push(...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")), {
-                                text: replaceCompilerConstants(line[1].text, new Map([
-                                    [removedElement.variableName, el]
-                                ]), hasElement(stack, "&for")),
-                                lineNumber: line[1].lineNumber
-                            }]));
+                        compiledCode.push(...removedElement.loopBuffer.map(line => [
+                            replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+                            {
+                                text: replaceCompilerConstants(line[1].text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+                                lineNumber: line[1].lineNumber,
+                                sourceFilename: line[1].sourceFilename
+                            },
+                            line[2]
+                        ]));
                     }
                     return { compiledCode };
                 },
@@ -682,7 +687,7 @@ export const compilerCommands = processCompilerCommands({
                             if (!commandDefinition) {
                                 impossible();
                             }
-                            return [addNamespacesToLine(splitLineIntoArguments(line[0]), commandDefinition, stack), line[1]];
+                            return [addNamespacesToLine(splitLineIntoArguments(line[0]), commandDefinition, stack), line[1], line[2]];
                         })
                     };
                 },

@@ -69,6 +69,10 @@ export function compileMlogxToMlog(
 				text: `[#require'd variable]`,
 				lineNumber: 0,
 				sourceFilename: "[#require'd variable]",
+			}, {
+				text: `[#require'd variable]`,
+				lineNumber: 0,
+				sourceFilename: "[#require'd variable]",
 			}] as CompiledLine));
 			typeCheckingData.variableDefinitions[requiredVar] = [{
 				variableType: requiredVarCode[requiredVar][1],
@@ -170,9 +174,9 @@ ${formatLineWithPrefix(element.line)}`
 
 export function typeCheckLine(compiledLine:CompiledLine, typeCheckingData:TypeCheckingData){
 	
-	const cleanedCompiledLine = cleanLine(compiledLine[0]);
-	const cleanedUncompiledLine = cleanLine(compiledLine[1].text);
-	if(cleanedCompiledLine == "") return;
+	const cleanedCompiledLine = compiledLine[0];
+	const cleanedUncompiledLine = compiledLine[1].text;
+	if(cleanLine(cleanedCompiledLine) == "") Log.warn("mlogx generated a blank line. This should not happen.");
 
 
 	const labelName = getJumpLabel(cleanedCompiledLine);
@@ -330,7 +334,7 @@ export function compileLine(
 					hasElement(stack, "namespace") ?
 						`${addNamespacesToVariable(getJumpLabel(cleanedText)!, stack)}:` :
 						cleanedText,
-					sourceLine
+					cleanedLine, sourceLine
 				] as CompiledLine
 			]
 		};
@@ -406,7 +410,7 @@ export function compileLine(
 		}
 	}
 	return {
-		compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), sourceLine)
+		compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), cleanedLine, sourceLine)
 	};
 
 }
