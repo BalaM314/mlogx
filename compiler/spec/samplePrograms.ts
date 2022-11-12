@@ -125,7 +125,7 @@ export const testPrograms: {
 	},
 	splitStatementsTest: {
 		program:
-`#&for test
+`#split test
 print "amogus"
 draw clear 0 0 0
 set x 5;set x 6`.split("\n"),

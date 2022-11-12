@@ -97,7 +97,7 @@ export const testPrograms = {
         compilerConsts: new Map()
     },
     splitStatementsTest: {
-        program: `#&for test
+        program: `#split test
 print "amogus"
 draw clear 0 0 0
 set x 5;set x 6`.split("\n"),
