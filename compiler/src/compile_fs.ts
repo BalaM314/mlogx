@@ -183,7 +183,7 @@ export function compileFile(name:string, givenSettings:PartialRecursive<Settings
 	}
 
 	const settingsPath = path.join(name, "../config.json");
-	// if(fs.existsSync(settingsPath)) JSON.parse(fs.readFileSync(settingsPath));
+	if(fs.existsSync(settingsPath)) givenSettings = deepmerge(givenSettings, JSON.parse(fs.readFileSync(settingsPath, "utf-8")));
 
 	const data:string[] = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
 	let outputData:string[];
