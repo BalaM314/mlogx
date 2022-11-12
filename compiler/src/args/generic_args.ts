@@ -210,7 +210,7 @@ export const GenericArgs = (
 		doNotGuess: true,
 		description: "A set where the nth item can be obtained through the fetch statement."
 	}],
-	["fetchable", {
+	["fetchableCount", {
 		validator: ["unitCount", "playerCount", "coreCount", "buildCount"],
 		doNotGuess: true,
 		description: "The size of a fetchable set."
