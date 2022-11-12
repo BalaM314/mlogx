@@ -93,7 +93,11 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
     }
     const target = path.resolve(opts.positionalArgs[0] ?? process.cwd());
     if (target == os.homedir() || target == path.resolve("/")) {
-        Log.printMessage("cannot compile home dir", {});
+        Log.printMessage("cannot compile dir", { dirname: "your home directory" });
+        return 1;
+    }
+    if (target == app.sourceDirectory || path.join(app.sourceDirectory, "src")) {
+        Log.printMessage("cannot compile dir", { dirname: "mlogx's installation location" });
         return 1;
     }
     const settingsOverrides = {
