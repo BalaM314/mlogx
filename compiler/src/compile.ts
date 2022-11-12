@@ -15,7 +15,7 @@ import { CommandDefinition, commands, CompilerCommandDefinition } from "./comman
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import {
 	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition,
-	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
+	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, splitLineOnSemicolons,
 	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToArg,
 	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand
 } from "./funcs.js";
@@ -297,10 +297,11 @@ export function cleanProgram(program:string[], settings:Settings){
 			sourceFilename: settings.filename
 		};
 		const cleanedText = cleanLine(sourceLine.text);
-		if(cleanedText != "") outputProgram.push([{
-			...sourceLine,
-			text: cleanedText
-		}, sourceLine]);
+		if(cleanedText != "") outputProgram.push(...splitLineOnSemicolons(cleanedText).map(l => [{
+			text: l,
+			lineNumber: sourceLine.lineNumber,
+			sourceFilename: settings.filename
+		}, sourceLine] as [cleanedLine:Line, sourceLine:Line]));
 	}
 	return outputProgram;
 }

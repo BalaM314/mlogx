@@ -116,6 +116,32 @@ export function splitLineIntoArguments(cleanedLine) {
         return cleanedLine.split(" ");
     }
 }
+export function splitLineOnSemicolons(cleanedLine) {
+    if (cleanedLine.includes(`"`)) {
+        const lines = [""];
+        let isInString = false;
+        for (const char of cleanedLine) {
+            if (char == `"`) {
+                isInString = !isInString;
+            }
+            if (isInString) {
+                lines[0] += char;
+            }
+            else if (char == ";") {
+                lines.push("");
+            }
+            else {
+                lines[0] += char;
+            }
+        }
+        if (isInString)
+            throw new CompilerError("Unterminated string literal");
+        return lines.map(cleanLine);
+    }
+    else {
+        return cleanedLine.split(";").map(cleanLine);
+    }
+}
 export function transformVariables(args, commandDefinition, transformFunction) {
     return transformCommand(args, commandDefinition, transformFunction, (arg, commandArg) => (commandArg?.isVariable || (acceptsVariable(commandArg)
         && isArgValidForType(arg, "variable"))) && arg !== "_");

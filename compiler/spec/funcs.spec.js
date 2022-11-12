@@ -1,6 +1,6 @@
 import { arg, argToString, GenericArgs, isArgValidFor, isArgValidForType, isArgValidForValidator, isGenericArg, makeArg, typeofArg } from "../src/args.js";
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
-import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, getVariablesUsed, isCommand, isInputAcceptedByAnyType, parseIcons, parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand, transformVariables, typeIsAccepted } from "../src/funcs.js";
+import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, getVariablesUsed, isCommand, isInputAcceptedByAnyType, parseIcons, parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, splitLineOnSemicolons, transformCommand, transformVariables, typeIsAccepted } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
 import { commandErrOfType, makeForEl, makeIfEl, makeLine, makeNamespaceEl } from "./test_utils.js";
 describe("templateFunction", () => {
@@ -205,6 +205,17 @@ describe("splitLineIntoArguments", () => {
         expect(splitLineIntoArguments(`print "amogus sussy" and "a eea "`)).toEqual(["print", `"amogus sussy"`, "and", `"a eea "`]);
     });
     it("should throw an error on unterminated string literals", () => {
+        expect(() => splitLineIntoArguments(`print "amogus sussy" and "a eea '`)).toThrow();
+    });
+});
+describe("splitLineOnSemicolons", () => {
+    it("should not split lines without a semicolon", () => {
+        expect(splitLineOnSemicolons("set z 98")).toEqual(["set z 98"]);
+    });
+    it("should split lines on a semicolon", () => {
+        expect(splitLineIntoArguments(`print "amogus sussy" and "a eea "`)).toEqual(["print", `"amogus sussy"`, "and", `"a eea "`]);
+    });
+    it("should not split lines on semicolons within strings", () => {
         expect(() => splitLineIntoArguments(`print "amogus sussy" and "a eea '`)).toThrow();
     });
 });
