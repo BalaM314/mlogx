@@ -4,7 +4,7 @@ A transpiler for Mindustry Logic.
 
 Design goals:
 1. Validation
-  - Debugging MLOG code is currently very painful. The only way to notice that you typed `ucontrol itemtake` instead of `ucontrol itemTake` is to look through all your control flow to see why units aren't taking items, and finally see the purple "invalid" box. There is also no warning for using a variable that doesn't exist. The MLOGX compiler will check your code before it compiles to make sure all commands are valid and all variables are of the correct type.
+  - Debugging MLOG code is painful. The only way to notice that you typed `ucontrol itemtake` instead of `ucontrol itemTake` is to scroll through your entire program to see why units aren't taking items, and finally see the purple "invalid" box. There is also no warning for using a variable that doesn't exist. The MLOGX compiler will check your code before it compiles to make sure all commands are valid and all variables are of the correct type.
 2. Readability and Conciseness
   - Text MLOG statements can be a bit weird. For example, the `ulocate building` instruction requires a meaningless ore as an argument, and several other instructions have repeated or strangely ordered arguments and/or meaningless zeros. MLOGX has more concise statements with better ordering of arguments, while still accepting the old ones.
   - The preferred variable naming convention is to use a thing.property syntax, for example, `sensor core.x`. This is a shorthand for `sensor core.x core @x` as you would otherwise be typing things twice. This makes it very clear what each variable is meant to be.
@@ -45,6 +45,7 @@ Features:
 * [x] Functions
 * [x] Console output highlighting
 * [x] Porting tool
-* [x] Infix op syntax
+* [x] Infix op and jump syntax
 * [ ] More functions
 * [ ] Inline functions
+* [ ] Custom commands

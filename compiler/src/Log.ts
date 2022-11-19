@@ -50,7 +50,7 @@ export const messages = extend<Messages>()({
 	"no config.json": {for:(d:none) => `No config.json found, using default settings.`, level:"debug"},
 	"project created": {for:(d:{dirname:string}) => `Successfully created a new project in ${d.dirname}`, level:"announce"},
 	"program too long": {for:(d:none) => `Program length exceeded 999 lines. Running it in-game will silently fail.`, level:"err"},
-	"invalid uncompiled command definition": {for:(d:{line:CompiledLine}) => `Tried to type check a line(${d.line[1].text} => ${d.line[0]}) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level:"err"},
+	"invalid uncompiled command definition": {for:(d:{line:CompiledLine}) => `Tried to type check a line(\`${d.line[1].text}\` => \`${d.line[0]}\`) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level:"err"},
 	"variable redefined with conflicting type": {for:(d:{name:string, types:string[], firstDefinitionLine:Line, conflictingDefinitionLine:Line}) =>
 `Variable "${d.name}" was defined with ${d.types.length} different types. ([${d.types.join(", ")}])
 	First definition:
@@ -82,6 +82,8 @@ ${formatLineWithPrefix(d.line)}`
 	"cannot port mlogx": {for:(d:{path:string}) => `File ${d.path} is already mlogx. If you would like to port it again, please rename it to .mlog.`, level:"err"},
 	"port successful": {for:(d:{filename:string}) => `Ported file ${d.filename} to mlogx.`, level:"announce"},
 	"bad arg string": {for:(d:{name:string}) => `Possibly bad arg string "${d.name}", assuming it means a non-generic arg`, level:"warn"},
+	"cannot compile dir": {for:(d:{dirname:string}) => `Cannot compile ${d.dirname}. For help, run "mlogx help".`, level:"err"},
+	"cannot compile mlog file": {for:(d:none) => `Cannot compile a .mlog file. If you are trying to port it, use mlogx port. If you really want to compile it, change the extension to .mlogx.`, level:"err"},
 	//"name": {for:(d:{}) => ``, level:""},
 });
 
@@ -126,6 +128,7 @@ export class Logger<_LogLevels extends LogLevels, _Messages extends Messages> {
 		messageID:ID, data:Parameters<MData["for"]>[0]
 	){
 		const message = this.messages[messageID] as MData;
+		if(!message) throw new Error(`Attempted to print unknown message ${messageID as string}`);
 		//cursed
 		this[message.level](message.for(data as never));
 	}

@@ -140,6 +140,31 @@ export function splitLineIntoArguments(cleanedLine:string):string[] {
 	}
 }
 
+/**Splits a line into arguments, taking quotes into account. */
+export function splitLineOnSemicolons(cleanedLine:string):string[] {
+	if(cleanedLine.includes(`"`)){
+		const lines:string[] = [""];
+		let isInString = false;
+		for(const char of cleanedLine){
+			if(char == `"`){
+				isInString = !isInString;
+			}
+			if(isInString){
+				lines[0] += char;
+			} else if(char == ";"){
+				lines.push("");
+			} else {
+				lines[0] += char;
+			}
+		}
+		if(isInString) throw new CompilerError("Unterminated string literal");
+		return lines.map(cleanLine);
+		//smort logic so `"amogus sus"` is parsed as one arg
+	} else {
+		return cleanedLine.split(";").map(cleanLine);
+	}
+}
+
 //#endregion
 //#region argBasedLineManipulation
 
@@ -506,8 +531,8 @@ export function formatLineWithPrefix(line:Line, prefix:string = "\t\tat "):strin
 }
 
 /**Adds a source line to a multiple lines of code. */
-export function addSourcesToCode(code:string[], sourceLine:Line = {text: `not provided`, lineNumber:0, sourceFilename: `unknown.mlogx`}):CompiledLine[]{
-	return code.map(compiledLine => [compiledLine, sourceLine] as CompiledLine);
+export function addSourcesToCode(code:string[], cleanedSource:Line = {text: `not provided`, lineNumber:0, sourceFilename: `unknown.mlogx`}, sourceLine:Line = {text: `not provided`, lineNumber:0, sourceFilename: `unknown.mlogx`}):CompiledLine[]{
+	return code.map(compiledLine => [compiledLine, cleanedSource, sourceLine] as CompiledLine);
 }
 
 /**oh no */

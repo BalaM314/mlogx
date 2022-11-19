@@ -9,20 +9,21 @@ Contains the mlogx Application.
 */
 
 import chalk from "chalk";
-import { Application } from "cli-app";
 import * as fs from "fs";
 import path from "path";
+import * as os from "os";
+import { Application } from "cli-app";
 import { argToString, GenericArgs } from "./args.js";
 import { commands, compilerCommands } from "./commands.js";
 import { addJumpLabels, portCode } from "./compile.js";
 import { compileDirectory, compileFile, createProject } from "./compile_fs.js";
-import { Log } from "./Log.js";
 import { isKey, parseIcons } from "./funcs.js";
+import { Log } from "./Log.js";
 import { Settings } from "./settings.js";
 import { PartialRecursive, PortingMode } from "./types.js";
 
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
-mlogx.command("info", "Shows information about a logic command", (opts) => {
+mlogx.command("info", "Shows information about a logic command or arg type", (opts) => {
 	const name = opts.positionalArgs[0];
 	if(name.includes(" ")){
 		Log.printMessage("commands cannot contain spaces", {});
@@ -88,7 +89,7 @@ mlogx.command("version", "Displays the version of mlogx", (opts, app) => {
 	} catch(err){
 		Log.err(`This should not happen. ${(err as Error).message}`);
 	}
-}, false, undefined, ["v"]);
+}, false, {}, ["v"]);
 
 mlogx.command("init", "Creates a new project", (opts) => {
 	createProject(opts.positionalArgs[0] as string|undefined)
@@ -107,12 +108,22 @@ mlogx.command("init", "Creates a new project", (opts) => {
 mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 	if("init" in opts.namedArgs){
 		Log.printMessage("command moved", {appname: app.name, command: "init"});
+		return 1;
 	}
 	if("info" in opts.namedArgs){
 		Log.printMessage("command moved", {appname: app.name, command: "info"});
+		return 1;
 	}
 
-	const target = opts.positionalArgs[0] ?? process.cwd();
+	const target = path.resolve(opts.positionalArgs[0] ?? process.cwd());
+	if(target == os.homedir() || target == path.resolve("/")){
+		Log.printMessage("cannot compile dir", {dirname: "your home directory"});
+		return 1;
+	}
+	if(target == app.sourceDirectory || path.join(app.sourceDirectory, "src")){
+		Log.printMessage("cannot compile dir", {dirname: "mlogx's installation location"});
+		return 1;
+	}
 	const settingsOverrides:PartialRecursive<Settings> = {
 		compilerOptions: {
 			verbose: "verbose" in opts.namedArgs
@@ -183,11 +194,13 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 	namedArgs: {
 		watch: {
 			description: "Whether to watch for and compile on file changes instead of exiting immediately.",
-			needsValue: false
+			needsValue: false,
+			aliases: ["w"]
 		},
 		verbose: {
 			description: "Whether to be verbose and output error messages for all overloads.",
-			needsValue: false
+			needsValue: false,
+			aliases: ["v"]
 		}
 	}
 }, ["build"]);
@@ -213,7 +226,8 @@ mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded j
 	namedArgs: {
 		output: {
 			description: "Output file path",
-			required: true
+			required: true,
+			aliases: ["out", "o"]
 		}
 	},
 	positionalArgs: [{
@@ -246,7 +260,8 @@ mlogx.command("port", "Ports MLOG code.", (opts) => {
 }, false, {
 	namedArgs: {
 		output: {
-			description: "Output file path"
+			description: "Output file path",
+			aliases: ["out", "o"]
 		}
 	},
 	positionalArgs: [{

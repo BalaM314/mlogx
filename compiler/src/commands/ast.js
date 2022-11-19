@@ -454,6 +454,77 @@ export const commands = processCommands({
             },
         }
     ],
+    getblock: [],
+    setblock: [],
+    spawn: [{
+            args: "type:unitType x:number y:number rotation:number team:team output:*unit",
+            description: "Spawns a (type) unit at (x,y) with rotation (rotation) and team (team), storing it in (output)."
+        }],
+    status: [
+        {
+            args: "false effect:statusEffect unit:unit duration:number",
+            description: "Applies (effect) to (unit) for (duration) seconds."
+        }, {
+            args: "true effect:statusEffect unit:unit",
+            description: "Removes (effect) from (unit)."
+        }, {
+            args: "apply effect:statusEffect unit:unit duration:number",
+            description: "Applies (effect) to (unit) for (duration) seconds.",
+            replace: ["status false %2 %3 %4"]
+        }, {
+            args: "clear effect:statusEffect unit:unit",
+            description: "Removes (effect) from (unit).",
+            replace: ["status true %2 %3"]
+        },
+    ],
+    spawnwave: [{
+            args: "x:number y:number natural:boolean",
+            description: "Spawns a wave at (x,y)."
+        }],
+    setrule: [
+        {
+            args: "rule:rule value:number",
+            description: "Sets (rule) to (value)."
+        }, {
+            args: "mapArea x:number y:number width:number height:number",
+            description: "Sets the map area."
+        },
+    ],
+    message: [
+        {
+            args: "notify",
+            description: "Flushes the message buffer to a notification."
+        }, {
+            args: "announce duration:number",
+            description: "Flushes the message buffer to an announcement for (duration) seconds."
+        }, {
+            args: "toast duration:number",
+            description: "Flushes the message buffer to a toast for (duration) seconds."
+        }, {
+            args: "mission",
+            description: "Flushes the message buffer to the mission text."
+        },
+    ],
+    cutscene: [],
+    explosion: [],
+    setrate: [{
+            args: "ipt:number",
+            description: "Sets the instructions per tick to (ipt)"
+        }],
+    fetch: [
+        {
+            args: "thing:fetchableCount output:*number",
+            description: "Fetches (thing) and stores it in (output)."
+        }
+    ],
+    getflag: [{
+            args: "output:*any flag:string",
+            description: "Gets the value of flag (flag) and stores it in (output)."
+        }],
+    setflag: [{
+            args: "flag:string value:any",
+            description: "Sets the value of flag (flag) to (value)"
+        }],
 });
 export const compilerCommands = processCompilerCommands({
     '&for': {
@@ -494,13 +565,15 @@ export const compilerCommands = processCompilerCommands({
                 onend({ removedElement, stack }) {
                     const compiledCode = [];
                     for (const el of removedElement.elements) {
-                        compiledCode.push(...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")), {
-                                text: replaceCompilerConstants(line[1].text, new Map([
-                                    [removedElement.variableName, el]
-                                ]), hasElement(stack, "&for")),
+                        compiledCode.push(...removedElement.loopBuffer.map(line => [
+                            replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+                            {
+                                text: replaceCompilerConstants(line[1].text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
                                 lineNumber: line[1].lineNumber,
-                                sourceFilename: "unknown"
-                            }]));
+                                sourceFilename: line[1].sourceFilename
+                            },
+                            line[2]
+                        ]));
                     }
                     return { compiledCode };
                 },
@@ -529,12 +602,15 @@ export const compilerCommands = processCompilerCommands({
                 onend({ removedElement, stack }) {
                     const compiledCode = [];
                     for (const el of removedElement.elements) {
-                        compiledCode.push(...removedElement.loopBuffer.map(line => [replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")), {
-                                text: replaceCompilerConstants(line[1].text, new Map([
-                                    [removedElement.variableName, el]
-                                ]), hasElement(stack, "&for")),
-                                lineNumber: line[1].lineNumber
-                            }]));
+                        compiledCode.push(...removedElement.loopBuffer.map(line => [
+                            replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+                            {
+                                text: replaceCompilerConstants(line[1].text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+                                lineNumber: line[1].lineNumber,
+                                sourceFilename: line[1].sourceFilename
+                            },
+                            line[2]
+                        ]));
                     }
                     return { compiledCode };
                 },
@@ -611,7 +687,7 @@ export const compilerCommands = processCompilerCommands({
                             if (!commandDefinition) {
                                 impossible();
                             }
-                            return [addNamespacesToLine(splitLineIntoArguments(line[0]), commandDefinition, stack), line[1]];
+                            return [addNamespacesToLine(splitLineIntoArguments(line[0]), commandDefinition, stack), line[1], line[2]];
                         })
                     };
                 },

@@ -15,7 +15,7 @@ import { CommandDefinition, commands, CompilerCommandDefinition } from "./comman
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import {
 	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition,
-	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
+	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, splitLineOnSemicolons,
 	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToArg,
 	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand
 } from "./funcs.js";
@@ -66,6 +66,10 @@ export function compileMlogxToMlog(
 	for(const requiredVar of requiredVars){
 		if(requiredVarCode[requiredVar]){
 			compiledProgram.push(...requiredVarCode[requiredVar][0].map(line => [line, {
+				text: `[#require'd variable]`,
+				lineNumber: 0,
+				sourceFilename: "[#require'd variable]",
+			}, {
 				text: `[#require'd variable]`,
 				lineNumber: 0,
 				sourceFilename: "[#require'd variable]",
@@ -170,9 +174,9 @@ ${formatLineWithPrefix(element.line)}`
 
 export function typeCheckLine(compiledLine:CompiledLine, typeCheckingData:TypeCheckingData){
 	
-	const cleanedCompiledLine = cleanLine(compiledLine[0]);
-	const cleanedUncompiledLine = cleanLine(compiledLine[1].text);
-	if(cleanedCompiledLine == "") return;
+	const cleanedCompiledLine = compiledLine[0];
+	const cleanedUncompiledLine = compiledLine[1].text;
+	if(cleanLine(cleanedCompiledLine) == "") Log.warn("mlogx generated a blank line. This should not happen.");
 
 
 	const labelName = getJumpLabel(cleanedCompiledLine);
@@ -297,10 +301,11 @@ export function cleanProgram(program:string[], settings:Settings){
 			sourceFilename: settings.filename
 		};
 		const cleanedText = cleanLine(sourceLine.text);
-		if(cleanedText != "") outputProgram.push([{
-			...sourceLine,
-			text: cleanedText
-		}, sourceLine]);
+		if(cleanedText != "") outputProgram.push(...splitLineOnSemicolons(cleanedText).map(l => [{
+			text: l,
+			lineNumber: sourceLine.lineNumber,
+			sourceFilename: settings.filename
+		}, sourceLine] as [cleanedLine:Line, sourceLine:Line]));
 	}
 	return outputProgram;
 }
@@ -329,7 +334,7 @@ export function compileLine(
 					hasElement(stack, "namespace") ?
 						`${addNamespacesToVariable(getJumpLabel(cleanedText)!, stack)}:` :
 						cleanedText,
-					sourceLine
+					cleanedLine, sourceLine
 				] as CompiledLine
 			]
 		};
@@ -405,7 +410,7 @@ export function compileLine(
 		}
 	}
 	return {
-		compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), sourceLine)
+		compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), cleanedLine, sourceLine)
 	};
 
 }

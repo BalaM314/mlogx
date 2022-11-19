@@ -116,6 +116,32 @@ export function splitLineIntoArguments(cleanedLine) {
         return cleanedLine.split(" ");
     }
 }
+export function splitLineOnSemicolons(cleanedLine) {
+    if (cleanedLine.includes(`"`)) {
+        const lines = [""];
+        let isInString = false;
+        for (const char of cleanedLine) {
+            if (char == `"`) {
+                isInString = !isInString;
+            }
+            if (isInString) {
+                lines[0] += char;
+            }
+            else if (char == ";") {
+                lines.push("");
+            }
+            else {
+                lines[0] += char;
+            }
+        }
+        if (isInString)
+            throw new CompilerError("Unterminated string literal");
+        return lines.map(cleanLine);
+    }
+    else {
+        return cleanedLine.split(";").map(cleanLine);
+    }
+}
 export function transformVariables(args, commandDefinition, transformFunction) {
     return transformCommand(args, commandDefinition, transformFunction, (arg, commandArg) => (commandArg?.isVariable || (acceptsVariable(commandArg)
         && isArgValidForType(arg, "variable"))) && arg !== "_");
@@ -383,8 +409,8 @@ export function formatLine(line) {
 export function formatLineWithPrefix(line, prefix = "\t\tat ") {
     return chalk.gray(`${prefix}${line.sourceFilename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
-export function addSourcesToCode(code, sourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }) {
-    return code.map(compiledLine => [compiledLine, sourceLine]);
+export function addSourcesToCode(code, cleanedSource = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }, sourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }) {
+    return code.map(compiledLine => [compiledLine, cleanedSource, sourceLine]);
 }
 export function exit(message) {
     Log.fatal(message);

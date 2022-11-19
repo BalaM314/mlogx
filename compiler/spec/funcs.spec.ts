@@ -22,7 +22,7 @@ import {
 	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
 	getParameters, getVariablesDefined, getVariablesUsed, isCommand, isInputAcceptedByAnyType, parseIcons,
 	parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces,
-	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand,
+	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, splitLineOnSemicolons, transformCommand,
 	transformVariables, typeIsAccepted
 } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
@@ -253,6 +253,18 @@ describe("splitLineIntoArguments", () => {
 		expect(splitLineIntoArguments(`print "amogus sussy" and "a eea "`)).toEqual(["print", `"amogus sussy"`, "and", `"a eea "`]);
 	});
 	it("should throw an error on unterminated string literals", () => {
+		expect(() => splitLineIntoArguments(`print "amogus sussy" and "a eea '`)).toThrow();
+	});
+});
+
+describe("splitLineOnSemicolons", () => {
+	it("should not split lines without a semicolon", () => {
+		expect(splitLineOnSemicolons("set z 98")).toEqual(["set z 98"]);
+	});
+	it("should split lines on a semicolon", () => {
+		expect(splitLineIntoArguments(`print "amogus sussy" and "a eea "`)).toEqual(["print", `"amogus sussy"`, "and", `"a eea "`]);
+	});
+	it("should not split lines on semicolons within strings", () => {
 		expect(() => splitLineIntoArguments(`print "amogus sussy" and "a eea '`)).toThrow();
 	});
 });
@@ -864,10 +876,10 @@ describe("addSourcesToCode", () => {
 			`print "hello"`,
 			`printflush message1`,
 			`//sussy baka`
-		], makeLine(`print "hello"`, 420, "amogus.mlogx"))).toEqual([
-			[`print "hello"`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
-			[`printflush message1`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
-			[`//sussy baka`, makeLine(`print "hello"`, 420, "amogus.mlogx")],
+		], makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx"))).toEqual([
+			[`print "hello"`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")],
+			[`printflush message1`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")],
+			[`//sussy baka`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")],
 		]);
 	});
 });

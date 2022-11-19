@@ -25,7 +25,7 @@ export const messages = extend()({
     "no config.json": { for: (d) => `No config.json found, using default settings.`, level: "debug" },
     "project created": { for: (d) => `Successfully created a new project in ${d.dirname}`, level: "announce" },
     "program too long": { for: (d) => `Program length exceeded 999 lines. Running it in-game will silently fail.`, level: "err" },
-    "invalid uncompiled command definition": { for: (d) => `Tried to type check a line(${d.line[1].text} => ${d.line[0]}) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level: "err" },
+    "invalid uncompiled command definition": { for: (d) => `Tried to type check a line(\`${d.line[1].text}\` => \`${d.line[0]}\`) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level: "err" },
     "variable redefined with conflicting type": { for: (d) => `Variable "${d.name}" was defined with ${d.types.length} different types. ([${d.types.join(", ")}])
 	First definition:
 ${formatLineWithPrefix(d.firstDefinitionLine, "\t\t")}
@@ -54,6 +54,8 @@ ${formatLineWithPrefix(d.line)}`,
     "cannot port mlogx": { for: (d) => `File ${d.path} is already mlogx. If you would like to port it again, please rename it to .mlog.`, level: "err" },
     "port successful": { for: (d) => `Ported file ${d.filename} to mlogx.`, level: "announce" },
     "bad arg string": { for: (d) => `Possibly bad arg string "${d.name}", assuming it means a non-generic arg`, level: "warn" },
+    "cannot compile dir": { for: (d) => `Cannot compile ${d.dirname}. For help, run "mlogx help".`, level: "err" },
+    "cannot compile mlog file": { for: (d) => `Cannot compile a .mlog file. If you are trying to port it, use mlogx port. If you really want to compile it, change the extension to .mlogx.`, level: "err" },
 });
 export class Logger {
     constructor(logLevels, messages) {
@@ -89,6 +91,8 @@ export class Logger {
     none(message) { this.printWithLevel("none", message); }
     printMessage(messageID, data) {
         const message = this.messages[messageID];
+        if (!message)
+            throw new Error(`Attempted to print unknown message ${messageID}`);
         this[message.level](message.for(data));
     }
 }

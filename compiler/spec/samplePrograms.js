@@ -96,6 +96,17 @@ export const testPrograms = {
         expectedOutput: [],
         compilerConsts: new Map()
     },
+    splitStatementsTest: {
+        program: `#split test
+print "amogus"
+draw clear 0 0 0
+set x 5;set x 6`.split("\n"),
+        expectedOutput: `print "amogus"
+draw clear 0 0 0
+set x 5
+set x 6`.split("\n"),
+        compilerConsts: new Map()
+    },
     "&if test": {
         program: `#&if test
 print "amogus"

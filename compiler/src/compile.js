@@ -2,7 +2,7 @@ import deepmerge from "deepmerge";
 import { CompilerError } from "./classes.js";
 import { commands } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
-import { addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand } from "./funcs.js";
+import { addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, splitLineOnSemicolons, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand } from "./funcs.js";
 import { Log } from "./Log.js";
 import { hasElement } from "./stack_elements.js";
 import { CommandErrorType } from "./types.js";
@@ -34,6 +34,10 @@ export function compileMlogxToMlog(mlogxProgram, settings, compilerConsts, typeD
     for (const requiredVar of requiredVars) {
         if (requiredVarCode[requiredVar]) {
             compiledProgram.push(...requiredVarCode[requiredVar][0].map(line => [line, {
+                    text: `[#require'd variable]`,
+                    lineNumber: 0,
+                    sourceFilename: "[#require'd variable]",
+                }, {
                     text: `[#require'd variable]`,
                     lineNumber: 0,
                     sourceFilename: "[#require'd variable]",
@@ -127,10 +131,10 @@ ${formatLineWithPrefix(element.line)}`);
     return { outputProgram, typeCheckingData };
 }
 export function typeCheckLine(compiledLine, typeCheckingData) {
-    const cleanedCompiledLine = cleanLine(compiledLine[0]);
-    const cleanedUncompiledLine = cleanLine(compiledLine[1].text);
-    if (cleanedCompiledLine == "")
-        return;
+    const cleanedCompiledLine = compiledLine[0];
+    const cleanedUncompiledLine = compiledLine[1].text;
+    if (cleanLine(cleanedCompiledLine) == "")
+        Log.warn("mlogx generated a blank line. This should not happen.");
     const labelName = getJumpLabel(cleanedCompiledLine);
     if (labelName) {
         typeCheckingData.jumpLabelsDefined[labelName] ??= [];
@@ -228,10 +232,11 @@ export function cleanProgram(program, settings) {
         };
         const cleanedText = cleanLine(sourceLine.text);
         if (cleanedText != "")
-            outputProgram.push([{
-                    ...sourceLine,
-                    text: cleanedText
-                }, sourceLine]);
+            outputProgram.push(...splitLineOnSemicolons(cleanedText).map(l => [{
+                    text: l,
+                    lineNumber: sourceLine.lineNumber,
+                    sourceFilename: settings.filename
+                }, sourceLine]));
     }
     return outputProgram;
 }
@@ -245,7 +250,7 @@ export function compileLine([cleanedLine, sourceLine], compilerConsts, settings,
                     hasElement(stack, "namespace") ?
                         `${addNamespacesToVariable(getJumpLabel(cleanedText), stack)}:` :
                         cleanedText,
-                    sourceLine
+                    cleanedLine, sourceLine
                 ]
             ]
         };
@@ -310,7 +315,7 @@ export function compileLine([cleanedLine, sourceLine], compilerConsts, settings,
         }
     }
     return {
-        compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), sourceLine)
+        compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), cleanedLine, sourceLine)
     };
 }
 export function getOutputForCommand(args, command, stack) {
