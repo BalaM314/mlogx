@@ -78,6 +78,10 @@ export const commands = processCommands({
 			args: "color r:number g:number b:number a:number",
 			description: "Sets the draw color to (r,g,b)."
 		},{
+			//need a name for the packed color
+			args: "col packedColor:packedcolor",
+			description: "Sets the draw color using packedcolor"
+		},{
 			args: "stroke width:number",
 			description: "Sets the stroke width to (width)."
 		},{
@@ -469,14 +473,14 @@ all commands gonna be added prob (w/o the multi unique args like in ucontrol)
 	spawn @unitType x y angle @team unit
 	status false wet unit 10
 	spawnwave x y false
-setrule waveSpacing 10 0 0 100 100
+	setrule waveSpacing 10 0 0 100 100
 	message announce 3
-cutscene pan x y speed 0
-explosion @team x y radius dmg isAirHurt isGroundHurt isPierce
-setrate ipt
-fetch unit result @team uniqueNum @conveyor
-getflag result "flag"
-setflag "flag" true
+	cutscene pan x y speed 0
+	explosion @team x y radius dmg isAirHurt isGroundHurt isPierce
+	setrate ipt
+	fetch unit result @team uniqueNum @conveyor
+	getflag result "flag"
+	setflag "flag" true
 
 draw col color:number
 stop
@@ -517,7 +521,6 @@ packcolor output:*number r:number g:number b:number a:number
 		}
 	],
 	//spawn @unitType x y rotation-angle @team unitReference
-	
 	spawn: [{
 		args: "type:unitType x:number y:number rotation:number team:team output:*unit",
 		description: "Spawns a (type) unit at (x,y) with rotation (rotation) and team (team), storing it in (output)."
@@ -567,12 +570,24 @@ packcolor output:*number r:number g:number b:number a:number
 			description: "Flushes the message buffer to the mission text."
 		},
 	],
+	//cutscene [pan(x, y, speed) zoom(level) stop)] 0 (random zero :/)
 	cutscene: [
-
+		{
+			args: "pan x:number y:number speed:number",
+			description: "pans to coordinates (x,y) at a certain (speed)."
+		},{
+			args: "zoom level:number",
+			description: "Flushes the message buffer to a toast for (duration) seconds."
+		},{
+			args: "stop",
+			description: "Flushes the message buffer to the mission text."
+		},
 	],
-	explosion: [
-
-	],
+	//explosion @team x y radius dmg isAirHurt isGroundHurt isPierce
+	explosion: [{
+		args: "team:team x:number y:number radius:number damage:number affectsAir:boolean affectsGround:boolean isPiercing:boolean",
+		description: "creates an explosion at coordinates (x,y), damages a specific (team), whether or not if it hits air or ground, and if it pierces"
+	}],
 	setrate: [{
 		args: "ipt:number",
 		description: "Sets the instructions per tick to (ipt)"
