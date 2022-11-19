@@ -78,9 +78,8 @@ export const commands = processCommands({
 			args: "color r:number g:number b:number a:number",
 			description: "Sets the draw color to (r,g,b)."
 		},{
-			//need a name for the packed color
-			args: "col packedColor:packedcolor",
-			description: "Sets the draw color using packedcolor"
+			args: "col packedColor:packedColor",
+			description: "Sets the draw color using packedColor"
 		},{
 			args: "stroke width:number",
 			description: "Sets the stroke width to (width)."
@@ -292,9 +291,18 @@ export const commands = processCommands({
 			description: "Looks up the (n)th unit and stores it in (output)."
 		},
 	],
+	//packcolor output r g b a
+	packcolor:[{
+			args: "output:packedColor r:number g:number a:number",
+			description: "compresses [0-1]RGBA values into one singular number (packedColor)"
+	}],
 	end: [{
 		args: "",
 		description: "Goes back to the start."
+	}],
+	stop: [{
+		args: "",
+		description: "halts the processor from running"
 	}],
 	jump: [
 		{
