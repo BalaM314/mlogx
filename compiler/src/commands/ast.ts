@@ -14,7 +14,7 @@ import { CompilerError } from "../classes.js";
 import { maxLoops, MindustryContent, shortOperandMappings } from "../consts.js";
 import { Log } from "../Log.js";
 import {
-	addNamespacesToLine, getCommandDefinition, impossible, isKey, range,replaceCompilerConstants,
+	addNamespacesToLine, getCommandDefinition, impossible, interpolateString, isKey, range,replaceCompilerConstants,
 	splitLineIntoArguments
 } from "../funcs.js";
 import { hasDisabledIf, hasElement, topForLoop } from "../stack_elements.js";
@@ -59,6 +59,13 @@ export const commands = processCommands({
 			"jump flag_unit always",
 		],
 		description: "Binds and flags a unit of type (type). Requires you to include \"flag_unit\"."
+	}],
+	printf: [{
+		args: "message:string",
+		replace(args) {
+			return interpolateString(args[1].slice(1,-1)).map(chunk => chunk.type == "string" ? `print "${chunk.content}"` : `print ${chunk.content}`);
+		},
+		description: "Print statement with string interpolation."
 	}],
 
 
