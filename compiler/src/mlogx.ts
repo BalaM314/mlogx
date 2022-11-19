@@ -120,7 +120,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 		Log.printMessage("cannot compile dir", {dirname: "your home directory"});
 		return 1;
 	}
-	if(target == app.sourceDirectory || path.join(app.sourceDirectory, "src")){
+	if(target == app.sourceDirectory || target == path.join(app.sourceDirectory, "src")){
 		Log.printMessage("cannot compile dir", {dirname: "mlogx's installation location"});
 		return 1;
 	}
