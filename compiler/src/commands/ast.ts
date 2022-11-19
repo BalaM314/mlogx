@@ -474,27 +474,6 @@ export const commands = processCommands({
 			},
 		}
 	],
-/*
-all commands gonna be added prob (w/o the multi unique args like in ucontrol)
-	getblock block result x y
-	setblock block @floorType x y @team rotation
-	spawn @unitType x y angle @team unit
-	status false wet unit 10
-	spawnwave x y false
-	setrule waveSpacing 10 0 0 100 100
-	message announce 3
-	cutscene pan x y speed 0
-	explosion @team x y radius dmg isAirHurt isGroundHurt isPierce
-	setrate ipt
-	fetch unit result @team uniqueNum @conveyor
-	getflag result "flag"
-	setflag "flag" true
-
-draw col color:number
-stop
-packcolor output:*number r:number g:number b:number a:number
-*/
-
 //world processor exclusive (data from 139)
 	//getblock [floor, ore, block, building] result x y
 	getblock: [
