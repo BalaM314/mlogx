@@ -68,7 +68,7 @@ mlogx.command("version", "Displays the version of mlogx", (opts, app) => {
     catch (err) {
         Log.err(`This should not happen. ${err.message}`);
     }
-}, false, undefined, ["v"]);
+}, false, {}, ["v"]);
 mlogx.command("init", "Creates a new project", (opts) => {
     createProject(opts.positionalArgs[0])
         .catch(err => Log.err(err?.message ?? err));
