@@ -20,7 +20,7 @@ import {
 	acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode,
 	areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition,
 	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
-	getParameters, getVariablesDefined, getVariablesUsed, isCommand, isInputAcceptedByAnyType, parseIcons,
+	getParameters, getVariablesDefined, getVariablesUsed, interpolateString, isCommand, isInputAcceptedByAnyType, parseIcons,
 	parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces,
 	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, splitLineOnSemicolons, transformCommand,
 	transformVariables, typeIsAccepted
@@ -372,6 +372,42 @@ describe("removeUnusedJumps", () => {
 			"label5:",
 			"jump label5 always"
 		]));
+	});
+});
+
+describe("interpolateString", () => {
+	it("should not split a string that does not contain variables", () => {
+		expect(interpolateString(`sussy baka amogus imposter`)).toEqual([{
+			type: "string",
+			content: `sussy baka amogus imposter`
+		}]);
+	});
+	it("should break a string that contains variables into chunks", () => {
+		expect(interpolateString(`a a aaa b b {c}{d} e{amogus}`)).toEqual([{
+			type: "string",
+			content: `a a aaa b b `
+		},{
+			type: "variable",
+			content: `c`
+		},{
+			type: "variable",
+			content: `d`
+		},{
+			type: "string",
+			content: ` e`
+		},{
+			type: "variable",
+			content: `amogus`
+		}]);
+	});
+	it("should not split a string that has escaped variables", () => {
+		expect(interpolateString(`sussy baka \\{amogus} imposter {e}`)).toEqual([{
+			type: "string",
+			content: `sussy baka {amogus} imposter `
+		},{
+			type: "variable",
+			content: `e`
+		}]);
 	});
 });
 

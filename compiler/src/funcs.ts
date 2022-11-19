@@ -217,6 +217,16 @@ export function removeUnusedJumps(compiledProgram:CompiledLine[], jumpLabelUsage
 	);
 }
 
+export function interpolateString(input:string):{
+	type: "string" | "variable";
+	content: string;
+}[]{
+	return input.split(/(?<!\\)\{|(?<!\\\{[^{]+)\}/).map((chunk, index) => ({
+		type: index % 2 ? "variable" : "string" as "string" | "variable",
+		content: chunk.replace(/\\\{(.+)\}/, "{$1}")
+	})).filter(chunk => chunk.content != "");
+}
+
 //#endregion
 //#region parsing
 

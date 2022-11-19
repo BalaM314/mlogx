@@ -166,6 +166,12 @@ export function prependFilenameToArg(arg, isMain, filename) {
 export function removeUnusedJumps(compiledProgram, jumpLabelUsages) {
     return compiledProgram.filter(line => !getJumpLabel(line[0]) || getJumpLabel(line[0]) in jumpLabelUsages);
 }
+export function interpolateString(input) {
+    return input.split(/(?<!\\)\{|(?<!\\\{[^{]+)\}/).map((chunk, index) => ({
+        type: index % 2 ? "variable" : "string",
+        content: chunk.replace(/\\\{(.+)\}/, "{$1}")
+    })).filter(chunk => chunk.content != "");
+}
 export function parseIcons(data) {
     const icons = new Map();
     for (const line of data) {
