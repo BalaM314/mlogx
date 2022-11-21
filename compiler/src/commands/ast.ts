@@ -78,8 +78,8 @@ export const commands = processCommands({
 			args: "color r:number g:number b:number a:number",
 			description: "Sets the draw color to (r,g,b)."
 		},{
-			args: "col packedColor:packedColor",
-			description: "Sets the draw color using packedColor"
+			args: "col packedColor:number",
+			description: "Sets the draw color to (packedColor)."
 		},{
 			args: "stroke width:number",
 			description: "Sets the stroke width to (width)."
@@ -293,8 +293,8 @@ export const commands = processCommands({
 	],
 	//packcolor output r g b a
 	packcolor:[{
-			args: "output:packedColor r:number g:number a:number",
-			description: "compresses [0-1]RGBA values into one singular number (packedColor)"
+			args: "output:*number r:number g:number b:number a:number",
+			description: "Packs (r,g,b,a) into a single number."
 	}],
 	end: [{
 		args: "",
@@ -302,7 +302,7 @@ export const commands = processCommands({
 	}],
 	stop: [{
 		args: "",
-		description: "halts the processor from running"
+		description: "Stops execution."
 	}],
 	jump: [
 		{
@@ -474,19 +474,16 @@ export const commands = processCommands({
 			},
 		}
 	],
-//world processor exclusive (data from 139)
+	//Privileged instructions (add flag?)
 	//getblock [floor, ore, block, building] result x y
 	getblock: [
 		{
-		//idk if floor type is a thing here
-			args: "floor output:*floorType x:number y:number",
+			args: "floor output:*any x:number y:number",//TODO add floorType
 			description: "outputs the floor type at coordinates (x,y)"
 		},{
-		//ore as well...
-			args: "ore output:*oreType x:number y:number",
+			args: "ore output:*item x:number y:number",//ore type is actually just @item
 			description: "outputs the ore type at coordinates (x,y)"	
 		},{
-		//block = buildingType in mindus, TIL
 			args: "block output:*buildingType x:number y:number",
 			description: "outputs the building type at coordinates (x,y)"	
 		},{
@@ -494,17 +491,23 @@ export const commands = processCommands({
 			description: "outputs the building at coordinates (x,y)"	
 		}
 	],
-	//setblock [floor, ore, block] *type x y @team rotation
+	//setblock [floor, ore, block] type x y @team rotation
 	setblock: [
 		{
-			args: "floor floorType:*floorType x:number y:number",
-			description: "sets the floor type at coordinates (x,y)"
+			args: "floor floorType:any x:number y:number",//TODO floorType
+			description: "sets the floor type at coordinates (x,y)",
+			replace: ["setblock %1 %2 %3 %4 0 0"]
 		},{
-			args: "ore oreType:*oreType x:number y:number",
-			description: "sets the ore type at coordinates (x,y)"	
+			args: "ore oreType:item x:number y:number",
+			description: "sets the ore type at coordinates (x,y)",
+			replace: ["setblock %1 %2 %3 %4 0 0"]
 		},{
-			args: "block buildingType:*buildingType x:number y:number team:*team rotation:number",
-			description: "sets the block at coordinates (x,y) with a team and a counter clockwise rotation starting at the right [0 - 3]"	
+			args: "block buildingType:buildingType x:number y:number team:team rotation:number",
+			description: "sets the block at coordinates (x,y) with a team and a counter clockwise rotation starting at the right [0 - 3]",
+			replace: ["setblock %1 %2 %3 %4 0 0"]
+		},{
+			args: "floorOrOreOrBlock:any type:any x:number y:number team?:team rotation?:number",
+			description: "Default setblock signature, with meaningless team and rotation arguments. Included for compatibility."	
 		}
 	],
 	//spawn @unitType x y rotation-angle @team unitReference
@@ -561,28 +564,36 @@ export const commands = processCommands({
 	cutscene: [
 		{
 			args: "pan x:number y:number speed:number",
-			description: "pans to coordinates (x,y) at a certain (speed)."
+			description: "Pans to (x,y) at (speed)."
 		},{
 			args: "zoom level:number",
-			description: "Flushes the message buffer to a toast for (duration) seconds."
+			description: "Sets the zoom level to (level)."
 		},{
 			args: "stop",
-			description: "Flushes the message buffer to the mission text."
+			description: "Ends the cutscene, returning control to players."
 		},
 	],
 	//explosion @team x y radius dmg isAirHurt isGroundHurt isPierce
 	explosion: [{
 		args: "team:team x:number y:number radius:number damage:number affectsAir:boolean affectsGround:boolean isPiercing:boolean",
-		description: "creates an explosion at coordinates (x,y), damages a specific (team), whether or not if it hits air or ground, and if it pierces"
+		description: "Creates an explosion at coordinates (x,y) that damages enemies of (team)."
 	}],
 	setrate: [{
 		args: "ipt:number",
-		description: "Sets the instructions per tick to (ipt)"
+		description: "Sets the instructions per tick to (ipt)."
 	}],
 	fetch: [
 		{
-			args: "thing:fetchableCount output:*number",
+			args: "thing:fetchableCount output:*number team:team",
 			description: "Fetches (thing) and stores it in (output)."
+		},{
+			args: "unit output:*unit index:number",
+			description: "Fetches (thing) and stores it in (output).",
+			replace: ["fetch %1 %2 0 %3 0"]
+		},{
+			args: "unit output:*unit index:number",
+			description: "Fetches (thing) and stores it in (output).",
+			replace: ["fetch %1 %2 0 %3 0"]
 		}
 	],
 	getflag: [{
