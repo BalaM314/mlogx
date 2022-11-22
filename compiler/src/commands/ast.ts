@@ -584,16 +584,27 @@ export const commands = processCommands({
 	}],
 	fetch: [
 		{
+			args: "buildCount output:*number team:team type:buildingType",
+			description: "Fetches (thing) and stores it in (output).",
+			replace: [ "fetch %1 %2 %3 0 %4" ]
+		},{
+			args: "buildCount output:*number team:team 0 type:buildingType",
+			description: "Default fetch buildCount signature with extra 0. Included for compatibility.",
+		},{
 			args: "thing:fetchableCount output:*number team:team",
-			description: "Fetches (thing) and stores it in (output)."
+			description: "Fetches (thing) for (team) and stores it in (output)."
 		},{
-			args: "unit output:*unit index:number",
-			description: "Fetches (thing) and stores it in (output).",
-			replace: ["fetch %1 %2 0 %3 0"]
+			args: "unit output:*unit team:team n:number",
+			description: "Fetches the (n)th unit on (team) and stores it in (output).",
 		},{
-			args: "unit output:*unit index:number",
-			description: "Fetches (thing) and stores it in (output).",
-			replace: ["fetch %1 %2 0 %3 0"]
+			args: "player output:*unit team:team n:number",
+			description: "Fetches the (n)th player on (team) and stores it in (output).",
+		},{
+			args: "core output:*building team:team n:number",
+			description: "Fetches the (n)th core on (team) and stores it in (output).",
+		},{
+			args: "build output:*building team:team n:number type:buildingType",
+			description: "Fetches the (n)th building on (team) of type (type) and stores it in (output).",
 		}
 	],
 	getflag: [{
