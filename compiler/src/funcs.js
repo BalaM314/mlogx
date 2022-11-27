@@ -175,7 +175,6 @@ export function interpolateString(input) {
     while (chars[0]) {
         const char = chars.shift();
         const chunk = chunks.at(-1);
-        Log.debug(`Processing char ${char}`);
         if (char == "{" || char == "}") {
             if (chunk.content.at(-1) == "\\") {
                 chunk.content = chunk.content.slice(0, -1);
@@ -183,7 +182,6 @@ export function interpolateString(input) {
             else {
                 const type = char == "{" ? "variable" : "string";
                 if (type != chunk.type) {
-                    Log.debug(`Switching to "${char == "{" ? "variable" : "string"}"`);
                     chunks.push({
                         type,
                         content: ""

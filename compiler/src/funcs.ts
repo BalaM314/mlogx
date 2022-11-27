@@ -232,7 +232,6 @@ export function interpolateString(input:string):{
 	while(chars[0]){
 		const char = chars.shift();
 		const chunk = chunks.at(-1)!;
-		Log.debug(`Processing char ${char}`);
 		if(char == "{" || char == "}"){
 			if(chunk.content.at(-1) == "\\"){
 				//Remove the backslash and let the { be appended
@@ -241,7 +240,6 @@ export function interpolateString(input:string):{
 				//Start a new chunk of the other type if it is not the current type
 				const type = char == "{" ? "variable" : "string";
 				if(type != chunk.type){
-					Log.debug(`Switching to "${char == "{" ? "variable" : "string"}"`);
 					chunks.push({
 						type,
 						content: ""
