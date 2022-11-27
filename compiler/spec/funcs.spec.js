@@ -309,12 +309,15 @@ describe("interpolateString", () => {
             }]);
     });
     it("should not split a string that has escaped variables", () => {
-        expect(interpolateString(`sussy baka \\{amogus} imposter {e}`)).toEqual([{
+        expect(interpolateString(`sussy baka \\{amogus} \\{imposter {e} f}`)).toEqual([{
                 type: "string",
-                content: `sussy baka {amogus} imposter `
+                content: `sussy baka {amogus} {imposter `
             }, {
                 type: "variable",
                 content: `e`
+            }, {
+                type: "string",
+                content: " f}"
             }]);
     });
 });

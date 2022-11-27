@@ -167,10 +167,34 @@ export function removeUnusedJumps(compiledProgram, jumpLabelUsages) {
     return compiledProgram.filter(line => !getJumpLabel(line[0]) || getJumpLabel(line[0]) in jumpLabelUsages);
 }
 export function interpolateString(input) {
-    return input.split(/(?<!\\)\{|(?<!\\\{[^{]+)\}/).map((chunk, index) => ({
-        type: index % 2 ? "variable" : "string",
-        content: chunk.replace(/\\\{(.+)\}/, "{$1}")
-    })).filter(chunk => chunk.content != "");
+    const chunks = [{
+            type: "string",
+            content: ""
+        }];
+    const chars = input.split("");
+    while (chars[0]) {
+        const char = chars.shift();
+        const chunk = chunks.at(-1);
+        Log.debug(`Processing char ${char}`);
+        if (char == "{" || char == "}") {
+            if (chunk.content.at(-1) == "\\") {
+                chunk.content = chunk.content.slice(0, -1);
+            }
+            else {
+                const type = char == "{" ? "variable" : "string";
+                if (type != chunk.type) {
+                    Log.debug(`Switching to "${char == "{" ? "variable" : "string"}"`);
+                    chunks.push({
+                        type,
+                        content: ""
+                    });
+                    continue;
+                }
+            }
+        }
+        chunks.at(-1).content += char;
+    }
+    return chunks.filter(chunk => chunk.content.length > 0);
 }
 export function parseIcons(data) {
     const icons = new Map();
