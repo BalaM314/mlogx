@@ -100,20 +100,15 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
         Log.printMessage("cannot compile dir", { dirname: "mlogx's installation location" });
         return 1;
     }
-    const settingsOverrides = {
-        compilerOptions: {
-            verbose: "verbose" in opts.namedArgs
-        }
-    };
     const stdlibDirectory = fs.existsSync(path.join(app.sourceDirectory, "stdlib")) ? path.join(app.sourceDirectory, "stdlib") : path.join(app.sourceDirectory, "../stdlib");
     const cacheDirectory = fs.existsSync(path.join(app.sourceDirectory, "cache")) ? path.join(app.sourceDirectory, "cache") : path.join(app.sourceDirectory, "../cache");
     const icons = parseIcons(fs.readFileSync(path.join(cacheDirectory, "icons.properties"), "utf-8").split(/\r?\n/));
-    if (settingsOverrides.compilerOptions?.verbose) {
+    if ("verbose" in opts.namedArgs) {
         Log.printMessage("verbose mode on", {});
     }
     if ("watch" in opts.namedArgs) {
         let lastCompiledTime = Date.now();
-        compileDirectory(target, stdlibDirectory, settingsOverrides, icons);
+        compileDirectory(target, stdlibDirectory, icons, opts);
         fs.watch(target, {
             recursive: true
         }, (type, filename) => {
@@ -139,7 +134,7 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
                         dirToCompile = process.cwd();
                     }
                     Log.printMessage("compiling folder", { name: dirToCompile });
-                    compileDirectory(dirToCompile, stdlibDirectory, settingsOverrides, icons);
+                    compileDirectory(dirToCompile, stdlibDirectory, icons, opts);
                     lastCompiledTime = Date.now();
                 }
             }
@@ -152,12 +147,12 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
     }
     if (fs.lstatSync(target).isDirectory()) {
         Log.printMessage("compiling folder", { name: target });
-        compileDirectory(target, stdlibDirectory, settingsOverrides, icons);
+        compileDirectory(target, stdlibDirectory, icons, opts);
         return 0;
     }
     else {
         Log.printMessage("compiling file", { filename: target });
-        compileFile(target, settingsOverrides, icons);
+        compileFile(target, icons, opts);
         return 0;
     }
 }, true, {

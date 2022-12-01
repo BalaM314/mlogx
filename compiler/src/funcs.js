@@ -462,18 +462,45 @@ export function range(min, max, strings) {
         return [];
     return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
 }
-export function getCompilerConsts(icons, settings) {
+export function getCompilerConsts(icons, state, projectInfo) {
     const outputMap = new Map();
     for (const [key, value] of icons) {
         outputMap.set(key, value);
     }
-    outputMap.set("name", settings.name);
-    outputMap.set("authors", settings.authors.join(", "));
-    outputMap.set("filename", settings.filename);
-    for (const [key, value] of Object.entries(settings.compilerConstants)) {
+    outputMap.set("name", projectInfo.name);
+    outputMap.set("authors", projectInfo.authors.join(", "));
+    outputMap.set("filename", projectInfo.filename);
+    for (const [key, value] of Object.entries(state.compilerConstants)) {
         outputMap.set(key, value);
     }
     return outputMap;
+}
+export function getState(settings, directory, options) {
+    return {
+        project: {
+            name: settings.name,
+            authors: settings.authors,
+            directoryPath: directory
+        },
+        compilerOptions: {
+            ...settings.compilerOptions
+        },
+        compilerConstants: {
+            ...settings.compilerConstants
+        },
+        verbose: "verbose" in options.namedArgs
+    };
+}
+export function getLocalState(state, filename, icons) {
+    const project = {
+        ...state.project,
+        filename
+    };
+    return {
+        ...state,
+        project,
+        compilerConstants: getCompilerConsts(icons, state, project)
+    };
 }
 export function impossible() {
     throw new Error(`Something happened that should not be possible.

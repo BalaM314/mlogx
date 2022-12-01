@@ -20,16 +20,15 @@ import {
 	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand
 } from "./funcs.js";
 import { Log } from "./Log.js";
-import { Settings } from "./settings.js";
+import { State } from "./settings.js";
 import { hasElement, StackElement } from "./stack_elements.js";
 import {
-	CommandErrorType, CompiledLine, CompilerConsts, Line, PortingMode, TData, TypeCheckingData
+	CommandErrorType, CompiledLine, Line, PortingMode, TData, TypeCheckingData
 } from "./types.js";
 
 export function compileMlogxToMlog(
 	mlogxProgram:string[],
-	settings:Settings,
-	compilerConsts:CompilerConsts,
+	state:State,
 	typeDefinitions:TypeCheckingData = {
 		jumpLabelsDefined: {},
 		jumpLabelsUsed: {},
@@ -40,8 +39,8 @@ export function compileMlogxToMlog(
 
 	const [programType, requiredVars] = parsePreprocessorDirectives(mlogxProgram);
 
-	const isMain = programType == "main" || settings.compilerOptions.mode == "single";
-	const cleanedProgram = cleanProgram(mlogxProgram, settings);
+	const isMain = programType == "main" || state.compilerOptions.mode == "single";
+	const cleanedProgram = cleanProgram(mlogxProgram, state);
 	const compiledProgram:CompiledLine[] = [];
 	let stack:StackElement[] = [];
 
@@ -96,18 +95,18 @@ export function compileMlogxToMlog(
 			let modifiedLine = cleanedLine;
 			for(const def of stack.map(el => el.commandDefinition).reverse()){
 				if(def.onprecompile){
-					const outputData = def.onprecompile({line: modifiedLine, stack, settings, compilerConsts});
+					const outputData = def.onprecompile({line: modifiedLine, stack, state});
 					if("skipCompilation" in outputData) continue;
 					modifiedLine = outputData.output;
 				}
 			}
-			const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData } = compileLine([modifiedLine, sourceLine], compilerConsts, settings, isMain, stack);
+			const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData } = compileLine([modifiedLine, sourceLine], state, isMain, stack);
 			if(modifiedStack) stack = modifiedStack; //ew mutable data
 			let doTypeChecks = !skipTypeChecks;
 			let modifiedCode = compiledCode;
 			for(const def of stack.map(el => el.commandDefinition).reverse()){
 				if(def.onpostcompile){
-					const { modifiedOutput, skipTypeChecks } = def.onpostcompile({compiledOutput: compiledCode, compilerConsts, settings, stack});
+					const { modifiedOutput, skipTypeChecks } = def.onpostcompile({compiledOutput: compiledCode, state, stack});
 					if(skipTypeChecks) doTypeChecks = false;
 					modifiedCode = modifiedOutput;
 					if(modifiedOutput.length == 0) break;
@@ -156,11 +155,11 @@ ${formatLineWithPrefix(element.line)}`
 	}
 
 	
-	if(settings.compilerOptions.checkTypes && !hasInvalidStatements)
+	if(state.compilerOptions.checkTypes && !hasInvalidStatements)
 		printTypeErrors(typeCheckingData);
 	
 	const outputProgram =
-		settings.compilerOptions.removeUnusedJumpLabels ?
+		state.compilerOptions.removeUnusedJumpLabels ?
 			removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed) :
 			compiledProgram;
 
@@ -292,27 +291,27 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, "\t\t")}`
 	}
 }
 
-export function cleanProgram(program:string[], settings:Settings){
+export function cleanProgram(program:string[], state:State){
 	const outputProgram:[cleanedLine:Line, sourceLine:Line][] = [];
 	for(const line in program){
 		const sourceLine:Line = {
 			lineNumber: +line+1,
 			text: program[line],
-			sourceFilename: settings.filename
+			sourceFilename: state.project.filename
 		};
 		const cleanedText = cleanLine(sourceLine.text);
 		if(cleanedText != "") outputProgram.push(...splitLineOnSemicolons(cleanedText).map(l => [{
 			text: l,
 			lineNumber: sourceLine.lineNumber,
-			sourceFilename: settings.filename
+			sourceFilename: state.project.filename
 		}, sourceLine] as [cleanedLine:Line, sourceLine:Line]));
 	}
 	return outputProgram;
 }
 
 export function compileLine(
-	[cleanedLine, sourceLine]: [cleanedLine:Line, sourceLine:Line], compilerConsts: CompilerConsts,
-	settings:Settings,
+	[cleanedLine, sourceLine]: [cleanedLine:Line, sourceLine:Line],
+	state:State,
 	isMain:boolean,
 	stack:StackElement[]
 ): {
@@ -323,7 +322,7 @@ export function compileLine(
 } {
 
 	
-	cleanedLine.text = replaceCompilerConstants(cleanedLine.text, compilerConsts, hasElement(stack, '&for'));
+	cleanedLine.text = replaceCompilerConstants(cleanedLine.text, state.compilerConstants, hasElement(stack, '&for'));
 	const cleanedText = cleanedLine.text;
 
 	//If the text is a jump label, return
@@ -342,7 +341,7 @@ export function compileLine(
 	}
 
 	const args = splitLineIntoArguments(cleanedText)
-		.map(arg => prependFilenameToArg(arg, isMain, settings.filename));
+		.map(arg => prependFilenameToArg(arg, isMain, state.project.filename));
 	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 
@@ -355,7 +354,7 @@ export function compileLine(
 		}
 		if(removedElement.commandDefinition.onend){
 			return {
-				...(removedElement.commandDefinition as CompilerCommandDefinition<StackElement>).onend!({line: cleanedLine, removedElement, settings, compilerConsts, stack}),
+				...(removedElement.commandDefinition as CompilerCommandDefinition<StackElement>).onend!({line: cleanedLine, removedElement, state, stack}),
 				modifiedStack
 			};
 		} else {
@@ -381,7 +380,7 @@ export function compileLine(
 
 			//Find the right error message
 			const typeErrors = errors.filter(error => error.type == CommandErrorType.type);
-			if(settings.compilerOptions.verbose){
+			if(state.verbose){
 				throw new CompilerError(`Line did not match any overloads for command ${args[0]}:\n` + errors.map(err => "\t" + err.message).join("\n"));
 			} else {
 				if(typeErrors.length != 0){
@@ -397,7 +396,7 @@ export function compileLine(
 	//Otherwise, the command was valid, so output
 	if(commandList[0].type == "CompilerCommand"){
 		if(commandList[0].onbegin){
-			const { compiledCode, element, skipTypeChecks } = commandList[0].onbegin({line: cleanedLine, stack, settings, compilerConsts});
+			const { compiledCode, element, skipTypeChecks } = commandList[0].onbegin({line: cleanedLine, stack, state});
 			return {
 				compiledCode,
 				modifiedStack: element ? stack.concat(element) : undefined,

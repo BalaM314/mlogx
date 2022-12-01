@@ -10,14 +10,15 @@ Contains a lot of utility functions.
 
 import chalk from "chalk";
 import * as readline from "readline";
-import { Arg, ArgType, GenericArgs, isArgValidFor, isArgValidForType, isGenericArg, typeofArg } from "./args.js";
-import { CompilerError } from "./classes.js";
+import { Options } from "cli-app";
 import {
-	CommandDefinition, commands, CompilerCommandDefinition, compilerCommands
-} from "./commands.js";
+	Arg, ArgType, GenericArgs, isArgValidFor, isArgValidForType, isGenericArg, typeofArg
+} from "./args.js";
+import { CompilerError } from "./classes.js";
+import { CommandDefinition, commands, CompilerCommandDefinition, compilerCommands } from "./commands.js";
 import { bugReportUrl } from "./consts.js";
 import { Log } from "./Log.js";
-import type { Settings } from "./settings.js";
+import type { GlobalState, Settings, State } from "./settings.js";
 import { hasElement, NamespaceStackElement, StackElement } from "./stack_elements.js";
 import {
 	CommandError, CommandErrorType, CompiledLine, CompilerConst, CompilerConsts, Line, TData
@@ -603,18 +604,47 @@ export function range(min:number, max:number, strings?:true):number[]|string[] {
 	return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
 }
 
-export function getCompilerConsts(icons:Map<string, string>, settings:Settings):CompilerConsts {
+export function getCompilerConsts(icons:Map<string, string>, state:GlobalState, projectInfo:State["project"]):CompilerConsts {
 	const outputMap = new Map<string, CompilerConst>();
 	for(const [key, value] of icons){
 		outputMap.set(key, value);
 	}
-	outputMap.set("name", settings.name);
-	outputMap.set("authors", settings.authors.join(", "));
-	outputMap.set("filename", settings.filename);
-	for(const [key, value] of Object.entries(settings.compilerConstants)){
+	outputMap.set("name", projectInfo.name);
+	outputMap.set("authors", projectInfo.authors.join(", "));
+	outputMap.set("filename", projectInfo.filename);
+	for(const [key, value] of Object.entries(state.compilerConstants)){
 		outputMap.set(key, value);
 	}
 	return outputMap;
+}
+
+export function getState(settings:Settings, directory:string, options:Options):GlobalState {
+	return {
+		project: {
+			name: settings.name,
+			authors: settings.authors,
+			directoryPath: directory
+		},
+		compilerOptions: {
+			...settings.compilerOptions
+		},
+		compilerConstants: {
+			...settings.compilerConstants
+		},
+		verbose: "verbose" in options.namedArgs
+	};
+}
+
+export function getLocalState(state:GlobalState, filename:string, icons:Map<string, string>):State {
+	const project = {
+		...state.project,
+		filename
+	};
+	return {
+		...state,
+		project,
+		compilerConstants: getCompilerConsts(icons, state, project)
+	};
 }
 
 export function impossible():never {
@@ -629,7 +659,7 @@ Make sure to screenshot the stack trace below:`
 /**
  * A TS util function used for type wrangling ASTs.
  * Returns a function that causes TypeScript to force some data to conform to some interface, but include the specific types in the final output.
- * Example: the messages.message.for() function accepts arbitrary data as an input, and this should be available in typeof messages, but not having a fur() function should cause an error.
+ * Example: the messages.message.for() function accepts arbitrary data as an input, and this should be available in typeof messages, but not having a for() function should cause an error.
  **/
 export function extend<Struct>() {
 	return <T extends Struct>(data:T) => data;

@@ -9,8 +9,8 @@ Contains sample programs and other data used for tests.
 */
 
 
+import { Settings } from "../src/settings.js";
 import { StackElement } from "../src/stack_elements.js";
-import { CompilerConsts } from "../src/types.js";
 import { makeNamespaceEl } from "./test_utils.js";
 
 export const allMlogCommands:string[] =`\
@@ -105,13 +105,13 @@ export const testPrograms: {
 	[index: string]: {
 		program: string[];
 		expectedOutput: string[];
-		compilerConsts: CompilerConsts;
+		compilerConsts: Settings["compilerConstants"];
 	};
 } = {
 	emptyProgram: {
 		program: [],
 		expectedOutput: [],
-		compilerConsts: new Map()
+		compilerConsts: {}
 	},
 	mostlyEmptyProgram: {
 		program: [
@@ -121,7 +121,7 @@ export const testPrograms: {
 			`\t \t`
 		],
 		expectedOutput: [],
-		compilerConsts: new Map()
+		compilerConsts: {}
 	},
 	splitStatementsTest: {
 		program:
@@ -134,7 +134,7 @@ set x 5;set x 6`.split("\n"),
 draw clear 0 0 0
 set x 5
 set x 6`.split("\n"),
-		compilerConsts: new Map()
+		compilerConsts: {}
 	},
 	"&if test": {
 		program:
@@ -156,7 +156,7 @@ print "amogus"
 `print "amogus"
 print "true"
 print "true!"`.split("\n"),
-		compilerConsts: new Map()
+		compilerConsts: {}
 	},
 	"&for test": {
 		program:
@@ -170,7 +170,7 @@ print "amogus"
 print "sus 1"
 print "sus 2"
 print "sus 3"`.split("\n"),
-		compilerConsts: new Map()
+		compilerConsts: {}
 	},
 	"nested &for test": {
 		program:
@@ -189,7 +189,7 @@ print "amogus a 6"
 print "sus B"
 print "amogus B 5"
 print "amogus B 6"`.split("\n"),
-		compilerConsts: new Map()
+		compilerConsts: {}
 	},
 	"complicated &for test": {
 		program:
@@ -221,7 +221,7 @@ print "amogus d 6"
 print "sus E"
 print "amogus E 5"
 print "amogus E 6"`.split("\n"),
-		compilerConsts: new Map()
+		compilerConsts: {}
 	},
 	throughputCounter: {
 		program:
@@ -286,7 +286,7 @@ wait_for_reset:
 sensor container.items container @totalItems
 jump wait_for_reset notEqual items 0
 end`.split("\n"),
-		compilerConsts: new Map()
+		compilerConsts: {}
 	},
 	multiPayenter: {
 		program:
@@ -514,18 +514,18 @@ jump bind_unit6 greaterThan unit.controlled 1
 ucontrol flag cookie
 set unit6 @unit
 jump unit6_ok always 0 0`.split("\n"),
-		compilerConsts: new Map([
-			["message", "[orange]Core T4 Payenter[] by [#3141FF]BalaM314[]"],
-			["numReconstructors", "6"],
-			["githubUrl", "https://github.com/BalaM314/mlog/tree/main/single_files/payEnter/"],
-		])
+		compilerConsts: {
+			message: "[orange]Core T4 Payenter[] by [#3141FF]BalaM314[]",
+			numReconstructors: "6",
+			githubUrl: "https://github.com/BalaM314/mlog/tree/main/single_files/payEnter/",
+		}
 	},
 	thing: {
 		program:
 `print "e"`.split("\n"),
 		expectedOutput:
 `print "e"`.split("\n"),
-		compilerConsts: new Map()
+		compilerConsts: {}
 	},
 	
 };

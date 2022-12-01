@@ -8,7 +8,6 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains impure functions related to compiling that interact with the filesystem.
 */
 
-import deepmerge from "deepmerge";
 import * as fs from "fs";
 import path from "path";
 import * as yup from "yup";
@@ -16,31 +15,31 @@ import { CompilerError } from "./classes.js";
 import { compileMlogxToMlog } from "./compile.js";
 import { compilerMark } from "./consts.js";
 import { Log } from "./Log.js";
-import { askQuestion, getCompilerConsts } from "./funcs.js";
+import { askQuestion, getLocalState, getState } from "./funcs.js";
 import { Settings, settingsSchema } from "./settings.js";
-import { PartialRecursive } from "./types.js";
+import { Options } from "cli-app";
 
-export function compileDirectory(directory:string, stdlibPath:string, defaultSettings:PartialRecursive<Settings>, icons:Map<string, string>){
+export function compileDirectory(directory:string, stdlibPath:string, icons:Map<string, string>, options:Options){
 
-
-	const settings = getSettings(directory, defaultSettings);
+	const settings = getSettings(directory);
+	const globalState = getState(settings, directory, options);
 	const srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
 
-	if(!srcDirectoryExists && settings.compilerOptions.mode == "project"){
+	if(!srcDirectoryExists && globalState.compilerOptions.mode == "project"){
 		Log.printMessage("compiler mode project but no src directory", {});
-		settings.compilerOptions.mode = "single";
+		globalState.compilerOptions.mode = "single";
 	}
 	if(srcDirectoryExists){
-		settings.compilerOptions.mode = "project";
+		globalState.compilerOptions.mode = "project";
 	}
 
-	const sourceDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "src") : directory;
-	const outputDirectory = settings.compilerOptions.mode == "project" ? path.join(directory, "build") : sourceDirectory;
+	const sourceDirectory = globalState.compilerOptions.mode == "project" ? path.join(directory, "src") : directory;
+	const outputDirectory = globalState.compilerOptions.mode == "project" ? path.join(directory, "build") : sourceDirectory;
 	const stdlibDirectory = path.join(stdlibPath, "build");
 
 
 	//If in project mode and build/ doesn't exist, create it
-	if(settings.compilerOptions.mode == "project" && !fs.existsSync(outputDirectory)){
+	if(globalState.compilerOptions.mode == "project" && !fs.existsSync(outputDirectory)){
 		fs.mkdirSync(outputDirectory);
 	}
 
@@ -69,21 +68,15 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 		//For each filename in the file list
 
 		Log.printMessage("compiling file", {filename});
+		const state = getLocalState(globalState, filename, icons);
 		const data:string[] = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split(/\r?\n/g);
 		//Load the data
 		
 		let outputData: string[];
 		//Compile, but handle errors
 		try {
-			outputData = compileMlogxToMlog(data,
-				{
-					...settings,
-					filename
-				},
-				getCompilerConsts(icons, {
-					...settings,
-					filename
-				})
+			outputData = compileMlogxToMlog(
+				data, state
 			).outputProgram.map(line => line[0]);
 		} catch(err){
 			Log.printMessage("compiling file failed", {filename});
@@ -93,7 +86,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 				Log.dump(err);
 			return;
 		}
-		if(settings.compilerOptions.mode == "single" && !settings.compilerOptions.removeCompilerMark){
+		if(globalState.compilerOptions.mode == "single" && !globalState.compilerOptions.removeCompilerMark){
 			outputData.push("end", ...compilerMark);
 		}
 		//Write .mlog files to output
@@ -101,7 +94,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 			path.join(outputDirectory, filename.slice(0,-1)),
 			outputData.join("\r\n")
 		);
-		if(settings.compilerOptions.mode == "project"){
+		if(globalState.compilerOptions.mode == "project"){
 			//if #program_type is never, then skip saving the compiled data
 			if(data.includes("#program_type never")) continue;
 			//If the filename is not main, add it to the list of compiled data, otherwise, set mainData to it
@@ -113,7 +106,7 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 		}
 	}
 
-	if(settings.compilerOptions.mode == "project"){
+	if(globalState.compilerOptions.mode == "project"){
 		for(const filename of mlogFilelist){
 			//For each filename in the other file list
 			//If the filename is not main, add it to the list of compiled data, otherwise, set mainData to it
@@ -135,10 +128,10 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 			"#stdlib functions",
 			...([] as string[]).concat(
 				...Object.entries(stdlibData).filter(
-					([name]) => settings.compilerOptions.include.includes(name)
+					([name]) => globalState.compilerOptions.include.includes(name)
 				).map(([, program]) => program.concat("end"))
 			),
-			"", ...(settings.compilerOptions.removeCompilerMark ? compilerMark : [])
+			"", ...(globalState.compilerOptions.removeCompilerMark ? compilerMark : [])
 		];
 
 		fs.writeFileSync(
@@ -149,32 +142,32 @@ export function compileDirectory(directory:string, stdlibPath:string, defaultSet
 	Log.printMessage("compilation complete", {});
 }
 
-function getSettings(directory:string, defaultSettings:PartialRecursive<Settings>):Settings {
+function getSettings(directory:string, ignoreMissing?:true):Settings {
 	try {
 		let settings:Settings;
 		fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
 		const settingsInFile = JSON.parse(fs.readFileSync(path.join(directory, "config.json"), "utf-8"));
 		// eslint-disable-next-line prefer-const
-		settings = settingsSchema.validateSync(deepmerge(defaultSettings, settingsInFile), {
+		settings = settingsSchema.validateSync(settingsInFile, {
 			stripUnknown: false
 		}) as Settings;
 		if("compilerVariables" in settings){
 			Log.printMessage("settings.compilerVariables deprecated", {});
-			settings.compilerConstants = (settings as Settings & {compilerVariables: typeof settings.compilerConstants})["compilerVariables"];
+			settings.compilerConstants = (settings as Settings & {compilerVariables: typeof settings.compilerConstants}).compilerVariables;
 		}
 		return settings;
 	} catch(err){
 		if(err instanceof yup.ValidationError || err instanceof SyntaxError){
 			Log.printMessage("invalid config.json", err);
-		} else {
+		} else if(!ignoreMissing){
 			Log.printMessage("no config.json", {});
-
 		}
 		return settingsSchema.getDefault() as Settings;
 	}
 }
 
-export function compileFile(name:string, givenSettings:PartialRecursive<Settings>, icons:Map<string, string>){
+
+export function compileFile(name:string, icons:Map<string, string>, options:Options){
 
 	const extension = path.extname(name);
 	if(extension == ".mlog"){
@@ -182,20 +175,16 @@ export function compileFile(name:string, givenSettings:PartialRecursive<Settings
 		return;
 	}
 
-	const settingsPath = path.join(name, "../config.json");
-	if(fs.existsSync(settingsPath)) givenSettings = deepmerge(givenSettings, JSON.parse(fs.readFileSync(settingsPath, "utf-8")));
+	const settings = getSettings(path.join(name, ".."), true);
+	const globalState = getState(settings, path.join(name, ".."), options);
+	const state = getLocalState(globalState, name, icons);
 
-	const data:string[] = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
 	let outputData:string[];
-	const settings = settingsSchema.validateSync({
-		filename: name,
-		...givenSettings
-	}) as Settings;
+	const data:string[] = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
 	try {
 		outputData = compileMlogxToMlog(
 			data,
-			settings,
-			getCompilerConsts(icons, settings)
+			state
 		).outputProgram.map(line => line[0]);
 	} catch(err){
 		Log.printMessage("compiling file failed", {filename:name});

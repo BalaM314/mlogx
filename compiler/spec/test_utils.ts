@@ -9,7 +9,8 @@ Contains test-related utility functions.
 */
 
 import { compilerCommands } from "../src/commands.js";
-import { addSourcesToCode } from "../src/funcs.js";
+import { addSourcesToCode, getLocalState, getState } from "../src/funcs.js";
+import { Settings, settingsSchema, State } from "../src/settings.js";
 import { ForStackElement, IfStackElement, NamespaceStackElement } from "../src/stack_elements.js";
 import { CommandError, CommandErrorType, Line } from "../src/types.js";
 
@@ -51,6 +52,19 @@ export function makeCompileLineInput(text:string, lineNumber:number = 1, sourceF
 	}, {
 		text, lineNumber, sourceFilename
 	}];
+}
+
+export function stateForFilename(name:string, compilerConsts:Settings["compilerConstants"] = {}, icons:Map<string, string> = new Map(), checkTypes:boolean = false):State {
+	return getLocalState(getState(settingsSchema.validateSync({
+		compilerOptions: {
+			checkTypes
+		},
+		compilerConstants: compilerConsts
+	}), name, {
+		commandName: "compile",
+		positionalArgs: [name],
+		namedArgs: {}
+	}), name, icons);
 }
 
 export const anyLine:jasmine.ExpectedRecursive<Line> = {

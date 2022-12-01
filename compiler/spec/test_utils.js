@@ -1,5 +1,6 @@
 import { compilerCommands } from "../src/commands.js";
-import { addSourcesToCode } from "../src/funcs.js";
+import { addSourcesToCode, getLocalState, getState } from "../src/funcs.js";
+import { settingsSchema } from "../src/settings.js";
 import { CommandErrorType } from "../src/types.js";
 export function makeNamespaceEl(name) {
     return { type: "namespace", commandDefinition: compilerCommands["namespace"].overloads[0], name, line: { lineNumber: 1, text: `namespace ${name} {`, sourceFilename: "[test]" } };
@@ -35,6 +36,18 @@ export function makeCompileLineInput(text, lineNumber = 1, sourceFilename = "[te
         }, {
             text, lineNumber, sourceFilename
         }];
+}
+export function stateForFilename(name, compilerConsts = {}, icons = new Map(), checkTypes = false) {
+    return getLocalState(getState(settingsSchema.validateSync({
+        compilerOptions: {
+            checkTypes
+        },
+        compilerConstants: compilerConsts
+    }), name, {
+        commandName: "compile",
+        positionalArgs: [name],
+        namedArgs: {}
+    }), name, icons);
 }
 export const anyLine = {
     lineNumber: jasmine.any(Number),
