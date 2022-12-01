@@ -1,11 +1,10 @@
 import { isKey } from "../funcs.js";
 import { GenericArgs } from "./generic_args.js";
-import { Log } from "../Log.js";
 export function arg(str) {
     const matchResult = str.match(/(\.\.\.)?(\w+):(\*)?(\w+)(\?)?/);
     if (!matchResult) {
         if (str.includes(":")) {
-            Log.warn(`Possibly bad arg string ${str}, assuming it means a non-generic arg`);
+            throw new Error(`Probably bad arg string ${str}`);
         }
         return makeArg(str, str, false, false, false);
     }
