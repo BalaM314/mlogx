@@ -2,10 +2,8 @@ import * as yup from "yup";
 export const settingsSchema = yup.object({
     name: yup.string().default("Untitled Project"),
     authors: yup.array(yup.string()).default(["Unknown"]),
-    filename: yup.string().default("unknown.mlogx"),
     compilerOptions: yup.object({
         include: yup.array(yup.string()).default([]),
-        verbose: yup.bool().default(false),
         removeComments: yup.bool().default(true),
         compileWithErrors: yup.bool().default(false),
         mode: yup.string().oneOf(["project", "single"]),

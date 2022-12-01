@@ -18,7 +18,6 @@ import type { CompilerConst, CompilerConsts } from "./types.js";
 export interface Settings {
 	name: string;
 	authors: string[];
-	filename: string;
 	compilerOptions: {
 		/**A list of stdlib files that should be included in a project's compiled output. */
 		include: string[];
@@ -83,10 +82,8 @@ export interface State extends Omit<GlobalState, "compilerConstants"> {
 export const settingsSchema = yup.object({
 	name: yup.string().default("Untitled Project"),
 	authors: yup.array(yup.string() as yup.StringSchema<string, AnyObject, string>).default(["Unknown"]),
-	filename: yup.string().default("unknown.mlogx"),
 	compilerOptions: yup.object({
 		include: yup.array(yup.string() as yup.StringSchema<string, AnyObject, string>).default([]),
-		verbose: yup.bool().default(false),
 		removeComments: yup.bool().default(true),
 		compileWithErrors: yup.bool().default(false),
 		mode: (yup.string() as yup.StringSchema<Settings["compilerOptions"]["mode"], AnyObject, Settings["compilerOptions"]["mode"]>).oneOf(["project", "single"]),
