@@ -53,7 +53,7 @@ export function compileDirectory(directory, stdlibPath, icons, options) {
         if (globalState.compilerOptions.mode == "single" && !globalState.compilerOptions.removeCompilerMark) {
             outputData.push("end", ...compilerMark);
         }
-        fs.writeFileSync(path.join(outputDirectory, filename.slice(0, -1)), outputData.join("\r\n"));
+        fs.writeFileSync(path.join(outputDirectory, filename.replace(/\.mlogx$/, ".mlog")), outputData.join("\r\n"));
         if (globalState.compilerOptions.mode == "project") {
             if (data.includes("#program_type never"))
                 continue;
@@ -78,9 +78,10 @@ export function compileDirectory(directory, stdlibPath, icons, options) {
         const outputData = [
             ...mainData, "end", "",
             "#functions",
-            ...[].concat(...Object.values(compiledData).map(program => program.concat("end"))), "",
+            ...Object.values(compiledData).map(program => program.concat("end")).flat(1),
+            "",
             "#stdlib functions",
-            ...[].concat(...Object.entries(stdlibData).filter(([name]) => globalState.compilerOptions.include.includes(name)).map(([, program]) => program.concat("end"))),
+            ...Object.entries(stdlibData).filter(([name]) => globalState.compilerOptions.include.includes(name)).map(([, program]) => program.concat("end")).flat(1),
             "", ...(globalState.compilerOptions.removeCompilerMark ? compilerMark : [])
         ];
         fs.writeFileSync(path.join(directory, "out.mlog"), outputData.join("\r\n"));

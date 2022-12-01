@@ -91,7 +91,7 @@ export function compileDirectory(directory:string, stdlibPath:string, icons:Map<
 		}
 		//Write .mlog files to output
 		fs.writeFileSync(
-			path.join(outputDirectory, filename.slice(0,-1)),
+			path.join(outputDirectory, filename.replace(/\.mlogx$/, ".mlog")),
 			outputData.join("\r\n")
 		);
 		if(globalState.compilerOptions.mode == "project"){
@@ -121,16 +121,12 @@ export function compileDirectory(directory:string, stdlibPath:string, icons:Map<
 		const outputData:string[] = [
 			...mainData, "end", "",
 			"#functions",
-			//bizzare hack to use spread operator twice
-			...([] as string[]).concat(...
-			Object.values(compiledData).map(program => program.concat("end"))
-			), "",
+			...Object.values(compiledData).map(program => program.concat("end")).flat(1)
+			, "",
 			"#stdlib functions",
-			...([] as string[]).concat(
-				...Object.entries(stdlibData).filter(
-					([name]) => globalState.compilerOptions.include.includes(name)
-				).map(([, program]) => program.concat("end"))
-			),
+			...Object.entries(stdlibData).filter(
+				([name]) => globalState.compilerOptions.include.includes(name)
+			).map(([, program]) => program.concat("end")).flat(1),
 			"", ...(globalState.compilerOptions.removeCompilerMark ? compilerMark : [])
 		];
 
