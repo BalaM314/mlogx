@@ -49,6 +49,13 @@ export const commands = processCommands({
             },
             description: "Print statement with string interpolation."
         }],
+    println: [{
+            args: "message:string",
+            replace(args) {
+                return [`print ${args[1].replace(/"$/, `\\n"`)}`];
+            },
+            description: "Print statement with newline appended."
+        }],
     read: [{
             args: "output:*number cell:building index:number",
             description: "Reads a value at index (index) from memory cell (cell) and stores it in (output)."

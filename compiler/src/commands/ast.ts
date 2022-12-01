@@ -67,6 +67,13 @@ export const commands = processCommands({
 		},
 		description: "Print statement with string interpolation."
 	}],
+	println: [{
+		args: "message:string",
+		replace(args) {
+			return [`print ${args[1].replace(/"$/, `\\n"`)}`];
+		},
+		description: "Print statement with newline appended."
+	}],
 
 
 	read: [{
