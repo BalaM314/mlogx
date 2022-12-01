@@ -82,7 +82,7 @@ export function compileDirectory(directory, stdlibPath, icons, options) {
             "",
             "#stdlib functions",
             ...Object.entries(stdlibData).filter(([name]) => globalState.compilerOptions.include.includes(name)).map(([, program]) => program.concat("end")).flat(1),
-            "", ...(globalState.compilerOptions.removeCompilerMark ? compilerMark : [])
+            "", ...(globalState.compilerOptions.removeCompilerMark ? [] : compilerMark)
         ];
         fs.writeFileSync(path.join(directory, "out.mlog"), outputData.join("\r\n"));
     }

@@ -127,7 +127,7 @@ export function compileDirectory(directory:string, stdlibPath:string, icons:Map<
 			...Object.entries(stdlibData).filter(
 				([name]) => globalState.compilerOptions.include.includes(name)
 			).map(([, program]) => program.concat("end")).flat(1),
-			"", ...(globalState.compilerOptions.removeCompilerMark ? compilerMark : [])
+			"", ...(globalState.compilerOptions.removeCompilerMark ? [] : compilerMark)
 		];
 
 		fs.writeFileSync(
