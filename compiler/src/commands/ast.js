@@ -466,7 +466,15 @@ export const commands = processCommands({
                 }
                 return args.join(" ");
             },
-        }
+        }, {
+            args: "building buildingGroup:buildingGroup buildingName:*building enemy?:boolean",
+            description: "Finds a building of specified group near the bound unit, storing its position in (buildingName.x, buildingName.y) and the building in (building) if it is on the same team.",
+            replace: (args) => [`ulocate building ${args[2]} ${args[4] ?? "false"} ${args[3]}.x ${args[3]}.y ${args[3]}.found ${args[3]}`]
+        }, {
+            args: "core",
+            description: "Finds the core.",
+            replace: ["ulocate building core false core.x core.y core.found core"]
+        },
     ],
     getblock: [],
     setblock: [],
