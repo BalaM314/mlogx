@@ -136,10 +136,10 @@ export function splitLineOnSemicolons(cleanedLine) {
         }
         if (isInString)
             throw new CompilerError("Unterminated string literal");
-        return lines.map(cleanLine);
+        return lines.map(cleanLine).filter(cleanedLine => cleanedLine != "");
     }
     else {
-        return cleanedLine.split(";").map(cleanLine);
+        return cleanedLine.split(";").map(cleanLine).filter(cleanedLine => cleanedLine != "");
     }
 }
 export function transformVariables(args, commandDefinition, transformFunction) {

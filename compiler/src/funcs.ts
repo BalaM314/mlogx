@@ -158,10 +158,10 @@ export function splitLineOnSemicolons(cleanedLine:string):string[] {
 			}
 		}
 		if(isInString) throw new CompilerError("Unterminated string literal");
-		return lines.map(cleanLine);
+		return lines.map(cleanLine).filter(cleanedLine => cleanedLine != "");
 		//smort logic so `"amogus sus"` is parsed as one arg
 	} else {
-		return cleanedLine.split(";").map(cleanLine);
+		return cleanedLine.split(";").map(cleanLine).filter(cleanedLine => cleanedLine != "");
 	}
 }
 
