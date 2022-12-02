@@ -123,6 +123,32 @@ export const testPrograms: {
 		expectedOutput: [],
 		compilerConsts: {}
 	},
+	compilerConstsTest: {
+		program:
+`#compiler consts test
+print "number $x"
+print "string $e"
+print "boolean $y"
+print "array $array"
+print "number $foo.bar.baz"`.split("\n"),
+		expectedOutput:
+`print "number 2"
+print "string STR"
+print "boolean false"
+print "array 56 vvv true"
+print "number 420"`.split("\n"),
+		compilerConsts: {
+			x: 2,
+			e: "STR",
+			y: false,
+			array: [56, "vvv", true],
+			foo: {
+				bar: {
+					baz: 420
+				}
+			}
+		}
+	},
 	splitStatementsTest: {
 		program:
 `#split test
