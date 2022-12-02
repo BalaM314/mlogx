@@ -10,7 +10,17 @@ Contains type definitions and enums.
 
 import { ArgType } from "./args.js";
 
-
+export type OmitUnion<U, O> = U extends O ? never : U;
+export type Equal<A, B> = A extends B ? B extends A ? true : false : false;
+/**Returns the values of an object. */
+export type Values<T extends Record<string, unknown>> = T extends Record<string, infer V> ? V : never;
+/**Returns the values of an object, and all of its child objects. */
+export type ValuesRecursive<T> =
+	T extends Record<string, infer V> ?
+		Record<string, any> extends V ?
+			T extends V ? OmitUnion<V, T> : ValuesRecursive<V>
+		: V
+	: T;
 /**Makes every property in an object and all of its child objects optional. */
 export type PartialRecursive<T> = {
 	[P in keyof T]?: (T[P] extends Record<string, unknown> ? PartialRecursive<T[P]> : T[P]) | undefined;

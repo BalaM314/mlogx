@@ -37,7 +37,7 @@ export interface Settings {
 		removeCompilerMark: boolean;
 	}
 	compilerConstants: {
-		[index: string]: CompilerConst;
+		[index: string]: CompilerConst | Settings["compilerConstants"];
 	}
 }
 

@@ -21,7 +21,7 @@ import { Log } from "./Log.js";
 import type { GlobalState, Settings, State } from "./settings.js";
 import { hasElement, NamespaceStackElement, StackElement } from "./stack_elements.js";
 import {
-	CommandError, CommandErrorType, CompiledLine, CompilerConst, CompilerConsts, Line, TData
+	CommandError, CommandErrorType, CompiledLine, CompilerConst, CompilerConsts, Line, TData, ValuesRecursive
 } from "./types.js";
 
 
@@ -595,11 +595,26 @@ export async function askYesOrNo(question:string): Promise<boolean> {
 	return ["y", "yes"].includes(await askQuestion(question));
 }
 
+export function isObject(thing:unknown):thing is Record<string, unknown> {
+	return thing != null && typeof thing == "object" && !Array.isArray(thing);//js why
+}
+
+export function flattenObject<T extends Record<string, unknown>>(object:T, parentName?:string, output:Record<string, ValuesRecursive<T>> = {}){
+	for(const key in object){
+		const name = (parentName ? parentName + "." : "") + key;
+		if(isObject(object[key])){
+			flattenObject(object[key] as Record<string, unknown>, name, output);
+		} else {
+			output[name] = object[key] as ValuesRecursive<T>;
+		}
+	}
+	return output;
+}
 
 /**Returns a list of numbers within two bounds inclusive */
 export function range(min:number, max:number):number[];
 export function range(min:number, max:number, strings:true):string[];
-export function range(min:number, max:number, strings?:true):number[]|string[] {
+export function range(min:number, max:number, strings?:true):number[] | string[] {
 	if(min > max) return [];
 	return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
 }
@@ -629,7 +644,7 @@ export function getState(settings:Settings, directory:string, options:Options):G
 			...settings.compilerOptions
 		},
 		compilerConstants: {
-			...settings.compilerConstants
+			...flattenObject(settings.compilerConstants)
 		},
 		verbose: "verbose" in options.namedArgs
 	};

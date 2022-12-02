@@ -457,6 +457,21 @@ export function askQuestion(question) {
 export async function askYesOrNo(question) {
     return ["y", "yes"].includes(await askQuestion(question));
 }
+export function isObject(thing) {
+    return thing != null && typeof thing == "object" && !Array.isArray(thing);
+}
+export function flattenObject(object, parentName, output = {}) {
+    for (const key in object) {
+        const name = (parentName ? parentName + "." : "") + key;
+        if (isObject(object[key])) {
+            flattenObject(object[key], name, output);
+        }
+        else {
+            output[name] = object[key];
+        }
+    }
+    return output;
+}
 export function range(min, max, strings) {
     if (min > max)
         return [];
@@ -486,7 +501,7 @@ export function getState(settings, directory, options) {
             ...settings.compilerOptions
         },
         compilerConstants: {
-            ...settings.compilerConstants
+            ...flattenObject(settings.compilerConstants)
         },
         verbose: "verbose" in options.namedArgs
     };
