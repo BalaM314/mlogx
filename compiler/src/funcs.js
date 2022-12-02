@@ -486,7 +486,18 @@ export function getCompilerConsts(icons, state, projectInfo) {
     outputMap.set("authors", projectInfo.authors.join(", "));
     outputMap.set("filename", projectInfo.filename);
     for (const [key, value] of Object.entries(state.compilerConstants)) {
-        outputMap.set(key, value);
+        if (isObject(value)) {
+            for (const [k, v] of Object.entries(flattenObject(value))) {
+                outputMap.set(key + "." + k, v);
+            }
+        }
+        else if (Array.isArray(value)) {
+            outputMap.set(`${key}.length`, value.length);
+            outputMap.set(key, value);
+        }
+        else {
+            outputMap.set(key, value);
+        }
     }
     return outputMap;
 }
@@ -501,7 +512,7 @@ export function getState(settings, directory, options) {
             ...settings.compilerOptions
         },
         compilerConstants: {
-            ...flattenObject(settings.compilerConstants)
+            ...settings.compilerConstants,
         },
         verbose: "verbose" in options.namedArgs
     };

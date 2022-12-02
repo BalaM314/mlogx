@@ -47,9 +47,7 @@ export interface GlobalState {
 		authors: string[];
 		directoryPath: string;
 	}
-	compilerConstants: {
-		[index: string]: CompilerConst;
-	}
+	compilerConstants: Settings["compilerConstants"];
 	compilerOptions: {
 		/**A list of stdlib files that should be included in a project's compiled output. */
 		include: string[];
