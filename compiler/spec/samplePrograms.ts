@@ -129,13 +129,13 @@ export const testPrograms: {
 print "number $x"
 print "string $e"
 print "boolean $y"
-print "array $array $array.length"
+print "array $array $array[1] $array.length"
 print "number $foo.bar.baz"`.split("\n"),
 		expectedOutput:
 `print "number 2"
 print "string STR"
 print "boolean false"
-print "array 56 vvv true 3"
+print "array 56 vvv true 56 3"
 print "number 420"`.split("\n"),
 		compilerConsts: {
 			x: 2,

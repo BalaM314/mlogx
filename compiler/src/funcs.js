@@ -492,6 +492,9 @@ export function getCompilerConsts(icons, state, projectInfo) {
             }
         }
         else if (Array.isArray(value)) {
+            for (const [k, v] of value.entries()) {
+                outputMap.set(`${key}[${k + 1}]`, v);
+            }
             outputMap.set(`${key}.length`, value.length);
             outputMap.set(key, value);
         }
