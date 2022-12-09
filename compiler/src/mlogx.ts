@@ -24,16 +24,23 @@ import { PortingMode } from "./types.js";
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command or arg type", (opts) => {
 	const name = opts.positionalArgs[0];
+	const commandName = name + (opts.positionalArgs[1] ? " " + opts.positionalArgs[1] : "");
 	if(name.includes(" ")){
 		Log.printMessage("commands cannot contain spaces", {});
 		return 1;
 	}
 	if(isKey(commands, name)){
+		const matchingCommands = commands[name].filter(c => opts.positionalArgs[1] ? c.args[0].type.startsWith(opts.positionalArgs[1]) : true);
+		if(matchingCommands.length == 0){
+			Log.none(chalk.red(
+`No commands found for "${commandName}".`
+			));
+		}
 		Log.none(chalk.white(
-`Info for command "${name}"
+`Info for command "${commandName}"
 Usage:
 
-${commands[name].map(commandDefinition =>
+${matchingCommands.map(commandDefinition =>
 	name + " " + commandDefinition.args
 		.map(argToString)
 		.join(" ") + "\n" + commandDefinition.description
@@ -73,11 +80,17 @@ ${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof R
 
 }, false, {
 	namedArgs: {},
-	positionalArgs: [{
-		name: "command",
-		description: "The command to get information about",
-		required: true,
-	}]
+	positionalArgs: [
+		{
+			name: "command",
+			description: "The command to get information about",
+			required: true,
+		},{
+			name: "subcommand",
+			description: "A subcommand, such as 'itemTake' for 'ucontrol itemTake'.",
+			required: false
+		},
+	]
 }, ["i"]);
 
 mlogx.command("version", "Displays the version of mlogx", (opts, app) => {
