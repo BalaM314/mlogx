@@ -93,7 +93,7 @@ ${formatLineWithPrefix(d.line)}`
 	"genLabels invalid jump statement": {for:(d:{line:string}) => `Invalid jump statement\n\tat "${d.line}"`, level:"throw"},
 	"unterminated string literal": {for:(d:{line:string}) => `Unterminated string literal at ${d.line}`, level:"throw"},
 	"property not senseable": {for:(d:{property:string}) => `Property ${d.property} is not senseable.`, level:"throw"},
-	"line matched no overloads": {for:(d:{commandName:string, errors?:CommandError[]}) => `Line did not match any overloads for command ${d.commandName}:\n` + (d.errors ? d.errors.map(err => "\t" + err.message).join("\n") : ""), level:"throw"},
+	"line matched no overloads": {for:(d:{commandName:string, errors?:CommandError[]}) => `Line did not match any overloads for command ${d.commandName}:` + (d.errors ? "\n" + d.errors.map(err => "\t" + err.message).join("\n") : ""), level:"throw"},
 	"invalid sensor shorthand": {for:(d:{arg:string}) => `Invalid sensor statement, "${d.arg}" must be of type thing.property and cannot contain special characters.`, level:"throw"},
 	"invalid type": {for:(d:{type:string}) => `Invalid type "${d.type}", valid types are ${Object.keys(GenericArgs).join(", ")}`, level:"throw"},
 	"for loop invalid bound": {for:(d:{bound:string, value:string}) => `Invalid for loop syntax: ${d.bound} bound(${d.value}) is invalid`, level:"throw"},
