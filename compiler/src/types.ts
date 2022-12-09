@@ -17,6 +17,7 @@ export type Values<T extends Record<string, unknown>> = T extends Record<string,
 /**Returns the values of an object, and all of its child objects. */
 export type ValuesRecursive<T> =
 	T extends Record<string, infer V> ?
+	//eslint-disable-next-line
 		Record<string, any> extends V ?
 			T extends V ? OmitUnion<V, T> : ValuesRecursive<V>
 		: V
@@ -55,7 +56,6 @@ export interface Line {
 	lineNumber: number;
 	sourceFilename: string;
 }
-export type CompiledLine = [compiledCode:string, modifiedSource:Line, source:Line];
 
 export type CompilerConst = string | number | boolean | (string | number | boolean)[];
 export type CompilerConsts = Map<string, CompilerConst>;

@@ -14,14 +14,14 @@ import { Options } from "cli-app";
 import {
 	Arg, ArgType, GenericArgs, isArgValidFor, isArgValidForType, isGenericArg, typeofArg
 } from "./args.js";
-import { CompilerError } from "./classes.js";
+import { CompilerError, Statement } from "./classes.js";
 import { CommandDefinition, commands, CompilerCommandDefinition, compilerCommands } from "./commands.js";
 import { bugReportUrl } from "./consts.js";
 import { Log } from "./Log.js";
 import type { GlobalState, Settings, State } from "./settings.js";
 import { hasElement, NamespaceStackElement, StackElement } from "./stack_elements.js";
 import {
-	CommandError, CommandErrorType, CompiledLine, CompilerConst, CompilerConsts, Line, TData, ValuesRecursive
+	CommandError, CommandErrorType, CompilerConst, CompilerConsts, Line, TData, ValuesRecursive
 } from "./types.js";
 
 
@@ -212,10 +212,12 @@ export function prependFilenameToArg(arg:string, isMain:boolean, filename:string
 }
 
 /**Removes unused jumps from a compiled program. */
-export function removeUnusedJumps(compiledProgram:CompiledLine[], jumpLabelUsages:TData.jumpLabelsUsed):CompiledLine[] {
-	return compiledProgram.filter(line =>
-		!getJumpLabel(line[0]) || getJumpLabel(line[0])! in jumpLabelUsages
-	);
+export function removeUnusedJumps(compiledProgram:Statement[], jumpLabelUsages:TData.jumpLabelsUsed):Statement[] {
+	return compiledProgram.filter(line => {
+		const label = getJumpLabel(line.text);
+		if(!label) return true;
+		return label in jumpLabelUsages;
+	});
 }
 
 export function interpolateString(input:string):{
@@ -321,13 +323,14 @@ export function getVariablesDefined(
 ): [name:string, type:ArgType][]{
 	if(uncompiledCommandDefinition.getVariablesDefined){
 		//TODO check for edge cases.
-		return uncompiledCommandDefinition.getVariablesDefined([uncompiledCommandDefinition.name, ...uncompiledCommandArgs]);
+		return uncompiledCommandDefinition.getVariablesDefined(uncompiledCommandArgs);
 	}
 	if(compiledCommandDefinition.getVariablesDefined){
 		//TODO check for edge cases.
-		return compiledCommandDefinition.getVariablesDefined([compiledCommandDefinition.name, ...compiledCommandArgs]);
+		return compiledCommandDefinition.getVariablesDefined(compiledCommandArgs);
 	}
 	return compiledCommandArgs
+		.slice(1)
 		.map((arg, index) => [arg, compiledCommandDefinition.args[index]] as [name:string, arg:Arg|undefined])
 		.filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
 		.map(([arg, commandArg]) => [arg, commandArg!.type]);
@@ -340,7 +343,7 @@ export function getVariablesDefined(
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getAllPossibleVariablesUsed(compiledLine:string, uncompiledLine:string = compiledLine): [name:string, types:ArgType[]][]{
-	const args = splitLineIntoArguments(compiledLine).slice(1);
+	const args = splitLineIntoArguments(compiledLine);
 	const variablesUsed_s = [];
 	for(const commandDefinition of getCommandDefinitions(compiledLine)){
 		variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
@@ -360,6 +363,7 @@ export function getAllPossibleVariablesUsed(compiledLine:string, uncompiledLine:
 /**Gets variables used for a specific command definition. */
 export function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
 	return args
+		.slice(1)
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
 		.filter(([arg, commandArg]) =>
 			isArgValidForType(arg, "variable") && acceptsVariable(commandArg) && arg != "_"
@@ -568,8 +572,12 @@ export function formatLineWithPrefix(line:Line, prefix:string = "\t\tat "):strin
 }
 
 /**Adds a source line to a multiple lines of code. */
-export function addSourcesToCode(code:string[], cleanedSource:Line = {text: `not provided`, lineNumber:0, sourceFilename: `unknown.mlogx`}, sourceLine:Line = {text: `not provided`, lineNumber:0, sourceFilename: `unknown.mlogx`}):CompiledLine[]{
-	return code.map(compiledLine => [compiledLine, cleanedSource, sourceLine] as CompiledLine);
+export function addSourcesToCode(
+	code:string[],
+	cleanedSourceLine:Line = {text: `not provided`, lineNumber:0, sourceFilename: `unknown.mlogx`},
+	sourceLine:Line = {text: `not provided`, lineNumber:0, sourceFilename: `unknown.mlogx`}
+):Statement[]{
+	return code.map(compiledLine => Statement.fromLines(compiledLine, sourceLine, cleanedSourceLine));
 }
 
 /**oh no */

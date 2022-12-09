@@ -10,8 +10,9 @@ Handles everything related to console output.
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import chalk from "chalk";
+import { Statement } from "./classes.js";
 import { extend, formatLineWithPrefix, isKey } from "./funcs.js";
-import type { CompiledLine, Line, none } from "./types.js";
+import type { Line, none } from "./types.js";
 
 export interface LogLevels {
 	[index:string]: [color: (input:string) => string, tag:string]
@@ -50,7 +51,7 @@ export const messages = extend<Messages>()({
 	"no config.json": {for:(d:none) => `No config.json found, using default settings.`, level:"debug"},
 	"project created": {for:(d:{dirname:string}) => `Successfully created a new project in ${d.dirname}`, level:"announce"},
 	"program too long": {for:(d:none) => `Program length exceeded 999 lines. Running it in-game will silently fail.`, level:"err"},
-	"invalid uncompiled command definition": {for:(d:{line:CompiledLine}) => `Tried to type check a line(\`${d.line[1].text}\` => \`${d.line[0]}\`) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level:"err"},
+	"invalid uncompiled command definition": {for:(d:{statement:Statement}) => `Tried to type check a line(\`${d.statement.cleanedSourceText}\` => \`${d.statement.text}\`) with invalid uncompiled command definition. This may cause issues with type checking. This is an error with MLOGX.`, level:"err"},
 	"variable redefined with conflicting type": {for:(d:{name:string, types:string[], firstDefinitionLine:Line, conflictingDefinitionLine:Line}) =>
 `Variable "${d.name}" was defined with ${d.types.length} different types. ([${d.types.join(", ")}])
 	First definition:

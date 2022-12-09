@@ -1,5 +1,5 @@
 import deepmerge from "deepmerge";
-import { CompilerError } from "./classes.js";
+import { CompilerError, Statement } from "./classes.js";
 import { commands } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, splitLineOnSemicolons, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand } from "./funcs.js";
@@ -33,15 +33,15 @@ export function compileMlogxToMlog(mlogxProgram, state, typeDefinitions = {
     });
     for (const requiredVar of requiredVars) {
         if (requiredVarCode[requiredVar]) {
-            compiledProgram.push(...requiredVarCode[requiredVar][0].map(line => [line, {
-                    text: `[#require'd variable]`,
-                    lineNumber: 0,
-                    sourceFilename: "[#require'd variable]",
-                }, {
-                    text: `[#require'd variable]`,
-                    lineNumber: 0,
-                    sourceFilename: "[#require'd variable]",
-                }]));
+            compiledProgram.push(...requiredVarCode[requiredVar][0].map(line => Statement.fromLines(line, {
+                text: `[#require'd variable]`,
+                lineNumber: 0,
+                sourceFilename: "[#require'd variable]",
+            }, {
+                text: `[#require'd variable]`,
+                lineNumber: 0,
+                sourceFilename: "[#require'd variable]",
+            })));
             typeCheckingData.variableDefinitions[requiredVar] = [{
                     variableType: requiredVarCode[requiredVar][1],
                     line: {
@@ -85,7 +85,7 @@ export function compileMlogxToMlog(mlogxProgram, state, typeDefinitions = {
             if (doTypeChecks) {
                 try {
                     for (const compiledLine of compiledCode) {
-                        typeCheckLine(compiledLine, typeCheckingData);
+                        typeCheckStatement(compiledLine, typeCheckingData);
                     }
                 }
                 catch (err) {
@@ -130,50 +130,47 @@ ${formatLineWithPrefix(element.line)}`);
     }
     return { outputProgram, typeCheckingData };
 }
-export function typeCheckLine(compiledLine, typeCheckingData) {
-    const cleanedCompiledLine = compiledLine[0];
-    const cleanedUncompiledLine = compiledLine[1].text;
-    if (cleanLine(cleanedCompiledLine) == "")
+export function typeCheckStatement(statement, typeCheckingData) {
+    if (cleanLine(statement.text) == "")
         Log.warn("mlogx generated a blank line. This should not happen.");
-    const labelName = getJumpLabel(cleanedCompiledLine);
+    const labelName = getJumpLabel(statement.text);
     if (labelName) {
         typeCheckingData.jumpLabelsDefined[labelName] ??= [];
         typeCheckingData.jumpLabelsDefined[labelName].push({
-            line: compiledLine[1]
+            line: statement.sourceLine()
         });
         return;
     }
-    const compiledCommandArgs = splitLineIntoArguments(cleanedCompiledLine).slice(1);
-    const compiledCommandDefinitions = getCommandDefinitions(cleanedCompiledLine);
-    const uncompiledCommandArgs = splitLineIntoArguments(cleanedUncompiledLine).slice(1);
-    const uncompiledCommandDefinitions = getCommandDefinitions(cleanedUncompiledLine);
+    const compiledCommandDefinitions = getCommandDefinitions(statement.text);
+    const uncompiledCommandArgs = splitLineIntoArguments(statement.cleanedSourceText);
+    const uncompiledCommandDefinitions = getCommandDefinitions(statement.cleanedSourceText);
     if (compiledCommandDefinitions.length == 0) {
         throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
     }
     if (uncompiledCommandDefinitions.length == 0) {
-        Log.printMessage("invalid uncompiled command definition", { line: compiledLine });
+        Log.printMessage("invalid uncompiled command definition", { statement });
     }
-    const jumpLabelUsed = getJumpLabelUsed(cleanedCompiledLine);
+    const jumpLabelUsed = getJumpLabelUsed(statement.text);
     if (jumpLabelUsed) {
         typeCheckingData.jumpLabelsUsed[jumpLabelUsed] ??= [];
         typeCheckingData.jumpLabelsUsed[jumpLabelUsed].push({
-            line: compiledLine[1]
+            line: statement.cleanedSourceLine()
         });
     }
     for (const commandDefinition of compiledCommandDefinitions) {
-        getVariablesDefined(compiledCommandArgs, commandDefinition, uncompiledCommandArgs, uncompiledCommandDefinitions[0]).forEach(([variableName, variableType]) => {
+        getVariablesDefined(statement.args, commandDefinition, uncompiledCommandArgs, uncompiledCommandDefinitions[0]).forEach(([variableName, variableType]) => {
             typeCheckingData.variableDefinitions[variableName] ??= [];
             typeCheckingData.variableDefinitions[variableName].push({
                 variableType,
-                line: compiledLine[1]
+                line: statement.cleanedSourceLine()
             });
         });
     }
-    getAllPossibleVariablesUsed(cleanedCompiledLine, compiledLine[1].text).forEach(([variableName, variableTypes]) => {
+    getAllPossibleVariablesUsed(statement.text, statement.cleanedSourceText).forEach(([variableName, variableTypes]) => {
         typeCheckingData.variableUsages[variableName] ??= [];
         typeCheckingData.variableUsages[variableName].push({
             variableTypes,
-            line: compiledLine[1]
+            line: statement.cleanedSourceLine()
         });
     });
     return;
@@ -246,12 +243,8 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
     if (getJumpLabel(cleanedText)) {
         return {
             compiledCode: [
-                [
-                    hasElement(stack, "namespace") ?
-                        `${addNamespacesToVariable(getJumpLabel(cleanedText), stack)}:` :
-                        cleanedText,
-                    cleanedLine, sourceLine
-                ]
+                Statement.fromLines(hasElement(stack, "namespace") ?
+                    `${addNamespacesToVariable(getJumpLabel(cleanedText), stack)}:` : cleanedText, cleanedLine, sourceLine)
             ]
         };
     }

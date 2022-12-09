@@ -77,7 +77,7 @@ export function compileDirectory(directory:string, stdlibPath:string, icons:Map<
 		try {
 			outputData = compileMlogxToMlog(
 				data, state
-			).outputProgram.map(line => line[0]);
+			).outputProgram.map(s => s.text);
 		} catch(err){
 			Log.printMessage("compiling file failed", {filename});
 			if(err instanceof CompilerError)
@@ -181,7 +181,7 @@ export function compileFile(name:string, icons:Map<string, string>, options:Opti
 		outputData = compileMlogxToMlog(
 			data,
 			state
-		).outputProgram.map(line => line[0]);
+		).outputProgram.map(s => s.text);
 	} catch(err){
 		Log.printMessage("compiling file failed", {filename:name});
 		if(err instanceof CompilerError){

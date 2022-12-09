@@ -9,7 +9,9 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains various classes.
 */
 
+import { splitLineIntoArguments } from "./funcs.js";
 import { messages } from "./Log.js";
+import { Line } from "./types.js";
 
 
 export class CompilerError extends Error {
@@ -23,5 +25,31 @@ export class CompilerError extends Error {
 		const message = messages[messageID] as MData;
 		//cursed
 		throw new this(message.for(data as never));
+	}
+}
+
+/**Represents a compiled statement. */
+export class Statement {
+	args: string[];
+	// commandDefinition: CommandDefinition | null = null;
+	constructor(public text:string, public sourceFilename:string, public sourceLineNumber:number, public sourceText:string, public cleanedSourceText:string){
+		this.args = splitLineIntoArguments(text);
+	}
+	static fromLines(text:string, source:Line, cleanedSource:Line){
+		return new Statement(text, source.sourceFilename, source.lineNumber, source.text, cleanedSource.text);
+	}
+	sourceLine(){
+		return {
+			lineNumber: this.sourceLineNumber,
+			sourceFilename: this.sourceFilename,
+			text: this.sourceText
+		};
+	}
+	cleanedSourceLine(){
+		return {
+			lineNumber: this.sourceLineNumber,
+			sourceFilename: this.sourceFilename,
+			text: this.cleanedSourceText
+		};
 	}
 }

@@ -31,7 +31,7 @@ describe("compileLine", () => {
 	it("should not change any mlog commands", () => {
 		for (const line of allMlogCommands) {
 			expect(
-				compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
+				compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line.text)
 			).toEqual([line]);
 		}
 	});
@@ -39,7 +39,7 @@ describe("compileLine", () => {
 	it("should mark all mlogx commands as valid", () => {
 		for (const line of allMlogxCommands) {
 			expect(() =>
-				compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
+				compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line.text)
 			).not.toThrow();
 		}
 	});
@@ -47,7 +47,7 @@ describe("compileLine", () => {
 	it("should process all shorthands", () => {
 		for(const [input, output] of allShorthandCommands){
 			expect(
-				compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line[0])
+				compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line.text)
 			).toEqual([output]);
 		}
 	});
@@ -67,7 +67,7 @@ describe("compileLine", () => {
 	it("should prepend namespaces", () => {
 		for(const [input, stack, output] of namespaceTests){
 			expect(
-				compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, stack).compiledCode.map(line => line[0])
+				compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, stack).compiledCode.map(line => line.text)
 			).toEqual([output]);
 		}
 	});
@@ -112,7 +112,7 @@ describe("compileLine", () => {
 		expect(
 			compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, [
 				makeForEl("n", ["32", "53", "60"], [`set x 5`, `print "n is $n"`])
-			]).compiledCode.map(line => line[0])
+			]).compiledCode.map(line => line.text)
 		).toEqual([`set x 5`, `print "n is 32"`, `set x 5`, `print "n is 53"`, `set x 5`, `print "n is 60"`]);
 	});
 
@@ -128,13 +128,13 @@ describe("compileLine", () => {
 		const compiledOutput = compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, stack);
 		stack = compiledOutput.modifiedStack ?? stack;
 		(stack.at(-1) as ForStackElement)?.loopBuffer.push(...compiledOutput.compiledCode);
-		expect(compiledOutput.compiledCode.map(line => line[0]))
+		expect(compiledOutput.compiledCode.map(line => line.text))
 			.toEqual([`set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]);
 		expect(compiledOutput.modifiedStack).toEqual([
 			makeForEl("I", range(1, 3, true), [`loop_$I:`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`], makeLine("[test]", 1, "unknown"))
 		]);
 		const secondOutput = compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, stack);
-		expect(secondOutput.compiledCode.map(line => line[0]))
+		expect(secondOutput.compiledCode.map(line => line.text))
 			.toEqual([
 				`loop_1:`, `set x 5`, `print "j is 5"`, `set x 5`,
 				`print "j is 6"`, `loop_2:`, `set x 5`, `print "j is 5"`,
@@ -170,7 +170,7 @@ describe("compileMlogxToMlog", () => {
 			expect(
 				compileMlogxToMlog([line],
 					stateForFilename("sample1.mlogx")
-				).outputProgram.map(line => line[0])
+				).outputProgram.map(line => line.text)
 			).toEqual([line]);
 		}
 	});
@@ -180,7 +180,7 @@ describe("compileMlogxToMlog", () => {
 			expect(() =>
 				compileMlogxToMlog([line],
 					stateForFilename("sample2.mlogx")
-				).outputProgram.map(line => line[0])
+				).outputProgram.map(line => line.text)
 			).not.toThrow();
 		}
 	});
@@ -190,7 +190,7 @@ describe("compileMlogxToMlog", () => {
 			expect(
 				compileMlogxToMlog([input],
 					stateForFilename("sample3.mlogx")
-				).outputProgram.map(line => line[0])
+				).outputProgram.map(line => line.text)
 			).toEqual([output]);
 		}
 	});
@@ -212,7 +212,7 @@ describe("compilation", () => {
 		it(`should compile ${name} with expected output`, () => {
 			expect(
 				compileMlogxToMlog(program.program, stateForFilename("sample3.mlogx", program.compilerConsts))
-					.outputProgram.map(line => line[0])
+					.outputProgram.map(line => line.text)
 			).toEqual(program.expectedOutput);
 		});
 	}

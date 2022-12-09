@@ -9,9 +9,10 @@ Contains type definitions related to commands.
 */
 
 import { Arg, ArgType } from "../args.js";
+import { Statement } from "../classes.js";
 import { State } from "../settings.js";
 import { StackElement, StackElementMapping } from "../stack_elements.js";
-import { CompiledLine, Line, PortingMode, TypeCheckingData } from "../types.js";
+import { Line, PortingMode, TypeCheckingData } from "../types.js";
 
 
 
@@ -75,7 +76,7 @@ export interface CompilerCommandDefinition<StackEl> {
 	description: string;
 	/**Called when a block begins. */
 	onbegin?: ({line, stack, state}:{line:Line, stack:StackElement[], state:State}) => {
-		compiledCode:CompiledLine[];
+		compiledCode:Statement[];
 		element:StackEl | null;
 		skipTypeChecks?:boolean;
 	};
@@ -86,13 +87,13 @@ export interface CompilerCommandDefinition<StackEl> {
 		skipCompilation:true;
 	}
 	/**Called on each line in a block after it compiles. */
-	onpostcompile?: ({compiledOutput, stack, state}:{compiledOutput:CompiledLine[], stack:StackElement[], state:State}) => {
-		modifiedOutput:CompiledLine[];
+	onpostcompile?: ({compiledOutput, stack, state}:{compiledOutput:Statement[], stack:StackElement[], state:State}) => {
+		modifiedOutput:Statement[];
 		skipTypeChecks?:boolean;
 	}
 	/**Called when a block ends. */
 	onend?: ({line, removedElement, state, stack}:{line:Line, removedElement:StackEl, state:State, stack:StackElement[]}) => {
-		compiledCode:CompiledLine[];
+		compiledCode:Statement[];
 		skipTypeChecks?:boolean;
 		typeCheckingData?:TypeCheckingData;
 	};
@@ -108,7 +109,7 @@ export interface PreprocessedCompilerCommandDefinition<StackEl> {
 	description: string;
 	/**Called when a block begins. */
 	onbegin?: ({line, stack, state}:{line:Line, stack:StackElement[], state:State}) => {
-		compiledCode:CompiledLine[];
+		compiledCode:Statement[];
 		element:Omit<StackEl, "commandDefinition"> | null;
 		skipTypeChecks?:boolean;
 	};
@@ -119,13 +120,13 @@ export interface PreprocessedCompilerCommandDefinition<StackEl> {
 		skipCompilation:true;
 	}
 	/**Called on each line in a block after it compiles. */
-	onpostcompile?: ({compiledOutput, stack, state}:{compiledOutput:CompiledLine[], stack:StackElement[], state:State}) => {
-		modifiedOutput:CompiledLine[];
+	onpostcompile?: ({compiledOutput, stack, state}:{compiledOutput:Statement[], stack:StackElement[], state:State}) => {
+		modifiedOutput:Statement[];
 		skipTypeChecks?:boolean;
 	}
 	/**Called when a block ends. */
 	onend?: ({line, removedElement, state, stack}:{line:Line, removedElement:StackEl, state:State, stack:StackElement[]}) => {
-		compiledCode:CompiledLine[];
+		compiledCode:Statement[];
 		skipTypeChecks?:boolean;
 		typeCheckingData?:TypeCheckingData;
 	};

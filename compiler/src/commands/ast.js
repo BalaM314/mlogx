@@ -1,5 +1,5 @@
 import { GenericArgs, typeofArg } from "../args.js";
-import { CompilerError } from "../classes.js";
+import { CompilerError, Statement } from "../classes.js";
 import { maxLoops, MindustryContent, shortOperandMappings } from "../consts.js";
 import { Log } from "../Log.js";
 import { addNamespacesToLine, getCommandDefinition, impossible, interpolateString, isKey, range, replaceCompilerConstants, splitLineIntoArguments } from "../funcs.js";
@@ -587,15 +587,7 @@ export const compilerCommands = processCompilerCommands({
                 onend({ removedElement, stack }) {
                     const compiledCode = [];
                     for (const el of removedElement.elements) {
-                        compiledCode.push(...removedElement.loopBuffer.map(line => [
-                            replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
-                            {
-                                text: replaceCompilerConstants(line[1].text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
-                                lineNumber: line[1].lineNumber,
-                                sourceFilename: line[1].sourceFilename
-                            },
-                            line[2]
-                        ]));
+                        compiledCode.push(...removedElement.loopBuffer.map(line => new Statement(replaceCompilerConstants(line.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")), line.sourceFilename, line.sourceLineNumber, line.sourceText, replaceCompilerConstants(line.cleanedSourceText, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")))));
                     }
                     return { compiledCode };
                 },
@@ -624,15 +616,7 @@ export const compilerCommands = processCompilerCommands({
                 onend({ removedElement, stack }) {
                     const compiledCode = [];
                     for (const el of removedElement.elements) {
-                        compiledCode.push(...removedElement.loopBuffer.map(line => [
-                            replaceCompilerConstants(line[0], new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
-                            {
-                                text: replaceCompilerConstants(line[1].text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
-                                lineNumber: line[1].lineNumber,
-                                sourceFilename: line[1].sourceFilename
-                            },
-                            line[2]
-                        ]));
+                        compiledCode.push(...removedElement.loopBuffer.map(line => new Statement(replaceCompilerConstants(line.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")), line.sourceFilename, line.sourceLineNumber, line.sourceText, replaceCompilerConstants(line.cleanedSourceText, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")))));
                     }
                     return { compiledCode };
                 },
@@ -705,11 +689,11 @@ export const compilerCommands = processCompilerCommands({
                 onpostcompile({ compiledOutput, stack }) {
                     return {
                         modifiedOutput: compiledOutput.map(line => {
-                            const commandDefinition = getCommandDefinition(line[0]);
+                            const commandDefinition = getCommandDefinition(line.text);
                             if (!commandDefinition) {
                                 impossible();
                             }
-                            return [addNamespacesToLine(splitLineIntoArguments(line[0]), commandDefinition, stack), line[1], line[2]];
+                            return new Statement(addNamespacesToLine(line.args, commandDefinition, stack), line.sourceFilename, line.sourceLineNumber, line.sourceText, line.cleanedSourceText);
                         })
                     };
                 },

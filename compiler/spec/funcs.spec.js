@@ -1,4 +1,5 @@
 import { arg, argToString, GenericArgs, isArgValidFor, isArgValidForType, isArgValidForValidator, isGenericArg, makeArg, typeofArg } from "../src/args.js";
+import { Statement } from "../src/classes.js";
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
 import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, getVariablesUsed, interpolateString, isCommand, isInputAcceptedByAnyType, parseIcons, parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, splitLineOnSemicolons, transformCommand, transformVariables, typeIsAccepted } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
@@ -376,28 +377,30 @@ describe("parsePreprocessorDirectives", () => {
 });
 describe("getVariablesDefined", () => {
     it("should get variables defined in statements", () => {
-        expect(getVariablesDefined(["x", "cell1", "4"], commands["read"][0])).toEqual([["x", "number"]]);
-        expect(getVariablesDefined(["building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3]))
+        expect(getVariablesDefined(["read", "x", "cell1", "4"], commands["read"][0])).toEqual([["x", "number"]]);
+        expect(getVariablesDefined(["op", "mul", "x", "2", "2"], commands["op"][1])).toEqual([["x", "number"]]);
+        expect(getVariablesDefined(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3]))
             .toEqual([["outX", "number"], ["outY", "number"], ["found", "boolean"], ["building", "building"]]);
     });
     it("should infer type in a set statement", () => {
-        expect(getVariablesDefined(["core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);
-        expect(getVariablesDefined(["amogus", `"sus"`], commands["set"][0])).toEqual([["amogus", "string"]]);
+        expect(getVariablesDefined(["set", "core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);
+        expect(getVariablesDefined(["set", "amogus", `"sus"`], commands["set"][0])).toEqual([["amogus", "string"]]);
     });
     it("should accept type hints in a set statement", () => {
-        expect(getVariablesDefined(["thing", "null"], commands["set"][0], ["thing", ":building", "null"], commands["set"][1])).toEqual([["thing", "building"]]);
-        expect(getVariablesDefined(["amogus", `otherVar`], commands["set"][0], ["amogus", ":number", `otherVar`], commands["set"][1])).toEqual([["amogus", "number"]]);
+        expect(getVariablesDefined(["set", "thing", "null"], commands["set"][0], ["set", "thing", ":building", "null"], commands["set"][1])).toEqual([["thing", "building"]]);
+        expect(getVariablesDefined(["set", "amogus", `otherVar`], commands["set"][0], ["set", "amogus", ":number", `otherVar`], commands["set"][1])).toEqual([["amogus", "number"]]);
     });
     it("should fail on invalid set statement type hints", () => {
         expect(() => {
-            getVariablesDefined(["amogus", `otherVar`], commands["set"][0], ["amogus", ":sus", `otherVar`], commands["set"][1]);
+            getVariablesDefined(["set", "amogus", `otherVar`], commands["set"][0], ["set", "amogus", ":sus", `otherVar`], commands["set"][1]);
         }).toThrow();
     });
 });
 describe("getVariablesUsed", () => {
     it("should get variables used by a statement", () => {
-        expect(getVariablesUsed(["x", "cell1", "y"], commands["read"][0])).toEqual([["y", "number"]]);
-        expect(getVariablesUsed(["building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3]))
+        expect(getVariablesUsed(["read", "x", "cell1", "y"], commands["read"][0])).toEqual([["y", "number"]]);
+        expect(getVariablesUsed(["op", "abs", "y"], commands["op"][3])).toEqual([["y", "number"]]);
+        expect(getVariablesUsed(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3]))
             .toEqual([]);
     });
 });
@@ -773,9 +776,9 @@ describe("addSourcesToCode", () => {
             `printflush message1`,
             `//sussy baka`
         ], makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx"))).toEqual([
-            [`print "hello"`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")],
-            [`printflush message1`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")],
-            [`//sussy baka`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")],
+            Statement.fromLines(`print "hello"`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")),
+            Statement.fromLines(`printflush message1`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")),
+            Statement.fromLines(`//sussy baka`, makeLine(`print "hello"`, 420, "amogus.mlogx"), makeLine(`print "hello"`, 420, "amogus.mlogx")),
         ]);
     });
 });

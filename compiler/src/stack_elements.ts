@@ -8,8 +8,9 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains various constants.
 */
 
+import { Statement } from "./classes.js";
 import { CompilerCommandDefinition } from "./commands.js";
-import { CompiledLine, Line } from "./types.js";
+import { Line } from "./types.js";
 
 
 
@@ -25,7 +26,7 @@ export interface ForStackElement extends BaseStackElement {
 	type: "&for";
 	elements: string[];
 	variableName: string;
-	loopBuffer: CompiledLine[];
+	loopBuffer: Statement[];
 }
 export interface IfStackElement extends BaseStackElement {
 	type: "&if";

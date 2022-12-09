@@ -40,7 +40,7 @@ export function compileDirectory(directory, stdlibPath, icons, options) {
         const data = fs.readFileSync(path.join(sourceDirectory, filename), 'utf-8').split(/\r?\n/g);
         let outputData;
         try {
-            outputData = compileMlogxToMlog(data, state).outputProgram.map(line => line[0]);
+            outputData = compileMlogxToMlog(data, state).outputProgram.map(s => s.text);
         }
         catch (err) {
             Log.printMessage("compiling file failed", { filename });
@@ -124,7 +124,7 @@ export function compileFile(name, icons, options) {
     let outputData;
     const data = fs.readFileSync(name, 'utf-8').split(/\r?\n/g);
     try {
-        outputData = compileMlogxToMlog(data, state).outputProgram.map(line => line[0]);
+        outputData = compileMlogxToMlog(data, state).outputProgram.map(s => s.text);
     }
     catch (err) {
         Log.printMessage("compiling file failed", { filename: name });

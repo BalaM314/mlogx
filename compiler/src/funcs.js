@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import * as readline from "readline";
 import { GenericArgs, isArgValidFor, isArgValidForType, isGenericArg, typeofArg } from "./args.js";
-import { CompilerError } from "./classes.js";
+import { CompilerError, Statement } from "./classes.js";
 import { commands, compilerCommands } from "./commands.js";
 import { bugReportUrl } from "./consts.js";
 import { Log } from "./Log.js";
@@ -164,7 +164,12 @@ export function prependFilenameToArg(arg, isMain, filename) {
     return arg.startsWith("__") ? `__${isMain ? "" : filename.replace(/\.mlogx?/gi, "")}${arg}` : arg;
 }
 export function removeUnusedJumps(compiledProgram, jumpLabelUsages) {
-    return compiledProgram.filter(line => !getJumpLabel(line[0]) || getJumpLabel(line[0]) in jumpLabelUsages);
+    return compiledProgram.filter(line => {
+        const label = getJumpLabel(line.text);
+        if (!label)
+            return true;
+        return label in jumpLabelUsages;
+    });
 }
 export function interpolateString(input) {
     const chunks = [{
@@ -240,18 +245,19 @@ export function parsePreprocessorDirectives(data) {
 }
 export function getVariablesDefined(compiledCommandArgs, compiledCommandDefinition, uncompiledCommandArgs = compiledCommandArgs, uncompiledCommandDefinition = compiledCommandDefinition) {
     if (uncompiledCommandDefinition.getVariablesDefined) {
-        return uncompiledCommandDefinition.getVariablesDefined([uncompiledCommandDefinition.name, ...uncompiledCommandArgs]);
+        return uncompiledCommandDefinition.getVariablesDefined(uncompiledCommandArgs);
     }
     if (compiledCommandDefinition.getVariablesDefined) {
-        return compiledCommandDefinition.getVariablesDefined([compiledCommandDefinition.name, ...compiledCommandArgs]);
+        return compiledCommandDefinition.getVariablesDefined(compiledCommandArgs);
     }
     return compiledCommandArgs
+        .slice(1)
         .map((arg, index) => [arg, compiledCommandDefinition.args[index]])
         .filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
         .map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 export function getAllPossibleVariablesUsed(compiledLine, uncompiledLine = compiledLine) {
-    const args = splitLineIntoArguments(compiledLine).slice(1);
+    const args = splitLineIntoArguments(compiledLine);
     const variablesUsed_s = [];
     for (const commandDefinition of getCommandDefinitions(compiledLine)) {
         variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
@@ -269,6 +275,7 @@ export function getAllPossibleVariablesUsed(compiledLine, uncompiledLine = compi
 }
 export function getVariablesUsed(args, commandDefinition) {
     return args
+        .slice(1)
         .map((arg, index) => [arg, commandDefinition.args[index]])
         .filter(([arg, commandArg]) => isArgValidForType(arg, "variable") && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
 }
@@ -437,8 +444,8 @@ export function formatLine(line) {
 export function formatLineWithPrefix(line, prefix = "\t\tat ") {
     return chalk.gray(`${prefix}${line.sourceFilename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
-export function addSourcesToCode(code, cleanedSource = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }, sourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }) {
-    return code.map(compiledLine => [compiledLine, cleanedSource, sourceLine]);
+export function addSourcesToCode(code, cleanedSourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }, sourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }) {
+    return code.map(compiledLine => Statement.fromLines(compiledLine, sourceLine, cleanedSourceLine));
 }
 export function exit(message) {
     Log.fatal(message);
