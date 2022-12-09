@@ -92,6 +92,9 @@ export const commands = processCommands({
 			args: "color r:number g:number b:number a:number",
 			description: "Sets the draw color to (r,g,b)."
 		},{
+			args: "col packedColor:number",
+			description: "Sets the draw color to (packedColor)."
+		},{
 			args: "stroke width:number",
 			description: "Sets the stroke width to (width)."
 		},{
@@ -302,9 +305,18 @@ export const commands = processCommands({
 			description: "Looks up the (n)th unit and stores it in (output)."
 		},
 	],
+	//packcolor output r g b a
+	packcolor:[{
+			args: "output:*number r:number g:number b:number a:number",
+			description: "Packs (r,g,b,a) into a single number."
+	}],
 	end: [{
 		args: "",
 		description: "Goes back to the start."
+	}],
+	stop: [{
+		args: "",
+		description: "Stops execution."
 	}],
 	jump: [
 		{
@@ -484,13 +496,43 @@ export const commands = processCommands({
 			replace: (args) => [`ulocate building core ${args[2] ?? "false"} _ core.x core.y core.found core`]
 		},
 	],
-
+	//Privileged instructions (add flag?)
+	//getblock [floor, ore, block, building] result x y
 	getblock: [
-
+		{
+			args: "floor output:*any x:number y:number",//TODO add floorType
+			description: "outputs the floor type at coordinates (x,y)"
+		},{
+			args: "ore output:*item x:number y:number",//ore type is actually just @item
+			description: "outputs the ore type at coordinates (x,y)"	
+		},{
+			args: "block output:*buildingType x:number y:number",
+			description: "outputs the building type at coordinates (x,y)"	
+		},{
+			args: "building output:building x:number y:number",
+			description: "outputs the building at coordinates (x,y)"	
+		}
 	],
+	//setblock [floor, ore, block] type x y @team rotation
 	setblock: [
-
+		{
+			args: "floor floorType:any x:number y:number",//TODO floorType
+			description: "sets the floor type at coordinates (x,y)",
+			replace: ["setblock %1 %2 %3 %4 0 0"]
+		},{
+			args: "ore oreType:item x:number y:number",
+			description: "sets the ore type at coordinates (x,y)",
+			replace: ["setblock %1 %2 %3 %4 0 0"]
+		},{
+			args: "block buildingType:buildingType x:number y:number team:team rotation:number",
+			description: "sets the block at coordinates (x,y) with a team and a counter clockwise rotation starting at the right [0 - 3]",
+			replace: ["setblock %1 %2 %3 %4 0 0"]
+		},{
+			args: "floorOrOreOrBlock:any type:any x:number y:number team?:team rotation?:number",
+			description: "Default setblock signature, with meaningless team and rotation arguments. Included for compatibility."	
+		}
 	],
+	//spawn @unitType x y rotation-angle @team unitReference
 	spawn: [{
 		args: "type:unitType x:number y:number rotation:number team:team output:*unit",
 		description: "Spawns a (type) unit at (x,y) with rotation (rotation) and team (team), storing it in (output)."
@@ -540,20 +582,51 @@ export const commands = processCommands({
 			description: "Flushes the message buffer to the mission text."
 		},
 	],
+	//cutscene [pan(x, y, speed) zoom(level) stop)] 0 (random zero :/)
 	cutscene: [
-
+		{
+			args: "pan x:number y:number speed:number",
+			description: "Pans to (x,y) at (speed)."
+		},{
+			args: "zoom level:number",
+			description: "Sets the zoom level to (level)."
+		},{
+			args: "stop",
+			description: "Ends the cutscene, returning control to players."
+		},
 	],
-	explosion: [
-
-	],
+	//explosion @team x y radius dmg isAirHurt isGroundHurt isPierce
+	explosion: [{
+		args: "team:team x:number y:number radius:number damage:number affectsAir:boolean affectsGround:boolean isPiercing:boolean",
+		description: "Creates an explosion at coordinates (x,y) that damages enemies of (team)."
+	}],
 	setrate: [{
 		args: "ipt:number",
-		description: "Sets the instructions per tick to (ipt)"
+		description: "Sets the instructions per tick to (ipt)."
 	}],
 	fetch: [
 		{
-			args: "thing:fetchableCount output:*number",
-			description: "Fetches (thing) and stores it in (output)."
+			args: "buildCount output:*number team:team type:buildingType",
+			description: "Fetches (thing) and stores it in (output).",
+			replace: [ "fetch %1 %2 %3 0 %4" ]
+		},{
+			args: "buildCount output:*number team:team 0 type:buildingType",
+			description: "Default fetch buildCount signature with extra 0. Included for compatibility.",
+		},{
+			args: "thing:fetchableCount output:*number team:team",
+			description: "Fetches (thing) for (team) and stores it in (output)."
+		},{
+			args: "unit output:*unit team:team n:number",
+			description: "Fetches the (n)th unit on (team) and stores it in (output).",
+		},{
+			args: "player output:*unit team:team n:number",
+			description: "Fetches the (n)th player on (team) and stores it in (output).",
+		},{
+			args: "core output:*building team:team n:number",
+			description: "Fetches the (n)th core on (team) and stores it in (output).",
+		},{
+			args: "build output:*building team:team n:number type:buildingType",
+			description: "Fetches the (n)th building on (team) of type (type) and stores it in (output).",
 		}
 	],
 	getflag: [{
