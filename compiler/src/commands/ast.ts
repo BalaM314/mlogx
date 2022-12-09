@@ -213,11 +213,11 @@ export const commands = processCommands({
 			replace: (args:string[]) => {
 				if(args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)){
 					const [, target, property] = args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)!;
-					if(target == null || property == null) throw new Error("Impossible.");
-					if(!MindustryContent.senseables.includes(property)) throw new CompilerError(`Property ${property} is not senseable.`);
+					if(target == null || property == null) impossible();
+					if(!MindustryContent.senseables.includes(property)) CompilerError.throw("property not senseable", {property});
 					return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];
 				} else {
-					throw new CompilerError(`Invalid command, ${args[1]} must be of type thing.property and cannot contain certain special characters`);
+					CompilerError.throw("invalid sensor shorthand", {arg: args[1]});
 				}
 			},
 			description: "Gets information about a unit or building and stores it in (thing.property), does not need to be linked or on the same team. Example usage: sensor player.shootX will read the player's shootX into the variable player.shootX"
@@ -236,7 +236,7 @@ export const commands = processCommands({
 				if(isKey(GenericArgs, type)){
 					return [`set ${args[1]} ${args[3]}`];
 				} else {
-					throw new CompilerError(`Invalid type "${type}", valid types are ${Object.keys(GenericArgs).join(", ")}`);
+					CompilerError.throw("invalid type", {type});
 				}
 			},
 			getVariablesDefined: (args) => {
@@ -244,7 +244,7 @@ export const commands = processCommands({
 				if(isKey(GenericArgs, type)){
 					return [[args[1], args[2].slice(1)]];
 				} else {
-					throw new CompilerError(`Invalid type "${type}", valid types are ${Object.keys(GenericArgs).join(", ")}`);
+					CompilerError.throw("invalid type", {type});
 				}
 			}
 		},{
@@ -684,14 +684,14 @@ export const compilerCommands = processCompilerCommands({
 					const args = splitLineIntoArguments(line.text);
 					const lowerBound = parseInt(args[3]);
 					const upperBound = parseInt(args[4]);
-					if(isNaN(lowerBound))
-						throw new CompilerError(`Invalid for loop syntax: lowerBound(${lowerBound}) is invalid`);
-					if(isNaN(upperBound))
-						throw new CompilerError(`Invalid for loop syntax: upperBound(${upperBound}) is invalid`);
-					if(lowerBound < 0)
-						throw new CompilerError(`Invalid for loop syntax: lowerBound(${upperBound}) cannot be negative`);
+					if(isNaN(lowerBound) || lowerBound < 0)
+						CompilerError.throw("for loop invalid bound", {bound: "lower", value: args[3]});
+					if(isNaN(upperBound) || upperBound < 0)
+						CompilerError.throw("for loop invalid bound", {bound: "upper", value: args[4]});
 					if((upperBound - lowerBound) > maxLoops)
-						throw new CompilerError(`Invalid for loop syntax: number of loops(${upperBound - lowerBound}) is greater than 200`);
+						CompilerError.throw("for loop too many loops", {numLoops: upperBound - lowerBound});
+					if((upperBound - lowerBound) < 0)
+						CompilerError.throw("for loop negative loops", {numLoops: upperBound - lowerBound});
 					return {
 						element: {
 							type: "&for",

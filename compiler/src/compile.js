@@ -118,7 +118,7 @@ ${formatLineWithPrefix(sourceLine)}`);
             Log.err(`${element.type == "namespace" ? `Namespace "${element.name}"` : element.type == "&for" ? `For loop with variable "${element.variableName}"` : `&if statement`} was not closed.
 ${formatLineWithPrefix(element.line)}`);
         }
-        throw new CompilerError("There were unclosed blocks.");
+        CompilerError.throw("unclosed blocks", {});
     }
     if (state.compilerOptions.checkTypes && !hasInvalidStatements)
         printTypeErrors(typeCheckingData);
@@ -145,7 +145,7 @@ export function typeCheckStatement(statement, typeCheckingData) {
     const uncompiledCommandArgs = splitLineIntoArguments(statement.cleanedSourceText);
     const uncompiledCommandDefinitions = getCommandDefinitions(statement.cleanedSourceText);
     if (compiledCommandDefinitions.length == 0) {
-        throw new CompilerError(`Type checking aborted because the program contains invalid commands.`);
+        CompilerError.throw("type checking invalid commands", {});
     }
     if (uncompiledCommandDefinitions.length == 0) {
         Log.printMessage("invalid uncompiled command definition", { statement });
@@ -254,7 +254,7 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
         const modifiedStack = stack.slice();
         const removedElement = modifiedStack.pop();
         if (!removedElement) {
-            throw new CompilerError("No block to end");
+            CompilerError.throw("no block to end", {});
         }
         if (removedElement.commandDefinition.onend) {
             return {
@@ -278,16 +278,16 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
             throw new CompilerError(errors[0].message);
         }
         else {
-            const typeErrors = errors.filter(error => error.type == CommandErrorType.type);
             if (state.verbose) {
-                throw new CompilerError(`Line did not match any overloads for command ${args[0]}:\n` + errors.map(err => "\t" + err.message).join("\n"));
+                CompilerError.throw("line matched no overloads", { commandName: args[0], errors });
             }
             else {
+                const typeErrors = errors.filter(error => error.type == CommandErrorType.type);
                 if (typeErrors.length != 0) {
                     throw new CompilerError(typeErrors[0].message + `\nErrors for other overloads not displayed.`);
                 }
                 else {
-                    throw new CompilerError(`Line did not match any overloads for command ${args[0]}`);
+                    CompilerError.throw("line matched no overloads", { commandName: args[0] });
                 }
             }
         }
@@ -333,7 +333,7 @@ export function addJumpLabels(code) {
     const cleanedCode = code.map(line => cleanLine(line)).filter(line => line);
     cleanedCode.forEach(line => {
         if (getJumpLabel(line))
-            throw new CompilerError(`Line ${line} contains a jump label. This code is only meant for direct processor output.`);
+            CompilerError.throw("genLabels contains label", { line });
     });
     for (const line of cleanedCode) {
         const label = getJumpLabelUsed(line);
@@ -352,7 +352,7 @@ export function addJumpLabels(code) {
         if (commandDefinition == commands.jump[0] || commandDefinition == commands.jump[1]) {
             const label = getJumpLabelUsed(line);
             if (label == undefined)
-                throw new CompilerError("invalid jump statement");
+                CompilerError.throw("genLabels invalid jump statement", { line });
             transformedCode.push(transformCommand(splitLineIntoArguments(line), commandDefinition, (arg) => jumps[arg] ?? (isNaN(parseInt(arg)) ? arg : impossible()), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
         }
         else if (commandDefinition != undefined || getJumpLabel(line)) {

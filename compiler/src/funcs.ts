@@ -133,7 +133,7 @@ export function splitLineIntoArguments(cleanedLine:string):string[] {
 				args[args.length - 1] += char;
 			}
 		}
-		if(isInString) throw new CompilerError("Unterminated string literal");
+		if(isInString) CompilerError.throw("unterminated string literal", {line: cleanedLine});
 		return args;
 		//smort logic so `"amogus sus"` is parsed as one arg
 	} else {
@@ -158,7 +158,7 @@ export function splitLineOnSemicolons(cleanedLine:string):string[] {
 				lines[0] += char;
 			}
 		}
-		if(isInString) throw new CompilerError("Unterminated string literal");
+		if(isInString) CompilerError.throw("unterminated string literal", {line: cleanedLine});
 		return lines.map(cleanLine).filter(cleanedLine => cleanedLine != "");
 		//smort logic so `"amogus sus"` is parsed as one arg
 	} else {
@@ -343,7 +343,7 @@ export function getVariablesDefined(
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getAllPossibleVariablesUsed(compiledLine:string, uncompiledLine:string = compiledLine): [name:string, types:ArgType[]][]{
-	const args = splitLineIntoArguments(compiledLine);
+	const args = splitLineIntoArguments(compiledLine).slice(1);
 	const variablesUsed_s = [];
 	for(const commandDefinition of getCommandDefinitions(compiledLine)){
 		variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
@@ -362,6 +362,7 @@ export function getAllPossibleVariablesUsed(compiledLine:string, uncompiledLine:
 
 /**Gets variables used for a specific command definition. */
 export function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
+	Log.dump(args);
 	return args
 		.slice(1)
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])

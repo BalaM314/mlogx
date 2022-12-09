@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { GenericArgs } from "./args/generic_args.js";
 import { extend, formatLineWithPrefix, isKey } from "./funcs.js";
 export const logLevels = extend()({
     "debug": [chalk.gray, "[DEBUG]"],
@@ -56,6 +57,19 @@ ${formatLineWithPrefix(d.line)}`,
     "bad arg string": { for: (d) => `Possibly bad arg string "${d.name}", assuming it means a non-generic arg`, level: "warn" },
     "cannot compile dir": { for: (d) => `Cannot compile ${d.dirname}. For help, run "mlogx help".`, level: "err" },
     "cannot compile mlog file": { for: (d) => `Cannot compile a .mlog file. If you are trying to port it, use mlogx port. If you really want to compile it, change the extension to .mlogx.`, level: "err" },
+    "unclosed blocks": { for: (d) => `There were unclosed blocks.`, level: "throw" },
+    "type checking invalid commands": { for: (d) => `Type checking aborted because the program contains invalid commands.`, level: "throw" },
+    "no block to end": { for: (d) => `No block to end`, level: "throw" },
+    "genLabels contains label": { for: (d) => `Line ${d.line} contains a jump label. This code is only meant for direct processor output.`, level: "throw" },
+    "genLabels invalid jump statement": { for: (d) => `Invalid jump statement\n\tat "${d.line}"`, level: "throw" },
+    "unterminated string literal": { for: (d) => `Unterminated string literal at ${d.line}`, level: "throw" },
+    "property not senseable": { for: (d) => `Property ${d.property} is not senseable.`, level: "throw" },
+    "line matched no overloads": { for: (d) => `Line did not match any overloads for command ${d.commandName}:\n` + (d.errors ? d.errors.map(err => "\t" + err.message).join("\n") : ""), level: "throw" },
+    "invalid sensor shorthand": { for: (d) => `Invalid sensor statement, "${d.arg}" must be of type thing.property and cannot contain special characters.`, level: "throw" },
+    "invalid type": { for: (d) => `Invalid type "${d.type}", valid types are ${Object.keys(GenericArgs).join(", ")}`, level: "throw" },
+    "for loop invalid bound": { for: (d) => `Invalid for loop syntax: ${d.bound} bound(${d.value}) is invalid`, level: "throw" },
+    "for loop too many loops": { for: (d) => `Invalid for loop syntax: number of loops(${d.numLoops}) is greater than 200`, level: "throw" },
+    "for loop negative loops": { for: (d) => `Invalid for loop syntax: number of loops(${d.numLoops}) is negative`, level: "throw" },
 });
 export class Logger {
     constructor(logLevels, messages) {
@@ -93,6 +107,8 @@ export class Logger {
         const message = this.messages[messageID];
         if (!message)
             throw new Error(`Attempted to print unknown message ${messageID}`);
+        if (message.level == "throw")
+            throw new Error(`Attempted to print CompilerError ${messageID} as message`);
         this[message.level](message.for(data));
     }
 }

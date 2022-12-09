@@ -10,9 +10,10 @@ Handles everything related to console output.
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import chalk from "chalk";
+import { GenericArgs } from "./args/generic_args.js";
 import { Statement } from "./classes.js";
 import { extend, formatLineWithPrefix, isKey } from "./funcs.js";
-import type { Line, none } from "./types.js";
+import type { CommandError, Line, none } from "./types.js";
 
 export interface LogLevels {
 	[index:string]: [color: (input:string) => string, tag:string]
@@ -30,8 +31,8 @@ export type logLevel = keyof typeof logLevels;
 
 export interface Messages {
 	[id:string]: {
-		for: (data:never) => string,
-		level: logLevel
+		for: (data:never) => string;
+		level: logLevel | "throw";
 	}
 }
 
@@ -85,7 +86,20 @@ ${formatLineWithPrefix(d.line)}`
 	"bad arg string": {for:(d:{name:string}) => `Possibly bad arg string "${d.name}", assuming it means a non-generic arg`, level:"warn"},
 	"cannot compile dir": {for:(d:{dirname:string}) => `Cannot compile ${d.dirname}. For help, run "mlogx help".`, level:"err"},
 	"cannot compile mlog file": {for:(d:none) => `Cannot compile a .mlog file. If you are trying to port it, use mlogx port. If you really want to compile it, change the extension to .mlogx.`, level:"err"},
-	//"name": {for:(d:{}) => ``, level:""},
+	"unclosed blocks": {for:(d:none) => `There were unclosed blocks.`, level:"throw"},
+	"type checking invalid commands": {for:(d:none) => `Type checking aborted because the program contains invalid commands.`, level:"throw"},
+	"no block to end": {for:(d:none) => `No block to end`, level:"throw"},
+	"genLabels contains label": {for:(d:{line:string}) => `Line ${d.line} contains a jump label. This code is only meant for direct processor output.`, level:"throw"},
+	"genLabels invalid jump statement": {for:(d:{line:string}) => `Invalid jump statement\n\tat "${d.line}"`, level:"throw"},
+	"unterminated string literal": {for:(d:{line:string}) => `Unterminated string literal at ${d.line}`, level:"throw"},
+	"property not senseable": {for:(d:{property:string}) => `Property ${d.property} is not senseable.`, level:"throw"},
+	"line matched no overloads": {for:(d:{commandName:string, errors?:CommandError[]}) => `Line did not match any overloads for command ${d.commandName}:\n` + (d.errors ? d.errors.map(err => "\t" + err.message).join("\n") : ""), level:"throw"},
+	"invalid sensor shorthand": {for:(d:{arg:string}) => `Invalid sensor statement, "${d.arg}" must be of type thing.property and cannot contain special characters.`, level:"throw"},
+	"invalid type": {for:(d:{type:string}) => `Invalid type "${d.type}", valid types are ${Object.keys(GenericArgs).join(", ")}`, level:"throw"},
+	"for loop invalid bound": {for:(d:{bound:string, value:string}) => `Invalid for loop syntax: ${d.bound} bound(${d.value}) is invalid`, level:"throw"},
+	"for loop too many loops": {for:(d:{numLoops:number}) => `Invalid for loop syntax: number of loops(${d.numLoops}) is greater than 200`, level:"throw"},
+	"for loop negative loops": {for:(d:{numLoops:number}) => `Invalid for loop syntax: number of loops(${d.numLoops}) is negative`, level:"throw"},
+	//"": {for:(d:{}) => ``, level:"throw"},
 });
 
 export class Logger<_LogLevels extends LogLevels, _Messages extends Messages> {
@@ -130,6 +144,7 @@ export class Logger<_LogLevels extends LogLevels, _Messages extends Messages> {
 	){
 		const message = this.messages[messageID] as MData;
 		if(!message) throw new Error(`Attempted to print unknown message ${messageID as string}`);
+		if(message.level == "throw") throw new Error(`Attempted to print CompilerError ${messageID as string} as message`);
 		//cursed
 		this[message.level](message.for(data as never));
 	}

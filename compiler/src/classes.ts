@@ -21,7 +21,7 @@ export class CompilerError extends Error {
 	}
 	static throw<ID extends keyof typeof messages, MData extends (typeof messages)[ID]>(
 		messageID:ID, data:Parameters<MData["for"]>[0]
-	){
+	):never {
 		const message = messages[messageID] as MData;
 		//cursed
 		throw new this(message.for(data as never));

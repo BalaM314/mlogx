@@ -109,7 +109,7 @@ export function splitLineIntoArguments(cleanedLine) {
             }
         }
         if (isInString)
-            throw new CompilerError("Unterminated string literal");
+            CompilerError.throw("unterminated string literal", { line: cleanedLine });
         return args;
     }
     else {
@@ -135,7 +135,7 @@ export function splitLineOnSemicolons(cleanedLine) {
             }
         }
         if (isInString)
-            throw new CompilerError("Unterminated string literal");
+            CompilerError.throw("unterminated string literal", { line: cleanedLine });
         return lines.map(cleanLine).filter(cleanedLine => cleanedLine != "");
     }
     else {
@@ -257,7 +257,7 @@ export function getVariablesDefined(compiledCommandArgs, compiledCommandDefiniti
         .map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 export function getAllPossibleVariablesUsed(compiledLine, uncompiledLine = compiledLine) {
-    const args = splitLineIntoArguments(compiledLine);
+    const args = splitLineIntoArguments(compiledLine).slice(1);
     const variablesUsed_s = [];
     for (const commandDefinition of getCommandDefinitions(compiledLine)) {
         variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
@@ -274,6 +274,7 @@ export function getAllPossibleVariablesUsed(compiledLine, uncompiledLine = compi
     return Object.entries(variablesToReturn);
 }
 export function getVariablesUsed(args, commandDefinition) {
+    Log.dump(args);
     return args
         .slice(1)
         .map((arg, index) => [arg, commandDefinition.args[index]])
