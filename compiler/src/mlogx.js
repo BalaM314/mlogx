@@ -19,7 +19,8 @@ mlogx.command("info", "Shows information about a logic command or arg type", (op
         return 1;
     }
     if (isKey(commands, name)) {
-        const matchingCommands = commands[name].filter(c => opts.positionalArgs[1] ? c.args[0].type.startsWith(opts.positionalArgs[1]) : true);
+        const matchingCommands = commands[name].filter(c => ("mlogOnly" in opts.namedArgs ? c.isMlog : true) &&
+            (opts.positionalArgs[1] ? c.args[0].type.startsWith(opts.positionalArgs[1]) : true));
         if (matchingCommands.length == 0) {
             Log.none(chalk.red(`No commands found for "${commandName}".`));
         }
@@ -33,10 +34,14 @@ ${matchingCommands.map(commandDefinition => name + " " + commandDefinition.args
         return 0;
     }
     else if (isKey(compilerCommands, name)) {
-        Log.none(chalk.white(`Info for compiler command "${name}"
+        const matchingCommands = compilerCommands[name].overloads.filter(c => opts.positionalArgs[1] ? c.args[0].type.startsWith(opts.positionalArgs[1]) : true);
+        if (matchingCommands.length == 0) {
+            Log.none(chalk.red(`No commands found for "${commandName}".`));
+        }
+        Log.none(chalk.white(`Info for compiler command "${commandName}"
 Usage:
 
-${compilerCommands[name].overloads.map(commandDefinition => name + " " + commandDefinition.args
+${matchingCommands.map(commandDefinition => name + " " + commandDefinition.args
             .map(argToString)
             .join(" ") + "\n" + commandDefinition.description).join("\n\n")}
 `));
@@ -57,7 +62,12 @@ ${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof R
         return 1;
     }
 }, false, {
-    namedArgs: {},
+    namedArgs: {
+        mlogOnly: {
+            description: "Whether to only show info for mlog commands.",
+            needsValue: false
+        }
+    },
     positionalArgs: [
         {
             name: "command",

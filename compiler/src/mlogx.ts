@@ -14,12 +14,13 @@ import path from "path";
 import * as os from "os";
 import { Application } from "cli-app";
 import { argToString, GenericArgs } from "./args.js";
-import { commands, compilerCommands } from "./commands.js";
+import { commands, CompilerCommandDefinition, compilerCommands } from "./commands.js";
 import { addJumpLabels, portCode } from "./compile.js";
 import { compileDirectory, compileFile, createProject } from "./compile_fs.js";
 import { isKey, parseIcons } from "./funcs.js";
 import { Log } from "./Log.js";
 import { PortingMode } from "./types.js";
+import { StackElement } from "./stack_elements.js";
 
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
 mlogx.command("info", "Shows information about a logic command or arg type", (opts) => {
@@ -30,7 +31,10 @@ mlogx.command("info", "Shows information about a logic command or arg type", (op
 		return 1;
 	}
 	if(isKey(commands, name)){
-		const matchingCommands = commands[name].filter(c => opts.positionalArgs[1] ? c.args[0].type.startsWith(opts.positionalArgs[1]) : true);
+		const matchingCommands = commands[name].filter(c =>
+			("mlogOnly" in opts.namedArgs ? c.isMlog : true) &&
+			(opts.positionalArgs[1] ? c.args[0].type.startsWith(opts.positionalArgs[1]) : true)
+		);
 		if(matchingCommands.length == 0){
 			Log.none(chalk.red(
 `No commands found for "${commandName}".`
@@ -49,11 +53,17 @@ ${matchingCommands.map(commandDefinition =>
 		);
 		return 0;
 	} else if(isKey(compilerCommands, name)){
+		const matchingCommands = (compilerCommands[name].overloads as CompilerCommandDefinition<StackElement>[]).filter(c => opts.positionalArgs[1] ? c.args[0].type.startsWith(opts.positionalArgs[1]) : true);
+		if(matchingCommands.length == 0){
+			Log.none(chalk.red(
+`No commands found for "${commandName}".`
+			));
+		}
 		Log.none(chalk.white(
-`Info for compiler command "${name}"
+`Info for compiler command "${commandName}"
 Usage:
 
-${compilerCommands[name].overloads.map(commandDefinition =>
+${matchingCommands.map(commandDefinition =>
 	name + " " + commandDefinition.args
 		.map(argToString)
 		.join(" ") + "\n" + commandDefinition.description
@@ -79,7 +89,12 @@ ${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof R
 
 
 }, false, {
-	namedArgs: {},
+	namedArgs: {
+		mlogOnly: {
+			description: "Whether to only show info for mlog commands.",
+			needsValue: false
+		}
+	},
 	positionalArgs: [
 		{
 			name: "command",
