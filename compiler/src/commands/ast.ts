@@ -534,7 +534,7 @@ export const commands = processCommands({
 			replace: ["setblock %1 %2 %3 %4 0 0"],
 			isWorldProc: true
 		},{
-			args: "floorOrOreOrBlock:any type:any x:number y:number team?:team rotation?:number",
+			args: "floorOrOreOrBlock:any type:any x:number y:number team:team? rotation:number?",
 			description: "Default setblock signature, with meaningless team and rotation arguments. Included for compatibility.",
 			isWorldProc: true
 		}
