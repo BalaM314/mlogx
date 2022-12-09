@@ -274,7 +274,6 @@ export function getAllPossibleVariablesUsed(compiledLine, uncompiledLine = compi
     return Object.entries(variablesToReturn);
 }
 export function getVariablesUsed(args, commandDefinition) {
-    Log.dump(args);
     return args
         .slice(1)
         .map((arg, index) => [arg, commandDefinition.args[index]])

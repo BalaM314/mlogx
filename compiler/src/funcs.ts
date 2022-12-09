@@ -362,7 +362,6 @@ export function getAllPossibleVariablesUsed(compiledLine:string, uncompiledLine:
 
 /**Gets variables used for a specific command definition. */
 export function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
-	Log.dump(args);
 	return args
 		.slice(1)
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
