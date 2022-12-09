@@ -57,6 +57,18 @@ export interface Line {
 	sourceFilename: string;
 }
 
+export type ProgramAST = ProgramNode[];
+export type ProgramNode = StatementNode | BlockNode;
+export type StatementNode = {
+	sourceLine: Line;
+	cleanedSourceLine: Line;
+	args: string[];
+};
+export type BlockNode = {
+	statement: StatementNode;
+	children: ProgramNode[];
+}
+
 export type CompilerConst = string | number | boolean | (string | number | boolean)[];
 export type CompilerConsts = Map<string, CompilerConst>;
 
