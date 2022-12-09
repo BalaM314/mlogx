@@ -307,8 +307,8 @@ export const commands = processCommands({
 	],
 	//packcolor output r g b a
 	packcolor:[{
-			args: "output:*number r:number g:number b:number a:number",
-			description: "Packs (r,g,b,a) into a single number."
+		args: "output:*number r:number g:number b:number a:number",
+		description: "Packs (r,g,b,a) into a single number."
 	}],
 	end: [{
 		args: "",
@@ -496,21 +496,24 @@ export const commands = processCommands({
 			replace: (args) => [`ulocate building core ${args[2] ?? "false"} _ core.x core.y core.found core`]
 		},
 	],
-	//Privileged instructions (add flag?)
 	//getblock [floor, ore, block, building] result x y
 	getblock: [
 		{
 			args: "floor output:*any x:number y:number",//TODO add floorType
-			description: "outputs the floor type at coordinates (x,y)"
+			description: "outputs the floor type at coordinates (x,y)",
+			isWorldProc: true
 		},{
 			args: "ore output:*item x:number y:number",//ore type is actually just @item
-			description: "outputs the ore type at coordinates (x,y)"	
+			description: "outputs the ore type at coordinates (x,y)",
+			isWorldProc: true	
 		},{
 			args: "block output:*buildingType x:number y:number",
-			description: "outputs the building type at coordinates (x,y)"	
+			description: "outputs the building type at coordinates (x,y)",
+			isWorldProc: true
 		},{
 			args: "building output:building x:number y:number",
-			description: "outputs the building at coordinates (x,y)"	
+			description: "outputs the building at coordinates (x,y)",
+			isWorldProc: true
 		}
 	],
 	//setblock [floor, ore, block] type x y @team rotation
@@ -518,124 +521,154 @@ export const commands = processCommands({
 		{
 			args: "floor floorType:any x:number y:number",//TODO floorType
 			description: "sets the floor type at coordinates (x,y)",
-			replace: ["setblock %1 %2 %3 %4 0 0"]
+			replace: ["setblock %1 %2 %3 %4 0 0"],
+			isWorldProc: true
 		},{
 			args: "ore oreType:item x:number y:number",
 			description: "sets the ore type at coordinates (x,y)",
-			replace: ["setblock %1 %2 %3 %4 0 0"]
+			replace: ["setblock %1 %2 %3 %4 0 0"],
+			isWorldProc: true
 		},{
 			args: "block buildingType:buildingType x:number y:number team:team rotation:number",
 			description: "sets the block at coordinates (x,y) with a team and a counter clockwise rotation starting at the right [0 - 3]",
-			replace: ["setblock %1 %2 %3 %4 0 0"]
+			replace: ["setblock %1 %2 %3 %4 0 0"],
+			isWorldProc: true
 		},{
 			args: "floorOrOreOrBlock:any type:any x:number y:number team?:team rotation?:number",
-			description: "Default setblock signature, with meaningless team and rotation arguments. Included for compatibility."	
+			description: "Default setblock signature, with meaningless team and rotation arguments. Included for compatibility.",
+			isWorldProc: true
 		}
 	],
 	//spawn @unitType x y rotation-angle @team unitReference
 	spawn: [{
 		args: "type:unitType x:number y:number rotation:number team:team output:*unit",
-		description: "Spawns a (type) unit at (x,y) with rotation (rotation) and team (team), storing it in (output)."
+		description: "Spawns a (type) unit at (x,y) with rotation (rotation) and team (team), storing it in (output).",
+		isWorldProc: true
 	}],
 	status: [
 		{
 			args: "false effect:statusEffect unit:unit duration:number",
-			description: "Applies (effect) to (unit) for (duration) seconds."
+			description: "Applies (effect) to (unit) for (duration) seconds.",
+			isWorldProc: true
 		},{
 			args: "true effect:statusEffect unit:unit",
-			description: "Removes (effect) from (unit)."
+			description: "Removes (effect) from (unit).",
+			isWorldProc: true
 		},{
 			args: "apply effect:statusEffect unit:unit duration:number",
 			description: "Applies (effect) to (unit) for (duration) seconds.",
-			replace: ["status false %2 %3 %4"]
+			replace: ["status false %2 %3 %4"],
+			isWorldProc: true
 		},{
 			args: "clear effect:statusEffect unit:unit",
 			description: "Removes (effect) from (unit).",
-			replace: ["status true %2 %3"]
+			replace: ["status true %2 %3"],
+			isWorldProc: true
 		},
 	],
 	spawnwave: [{
 		args: "x:number y:number natural:boolean",
-		description: "Spawns a wave at (x,y)."
+		description: "Spawns a wave at (x,y).",
+		isWorldProc: true
 	}],
 	setrule: [
 		{
 			args: "rule:rule value:number",
-			description: "Sets (rule) to (value)."
+			description: "Sets (rule) to (value).",
+			isWorldProc: true
 		},{
 			args: "mapArea x:number y:number width:number height:number",
-			description: "Sets the map area."
+			description: "Sets the map area.",
+			isWorldProc: true
 		},
 	],
 	message: [
 		{
 			args: "notify",
-			description: "Flushes the message buffer to a notification."
+			description: "Flushes the message buffer to a notification.",
+			isWorldProc: true
 		},{
 			args: "announce duration:number",
-			description: "Flushes the message buffer to an announcement for (duration) seconds."
+			description: "Flushes the message buffer to an announcement for (duration) seconds.",
+			isWorldProc: true
 		},{
 			args: "toast duration:number",
-			description: "Flushes the message buffer to a toast for (duration) seconds."
+			description: "Flushes the message buffer to a toast for (duration) seconds.",
+			isWorldProc: true
 		},{
 			args: "mission",
-			description: "Flushes the message buffer to the mission text."
+			description: "Flushes the message buffer to the mission text.",
+			isWorldProc: true
 		},
 	],
 	//cutscene [pan(x, y, speed) zoom(level) stop)] 0 (random zero :/)
 	cutscene: [
 		{
 			args: "pan x:number y:number speed:number",
-			description: "Pans to (x,y) at (speed)."
+			description: "Pans to (x,y) at (speed).",
+			isWorldProc: true
 		},{
 			args: "zoom level:number",
-			description: "Sets the zoom level to (level)."
+			description: "Sets the zoom level to (level).",
+			isWorldProc: true
 		},{
 			args: "stop",
-			description: "Ends the cutscene, returning control to players."
+			description: "Ends the cutscene, returning control to players.",
+			isWorldProc: true
 		},
 	],
 	//explosion @team x y radius dmg isAirHurt isGroundHurt isPierce
 	explosion: [{
 		args: "team:team x:number y:number radius:number damage:number affectsAir:boolean affectsGround:boolean isPiercing:boolean",
-		description: "Creates an explosion at coordinates (x,y) that damages enemies of (team)."
+		description: "Creates an explosion at coordinates (x,y) that damages enemies of (team).",
+		isWorldProc: true
 	}],
 	setrate: [{
 		args: "ipt:number",
-		description: "Sets the instructions per tick to (ipt)."
+		description: "Sets the instructions per tick to (ipt).",
+		isWorldProc: true
 	}],
 	fetch: [
 		{
 			args: "buildCount output:*number team:team type:buildingType",
 			description: "Fetches (thing) and stores it in (output).",
-			replace: [ "fetch %1 %2 %3 0 %4" ]
+			replace: [ "fetch %1 %2 %3 0 %4" ],
+			isWorldProc: true
 		},{
 			args: "buildCount output:*number team:team 0 type:buildingType",
 			description: "Default fetch buildCount signature with extra 0. Included for compatibility.",
+			isWorldProc: true
 		},{
 			args: "thing:fetchableCount output:*number team:team",
-			description: "Fetches (thing) for (team) and stores it in (output)."
+			description: "Fetches (thing) for (team) and stores it in (output).",
+			isWorldProc: true
 		},{
 			args: "unit output:*unit team:team n:number",
 			description: "Fetches the (n)th unit on (team) and stores it in (output).",
+			isWorldProc: true
 		},{
 			args: "player output:*unit team:team n:number",
 			description: "Fetches the (n)th player on (team) and stores it in (output).",
+			isWorldProc: true
 		},{
 			args: "core output:*building team:team n:number",
 			description: "Fetches the (n)th core on (team) and stores it in (output).",
+			isWorldProc: true
 		},{
 			args: "build output:*building team:team n:number type:buildingType",
 			description: "Fetches the (n)th building on (team) of type (type) and stores it in (output).",
+			isWorldProc: true
 		}
 	],
 	getflag: [{
 		args: "output:*any flag:string",
-		description: "Gets the value of flag (flag) and stores it in (output)."
+		description: "Gets the value of flag (flag) and stores it in (output).",
+		isWorldProc: true
 	}],
 	setflag: [{
 		args: "flag:string value:any",
-		description: "Sets the value of flag (flag) to (value)"
+		description: "Sets the value of flag (flag) to (value)",
+		isWorldProc: true
 	}],
 
 });
