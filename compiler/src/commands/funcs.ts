@@ -20,7 +20,7 @@ import {
 
 
 /**
- * Processes commands(adds in what would otherwise be boilerplate). 
+ * Processes commands(adds in what would otherwise be boilerplate).
  * Warning: called during initialization.
  **/
 export function processCommands<IDs extends string>(preprocessedCommands:PreprocessedCommandDefinitions<IDs>):CommandDefinitions<IDs> {

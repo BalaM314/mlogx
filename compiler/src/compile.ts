@@ -14,17 +14,17 @@ import { CompilerError, Statement } from "./classes.js";
 import { CommandDefinition, commands, CompilerCommandDefinition } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import {
-	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition,
-	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, splitLineOnSemicolons,
-	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToArg,
-	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand
+	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix,
+	getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions,
+	getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, splitLineOnSemicolons,
+	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType,
+	parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants,
+	splitLineIntoArguments, transformCommand
 } from "./funcs.js";
 import { Log } from "./Log.js";
 import { State } from "./settings.js";
 import { hasElement, StackElement } from "./stack_elements.js";
-import {
-	CommandErrorType, Line, PortingMode, TData, TypeCheckingData
-} from "./types.js";
+import { CommandErrorType, Line, PortingMode, TData, TypeCheckingData } from "./types.js";
 
 export function compileMlogxToMlog(
 	mlogxProgram:string[],

@@ -52,49 +52,49 @@ export const GenericArgs = (
 	}],
 	["buildingType", {
 		validator: (arg:string) =>
-			arg.startsWith("@") && 
+			arg.startsWith("@") &&
 			MindustryContent.buildings.includes(arg.slice(1)),
 		alsoAccepts: ["variable"],
 		description: "Represents a type of building, like @pulse-conduit."
 	}],
 	["fluidType", {
 		validator: (arg:string) =>
-			arg.startsWith("@") && 
+			arg.startsWith("@") &&
 			MindustryContent.fluids.includes(arg.slice(1)),
 		alsoAccepts: ["variable"],
 		description: "Represents a fluid, like @oil."
 	}],
 	["itemType", {
 		validator: (arg:string) =>
-			arg.startsWith("@") && 
+			arg.startsWith("@") &&
 			MindustryContent.items.includes(arg.slice(1)),
 		alsoAccepts: ["variable"],
 		description: "Represents a type of item, like @phase-fabric."
 	}],
 	["unitType", {
 		validator: (arg:string) =>
-			arg.startsWith("@") && 
+			arg.startsWith("@") &&
 			MindustryContent.units.includes(arg.slice(1)),
 		alsoAccepts: ["variable"],
 		description: "Represents a type of unit, like @gamma."
 	}],
 	["imageType", {
 		validator: (arg:string) =>
-			arg.startsWith("@") && 
+			arg.startsWith("@") &&
 			(MindustryContent.buildings.includes(arg.slice(1)) || MindustryContent.fluids.includes(arg.slice(1)) || MindustryContent.items.includes(arg.slice(1)) || MindustryContent.units.includes(arg.slice(1))),
 		alsoAccepts: ["variable"],
 		description: "Represents anything that has an image and can be drawn on a display, like @meltdown, @cryofluid, etc."
 	}],
 	["team", {
 		validator: (arg:string) =>
-			arg.startsWith("@") && 
+			arg.startsWith("@") &&
 			MindustryContent.teams.includes(arg.slice(1)),
 		alsoAccepts: ["variable"],
 		description: "Represents a team, like @sharded or @purple."
 	}],
 	["senseable", {
 		validator: (arg:string) =>
-			arg.startsWith("@") && 
+			arg.startsWith("@") &&
 			(MindustryContent.senseables.includes(arg.slice(1))),
 		alsoAccepts: ["variable", "itemType", "fluidType"],
 		description: "Represents any piece of information that can be accessed about a building, like x position(@x), whether it is shooting, (@shooting), the amount of lead it contains(@lead), etc."

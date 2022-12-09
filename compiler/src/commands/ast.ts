@@ -14,8 +14,8 @@ import { CompilerError, Statement } from "../classes.js";
 import { maxLoops, MindustryContent, shortOperandMappings } from "../consts.js";
 import { Log } from "../Log.js";
 import {
-	addNamespacesToLine, getCommandDefinition, impossible, interpolateString, isKey, range,replaceCompilerConstants,
-	splitLineIntoArguments
+	addNamespacesToLine, getCommandDefinition, impossible, interpolateString, isKey, range,
+	replaceCompilerConstants, splitLineIntoArguments
 } from "../funcs.js";
 import { hasDisabledIf, hasElement, topForLoop } from "../stack_elements.js";
 import { PortingMode } from "../types.js";
