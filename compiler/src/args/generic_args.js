@@ -176,15 +176,15 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             doNotGuess: true,
             description: "A rule that can be set with setrule, except mapArea."
         }],
-    ["fetchable", {
-            validator: ["unit", "player", "core", "build"],
+    ["rule", {
+            validator: ["currentWaveTimer", "waveTimer", "waves", "wave", "waveSpacing", "waveSending", "attackMode", "enemyCoreBuildRadius", "dropZoneRadius", "unitCap", "lighting", "ambientLight", "solarMultiplier", "buildSpeed", "unitBuildSpeed", "unitCost", "unitDamage", "blockHealth", "blockDamage", "rtsMinWeight", "rtsMinSquad"],
             doNotGuess: true,
-            description: "A set where the nth item can be obtained through the fetch statement."
+            description: "A rule that can be set with setrule, except mapArea."
         }],
     ["fetchableCount", {
-            validator: ["unitCount", "playerCount", "coreCount", "buildCount"],
+            validator: ["unitCount", "playerCount", "coreCount"],
             doNotGuess: true,
-            description: "The size of a fetchable set."
+            description: "The size of a fetchable set, except build."
         }],
     ["any", {
             validator: /.+/,
