@@ -343,7 +343,7 @@ export function getVariablesDefined(
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getAllPossibleVariablesUsed(compiledLine:string, uncompiledLine:string = compiledLine): [name:string, types:ArgType[]][]{
-	const args = splitLineIntoArguments(compiledLine).slice(1);
+	const args = splitLineIntoArguments(compiledLine);
 	const variablesUsed_s = [];
 	for(const commandDefinition of getCommandDefinitions(compiledLine)){
 		variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
