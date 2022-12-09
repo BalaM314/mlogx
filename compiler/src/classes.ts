@@ -30,9 +30,9 @@ export class CompilerError extends Error {
 
 /**Represents a compiled statement. */
 export class Statement {
-	args: string[];
+	readonly args: string[];
 	// commandDefinition: CommandDefinition | null = null;
-	constructor(public text:string, public sourceFilename:string, public sourceLineNumber:number, public sourceText:string, public cleanedSourceText:string){
+	constructor(public readonly text:string, public readonly sourceFilename:string, public readonly sourceLineNumber:number, public readonly sourceText:string, public readonly cleanedSourceText:string){
 		this.args = splitLineIntoArguments(text);
 	}
 	static fromLines(text:string, source:Line, cleanedSource:Line){
