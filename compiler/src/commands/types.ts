@@ -32,10 +32,14 @@ export interface CommandDefinition {
 	port?: (args:string[], mode:PortingMode) => string;
 	description: string;
 	name: string;
+	/**Whether this command definition is valid MLOG. */
+	isMlog: boolean;
+	/**Whether this command definition is for a world proc only command. */
+	isWorldProc: boolean;
 	/**Gets all variables defined by a command. */
-	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][]
+	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][];
 	/**Gets all variables used by a command. */
-	getVariablesUsed?: (args:string[]) => [name:string, types:ArgType[]][]
+	getVariablesUsed?: (args:string[]) => [name:string, types:ArgType[]][];
 }
 
 /**Contains all the information for a command definition but without the boilerplate. Processed into a CommandDefinition. */
@@ -53,6 +57,8 @@ export interface PreprocessedCommand {
 	 */
 	port?: (args:string[], mode:PortingMode) => string;
 	description: string;
+	/**Whether this command definition is for a world proc only command. */
+	isWorldProc?: boolean;
 	/**Gets all variables defined by a command. */
 	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][]
 	/**Gets all variables used by a command. */

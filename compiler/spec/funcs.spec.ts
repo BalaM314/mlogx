@@ -854,7 +854,8 @@ describe("processCommands", () => {
 		expect(processCommands({
 			"amogus": [{
 				args: "sus susLevel:number",
-				description: "Sets the suslevel of the imposter."
+				description: "Sets the suslevel of the imposter.",
+				isWorldProc: true
 			}],
 			"sus": [
 				{
@@ -877,7 +878,9 @@ describe("processCommands", () => {
 				name: "amogus",
 				getVariablesDefined: undefined,
 				getVariablesUsed: undefined,
-				port: undefined
+				port: undefined,
+				isMlog: true,
+				isWorldProc: true
 			}],
 			"sus": [
 				{
@@ -896,7 +899,9 @@ describe("processCommands", () => {
 					getVariablesDefined: undefined,
 					getVariablesUsed: undefined,
 					replace: jasmine.any(Function),
-					port: jasmine.any(Function)
+					port: jasmine.any(Function),
+					isMlog: true,
+					isWorldProc: false
 				},{
 					type: "Command",
 					args: [],
@@ -904,7 +909,9 @@ describe("processCommands", () => {
 					name: "sus",
 					getVariablesDefined: undefined,
 					getVariablesUsed: undefined,
-					port: undefined
+					port: undefined,
+					isMlog: false,
+					isWorldProc: false
 				}
 			]
 		});

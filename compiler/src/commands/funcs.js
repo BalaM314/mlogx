@@ -9,6 +9,8 @@ export function processCommands(preprocessedCommands) {
                 description: command.description,
                 name: name,
                 args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
+                isMlog: command.replace == undefined,
+                isWorldProc: command.isWorldProc ?? false,
                 getVariablesDefined: command.getVariablesDefined,
                 getVariablesUsed: command.getVariablesUsed,
                 port: command.port
