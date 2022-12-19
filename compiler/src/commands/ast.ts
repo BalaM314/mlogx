@@ -335,7 +335,7 @@ export const commands = processCommands({
 	}],
 	jump: [
 		{
-			args: "jumpAddress:jumpAddress always zero:0? zero:0?",
+			args: "jumpAddress:jumpAddress always var1:any? var2:any?",
 			description: "Jumps to (jumpAddress).",
 			replace: [ "jump %1 always 0 0" ],
 			port(args, mode){
