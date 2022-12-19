@@ -57,7 +57,10 @@ export interface Line {
 	sourceFilename: string;
 }
 
-export type ProgramAST = ProgramNode[];
+export type PrecompiledProgram = {
+	//maybe add metadata such as required variables
+	nodes: ProgramNode[];
+};
 export type ProgramNode = StatementNode | BlockNode;
 export type StatementNode = {
 	sourceLine: Line;
@@ -66,7 +69,7 @@ export type StatementNode = {
 };
 export type BlockNode = {
 	statement: StatementNode;
-	children: ProgramNode[];
+	nodes: ProgramNode[];
 }
 
 export type CompilerConst = string | number | boolean | (string | number | boolean)[];
