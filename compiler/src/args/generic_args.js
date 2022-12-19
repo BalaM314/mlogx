@@ -99,13 +99,13 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
                 "equal", "notEqual", "land", "lessThan",
                 "lessThanEq", "greaterThan", "greaterThanEq",
                 "strictEqual", "shl", "shr", "or", "and",
-                "xor", "min", "angle", "len", "noise",
+                "xor", "min", "max", "angle", "len", "noise",
             ],
             description: "An operand that requires 2 values. Outputs either a boolean or a number."
         }],
     ["operandSingle", {
             validator: [
-                "not", "max", "abs", "log", "log10",
+                "not", "abs", "log", "log10",
                 "floor", "ceil", "sqrt", "rand", "sin",
                 "cos", "tan", "asin", "acos", "atan"
             ],

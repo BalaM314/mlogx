@@ -190,7 +190,7 @@ export const commands = processCommands({
             },
         }, {
             args: "thing.property:*any",
-            replace: (args) => {
+            replace(args) {
                 if (args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)) {
                     const [, target, property] = args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i);
                     if (target == null || property == null)
@@ -199,11 +199,31 @@ export const commands = processCommands({
                         CompilerError.throw("property not senseable", { property });
                     return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} @${property}`];
                 }
+                else if (args[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)]\$/i)) {
+                    const [, target, property] = args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i);
+                    if (target == null || property == null)
+                        impossible();
+                    return [`sensor ${args[1]} ${target == "unit" ? "@unit" : target} ${property}`];
+                }
                 else {
                     CompilerError.throw("invalid sensor shorthand", { arg: args[1] });
                 }
             },
-            description: "Gets information about a unit or building and stores it in (thing.property), does not need to be linked or on the same team. Example usage: sensor player.shootX will read the player's shootX into the variable player.shootX"
+            description: "Gets information about a unit or building and stores it in (thing.property), does not need to be linked or on the same team. Example usage: sensor player.shootX will read the player's shootX into the variable player.shootX",
+            getVariablesUsed(args) {
+                let target, property;
+                if (args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)) {
+                    [, target, property] = args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i);
+                    if (target == null || property == null)
+                        impossible();
+                }
+                else if (args[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)]\$/i)) {
+                    [, target, property] = args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i);
+                    if (target == null || property == null)
+                        impossible();
+                }
+                return [[target, ["building", "unit"]]];
+            }
         }
     ],
     set: [
@@ -307,7 +327,7 @@ export const commands = processCommands({
         }],
     jump: [
         {
-            args: "jumpAddress:jumpAddress always zero:0? zero:0?",
+            args: "jumpAddress:jumpAddress always var1:any? var2:any?",
             description: "Jumps to (jumpAddress).",
             replace: ["jump %1 always 0 0"],
             port(args, mode) {
@@ -456,7 +476,7 @@ export const commands = processCommands({
             description: "Finds a building of specified group near the bound unit, storing its position in (outX, outY) and the building in (building) if it is on the same team.",
             replace: ["ulocate building %2 %3 _ %4 %5 %6 %7"]
         }, {
-            args: "oreOrSpawnOrAmogusOrDamagedOrBuilding:locateable buildingGroup:buildingGroup enemy:boolean ore:itemType outX:*number outY:*number found:*boolean building:*building",
+            args: "locateable:locateable buildingGroup:buildingGroup enemy:boolean ore:itemType outX:*number outY:*number found:*boolean building:*building",
             description: "The wack default ulocate signature, included for compatibility.",
             port(args, mode) {
                 if (mode >= PortingMode.shortenSyntax) {
