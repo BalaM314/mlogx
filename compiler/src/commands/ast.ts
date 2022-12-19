@@ -234,7 +234,7 @@ export const commands = processCommands({
 					[, target, property] = args[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)!;
 					if(target == null || property == null) impossible();
 				}
-				return [[target, ["building", "unit"]]];
+				return [[target, ["building", "unit"]] as [name:string, types:string[]]];
 			}
 		}
 	],
