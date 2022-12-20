@@ -205,15 +205,15 @@ export const GenericArgs = (
 		doNotGuess: true,
 		description: "A rule that can be set with setrule, except mapArea."
 	}],
-	["rule", {
-		validator: ["currentWaveTimer", "waveTimer", "waves", "wave", "waveSpacing", "waveSending", "attackMode", "enemyCoreBuildRadius", "dropZoneRadius", "unitCap", "lighting", "ambientLight", "solarMultiplier", "buildSpeed", "unitBuildSpeed", "unitCost", "unitDamage", "blockHealth", "blockDamage", "rtsMinWeight", "rtsMinSquad"],
-		doNotGuess: true,
-		description: "A rule that can be set with setrule, except mapArea."
-	}],
 	["fetchableCount", {
 		validator: ["unitCount", "playerCount", "coreCount"],
 		doNotGuess: true,
 		description: "The size of a fetchable set, except build."
+	}],
+	["statusEffect", {
+		validator: ["burning", "freezing", "unmoving", "wet", "melting", "sapped", "electrified", "spore-slowed", "tarred", "overdrive", "overclocked", "boss", "shocked", "blasted"],
+		doNotGuess: true,
+		description: "Any status effect."
 	}],
 	["any", {
 		validator: /.+/,
