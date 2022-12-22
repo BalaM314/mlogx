@@ -761,7 +761,7 @@ describe("processCommands", () => {
                     getVariablesUsed: undefined,
                     replace: jasmine.any(Function),
                     port: jasmine.any(Function),
-                    isMlog: true,
+                    isMlog: false,
                     isWorldProc: false
                 }, {
                     type: "Command",
@@ -771,7 +771,7 @@ describe("processCommands", () => {
                     getVariablesDefined: undefined,
                     getVariablesUsed: undefined,
                     port: undefined,
-                    isMlog: false,
+                    isMlog: true,
                     isWorldProc: false
                 }
             ]
