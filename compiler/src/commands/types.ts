@@ -40,6 +40,10 @@ export interface CommandDefinition {
 	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][];
 	/**Gets all variables used by a command. */
 	getVariablesUsed?: (args:string[]) => [name:string, types:ArgType[]][];
+	/**Gets all variables defined by a command. */
+	getJumpLabelsDefined?: (args:string[]) => string[];
+	/**Gets all variables used by a command. */
+	getJumpLabelsUsed?: (args:string[]) => string[];
 }
 
 /**Contains all the information for a command definition but without the boilerplate. Processed into a CommandDefinition. */

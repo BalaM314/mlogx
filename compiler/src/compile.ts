@@ -16,7 +16,7 @@ import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import {
 	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix,
 	getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions,
-	getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, splitLineOnSemicolons,
+	getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons,
 	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType,
 	parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants,
 	splitLineIntoArguments, transformCommand
@@ -177,8 +177,7 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 	//TODO maybe remove this check?
 
 
-	const labelName = getJumpLabel(statement.text);
-	if(labelName){
+	for(const labelName of getJumpLabelsDefined(statement.text)){
 		typeCheckingData.jumpLabelsDefined[labelName] ??= [];
 		typeCheckingData.jumpLabelsDefined[labelName].push({
 			line: statement.sourceLine()
@@ -196,8 +195,7 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 		Log.printMessage("invalid uncompiled command definition", {statement});
 	}
 
-	const jumpLabelUsed:string | null = getJumpLabelUsed(statement.text);
-	if(jumpLabelUsed){
+	for(const jumpLabelUsed of getJumpLabelsUsed(statement.text)){
 		typeCheckingData.jumpLabelsUsed[jumpLabelUsed] ??= [];
 		typeCheckingData.jumpLabelsUsed[jumpLabelUsed].push({
 			line: statement.cleanedSourceLine()
@@ -322,17 +320,17 @@ export function compileLine(
 	const cleanedText = cleanedLine.text;
 
 	//If the text is a jump label, return
-	if(getJumpLabel(cleanedText)){
+	if(getJumpLabelsDefined(cleanedText).length > 0){
 		return {
 			compiledCode: [
 				Statement.fromLines(
 					hasElement(stack, "namespace") ?
-						`${addNamespacesToVariable(getJumpLabel(cleanedText)!, stack)}:` : cleanedText,
+						`${addNamespacesToVariable(getJumpLabelsDefined(cleanedText)[0], stack)}:` : cleanedText,
 					cleanedLine, sourceLine
 				)
 			]
 		};
-		//TODO fix the way comments are handled
+		//TODO fix this bodgy code
 	}
 
 	const args = splitLineIntoArguments(cleanedText)
@@ -436,13 +434,12 @@ export function addJumpLabels(code:string[]):string[] {
 
 	const cleanedCode = code.map(line => cleanLine(line)).filter(line => line);
 	cleanedCode.forEach(line => {
-		if(getJumpLabel(line)) CompilerError.throw("genLabels contains label", {line});
+		if(getJumpLabelsDefined(line).length > 0) CompilerError.throw("genLabels contains label", {line});
 	});
 
 	//Identify all jump addresses
 	for(const line of cleanedCode){
-		const label = getJumpLabelUsed(line);
-		if(label){
+		for(const label of getJumpLabelsUsed(line)){
 			if(label == "0"){
 				jumps[label] = "0";
 			} else if(!isNaN(parseInt(label)) && !jumps[label]){
@@ -456,8 +453,9 @@ export function addJumpLabels(code:string[]):string[] {
 	for(const line of cleanedCode){
 		const commandDefinition = getCommandDefinition(line);
 		if(commandDefinition == commands.jump[0] || commandDefinition == commands.jump[1]){
-			const label = getJumpLabelUsed(line);
-			if(label == undefined) CompilerError.throw("genLabels invalid jump statement", {line});
+			//TODO bodgy code found
+			const labels = getJumpLabelsUsed(line);
+			if(labels.length == 0) CompilerError.throw("genLabels invalid jump statement", {line});
 			transformedCode.push(
 				transformCommand(
 					splitLineIntoArguments(line),
@@ -468,7 +466,7 @@ export function addJumpLabels(code:string[]):string[] {
 					(arg:string, carg:Arg) => carg.isGeneric && carg.type == "jumpAddress"
 				).join(" ")
 			);
-		} else if(commandDefinition != undefined || getJumpLabel(line)){
+		} else if(commandDefinition != undefined || (getJumpLabelsDefined(line).length > 0)){
 			transformedCode.push(line);
 		} else {
 			Log.printMessage("line invalid", {line});

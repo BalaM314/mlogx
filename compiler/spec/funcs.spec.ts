@@ -20,7 +20,7 @@ import { commands, compilerCommands, processCommands } from "../src/commands.js"
 import {
 	acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode,
 	areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition,
-	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed,
+	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed,
 	getParameters, getVariablesDefined, getVariablesUsed, interpolateString, isCommand, isInputAcceptedByAnyType, parseIcons,
 	parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces,
 	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, splitLineOnSemicolons, transformCommand,
@@ -539,19 +539,19 @@ describe("getAllPossibleVariablesUsed", () => {
 
 describe("getJumpLabelUsed", () => {
 	it("should get the jump label used", () => {
-		expect(getJumpLabelUsed("jump label always")).toEqual("label");
+		expect(getJumpLabelsUsed("jump label always")).toEqual(["label"]);
 	});
 	it("should return null if no jump label exists", () => {
-		expect(getJumpLabelUsed("set label \"greaterThan\"")).toEqual(null);
+		expect(getJumpLabelsUsed("set label \"greaterThan\"")).toEqual([]);
 	});
 });
 
 describe("getJumpLabel", () => {
 	it("should get the jump label defined", () => {
-		expect(getJumpLabel("label:")).toEqual("label");
+		expect(getJumpLabelsDefined("label:")).toEqual(["label"]);
 	});
 	it("should return null if no jump label exists", () => {
-		expect(getJumpLabel("jump label greaterThan x 5")).toEqual(null);
+		expect(getJumpLabelsDefined("jump label greaterThan x 5")).toEqual([]);
 	});
 });
 

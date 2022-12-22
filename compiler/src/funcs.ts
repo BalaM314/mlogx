@@ -214,9 +214,9 @@ export function prependFilenameToArg(arg:string, isMain:boolean, filename:string
 /**Removes unused jumps from a compiled program. */
 export function removeUnusedJumps(compiledProgram:Statement[], jumpLabelUsages:TData.jumpLabelsUsed):Statement[] {
 	return compiledProgram.filter(line => {
-		const label = getJumpLabel(line.text);
-		if(!label) return true;
-		return label in jumpLabelUsages;
+		const labels = getJumpLabelsDefined(line.text);
+		if(labels.length == 0) return true;
+		return labels.some(label => label in jumpLabelUsages);
 	});
 }
 
@@ -371,15 +371,19 @@ export function getVariablesUsed(args:string[], commandDefinition:CommandDefinit
 }
 
 /**Gets the jump label used in a statement. */
-export function getJumpLabelUsed(line:string): string | null {
+export function getJumpLabelsUsed(line:string):string[] {
 	const args = splitLineIntoArguments(line);
-	if(args[0] == "jump") return args[1];
-	return null;
+	if(args[0] == "jump") return [args[1]];
+	return [];
+	//TODO rewrite
 }
 
 /**Gets the jump label defined in a statement. */
-export function getJumpLabel(cleanedLine:string):string | null {
-	return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0] ?? null;
+export function getJumpLabelsDefined(cleanedLine:string):string[] {
+	const matchData = cleanedLine.match(/^[^ ]+(?=:$)/);
+	if(matchData == null) return [];
+	else return [matchData[0]];
+	//TODO rewrite
 }
 
 //#endregion

@@ -1,7 +1,7 @@
 import { arg, argToString, GenericArgs, isArgValidFor, isArgValidForType, isArgValidForValidator, isGenericArg, makeArg, typeofArg } from "../src/args.js";
 import { Statement } from "../src/classes.js";
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
-import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabel, getJumpLabelUsed, getParameters, getVariablesDefined, getVariablesUsed, interpolateString, isCommand, isInputAcceptedByAnyType, parseIcons, parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, splitLineOnSemicolons, transformCommand, transformVariables, typeIsAccepted } from "../src/funcs.js";
+import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, getParameters, getVariablesDefined, getVariablesUsed, interpolateString, isCommand, isInputAcceptedByAnyType, parseIcons, parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, splitLineOnSemicolons, transformCommand, transformVariables, typeIsAccepted } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
 import { commandErrOfType, makeForEl, makeIfEl, makeLine, makeNamespaceEl } from "./test_utils.js";
 describe("templateFunction", () => {
@@ -423,18 +423,18 @@ describe("getAllPossibleVariablesUsed", () => {
 });
 describe("getJumpLabelUsed", () => {
     it("should get the jump label used", () => {
-        expect(getJumpLabelUsed("jump label always")).toEqual("label");
+        expect(getJumpLabelsUsed("jump label always")).toEqual(["label"]);
     });
     it("should return null if no jump label exists", () => {
-        expect(getJumpLabelUsed("set label \"greaterThan\"")).toEqual(null);
+        expect(getJumpLabelsUsed("set label \"greaterThan\"")).toEqual([]);
     });
 });
 describe("getJumpLabel", () => {
     it("should get the jump label defined", () => {
-        expect(getJumpLabel("label:")).toEqual("label");
+        expect(getJumpLabelsDefined("label:")).toEqual(["label"]);
     });
     it("should return null if no jump label exists", () => {
-        expect(getJumpLabel("jump label greaterThan x 5")).toEqual(null);
+        expect(getJumpLabelsDefined("jump label greaterThan x 5")).toEqual([]);
     });
 });
 describe("hasElement", () => {

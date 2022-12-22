@@ -165,10 +165,10 @@ export function prependFilenameToArg(arg, isMain, filename) {
 }
 export function removeUnusedJumps(compiledProgram, jumpLabelUsages) {
     return compiledProgram.filter(line => {
-        const label = getJumpLabel(line.text);
-        if (!label)
+        const labels = getJumpLabelsDefined(line.text);
+        if (labels.length == 0)
             return true;
-        return label in jumpLabelUsages;
+        return labels.some(label => label in jumpLabelUsages);
     });
 }
 export function interpolateString(input) {
@@ -279,14 +279,18 @@ export function getVariablesUsed(args, commandDefinition) {
         .map((arg, index) => [arg, commandDefinition.args[index]])
         .filter(([arg, commandArg]) => isArgValidForType(arg, "variable") && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
 }
-export function getJumpLabelUsed(line) {
+export function getJumpLabelsUsed(line) {
     const args = splitLineIntoArguments(line);
     if (args[0] == "jump")
-        return args[1];
-    return null;
+        return [args[1]];
+    return [];
 }
-export function getJumpLabel(cleanedLine) {
-    return cleanedLine.match(/^[^ ]+(?=:$)/)?.[0] ?? null;
+export function getJumpLabelsDefined(cleanedLine) {
+    const matchData = cleanedLine.match(/^[^ ]+(?=:$)/);
+    if (matchData == null)
+        return [];
+    else
+        return [matchData[0]];
 }
 export function areAnyOfInputsAcceptedByType(inputs, type) {
     for (const input of inputs) {
