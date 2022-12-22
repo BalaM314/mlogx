@@ -843,7 +843,8 @@ export const compilerCommands = processCompilerCommands({
 						modifiedOutput: compiledOutput.map(line => {
 							const commandDefinition = getCommandDefinition(line.text);
 							if(!commandDefinition){
-								impossible();
+								Log.dump(line);
+								throw new Error("Line compiled to invalid statement. This is an error with MLOGX.");
 							}
 							return new Statement(addNamespacesToLine(line.args, commandDefinition, stack), line.sourceFilename, line.sourceLineNumber, line.sourceText, line.cleanedSourceText);
 						})
