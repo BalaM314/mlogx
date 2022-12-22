@@ -1,4 +1,4 @@
-import { splitLineIntoArguments } from "./funcs.js";
+import { getCommandDefinitions, splitLineIntoArguments } from "./funcs.js";
 import { messages } from "./Log.js";
 export class CompilerError extends Error {
     constructor(message) {
@@ -11,16 +11,31 @@ export class CompilerError extends Error {
     }
 }
 export class Statement {
-    constructor(text, sourceFilename, sourceLineNumber, sourceText, cleanedSourceText) {
+    constructor(text, sourceText, cleanedSourceText, modifiedSourceText, sourceFilename, sourceLineNumber) {
         this.text = text;
+        this.sourceText = sourceText;
         this.sourceFilename = sourceFilename;
         this.sourceLineNumber = sourceLineNumber;
-        this.sourceText = sourceText;
-        this.cleanedSourceText = cleanedSourceText;
-        this.args = splitLineIntoArguments(text);
+        this.cleanedSource = {
+            text: cleanedSourceText,
+            args: splitLineIntoArguments(cleanedSourceText),
+            commandDefinitions: getCommandDefinitions(cleanedSourceText)
+        };
+        this.modifiedSource = {
+            text: modifiedSourceText,
+            args: splitLineIntoArguments(modifiedSourceText),
+            commandDefinitions: getCommandDefinitions(modifiedSourceText)
+        };
+        this.compiled = {
+            text,
+            args: splitLineIntoArguments(text),
+            commandDefinitions: getCommandDefinitions(text)
+        };
+        this.args = this.compiled.args;
+        this.commandDefinitions = this.compiled.commandDefinitions;
     }
     static fromLines(text, source, cleanedSource) {
-        return new Statement(text, source.sourceFilename, source.lineNumber, source.text, cleanedSource.text);
+        return new Statement(text, source.text, cleanedSource.text, cleanedSource.text, source.sourceFilename, source.lineNumber);
     }
     sourceLine() {
         return {
@@ -33,7 +48,14 @@ export class Statement {
         return {
             lineNumber: this.sourceLineNumber,
             sourceFilename: this.sourceFilename,
-            text: this.cleanedSourceText
+            text: this.cleanedSource.text,
+        };
+    }
+    modifiedSourceLine() {
+        return {
+            lineNumber: this.sourceLineNumber,
+            sourceFilename: this.sourceFilename,
+            text: this.modifiedSource.text,
         };
     }
 }

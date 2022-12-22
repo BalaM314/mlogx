@@ -9,7 +9,8 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains various classes.
 */
 
-import { splitLineIntoArguments } from "./funcs.js";
+import { CommandDefinition } from "./commands.js";
+import { getCommandDefinitions, splitLineIntoArguments } from "./funcs.js";
 import { messages } from "./Log.js";
 import { Line } from "./types.js";
 
@@ -28,16 +29,56 @@ export class CompilerError extends Error {
 	}
 }
 
+//is this the best name?
+interface ProcessedLine {
+	text: string;
+	args: string[];
+	commandDefinitions: CommandDefinition[];
+}
+
 /**Represents a compiled statement. */
-export class Statement {
+export class Statement implements ProcessedLine {
+	readonly cleanedSource: ProcessedLine;
+	readonly modifiedSource: ProcessedLine;
+	readonly compiled: ProcessedLine;
 	readonly args: string[];
-	// commandDefinition: CommandDefinition | null = null;
-	constructor(public readonly text:string, public readonly sourceFilename:string, public readonly sourceLineNumber:number, public readonly sourceText:string, public readonly cleanedSourceText:string){
-		this.args = splitLineIntoArguments(text);
+	readonly commandDefinitions: CommandDefinition[];
+	/*cleanedSource: {
+		text: string;
+		args: string[];
+		commandDefinitions: CommandDefinition[];
+		lineNumber: number;
+		sourceFilename: string;
+	};*/
+	constructor(
+		public readonly text:string, public readonly sourceText:string, cleanedSourceText:string, modifiedSourceText:string,
+		public readonly sourceFilename:string,
+		public readonly sourceLineNumber:number,
+	){
+		this.cleanedSource = {
+			text: cleanedSourceText,
+			args: splitLineIntoArguments(cleanedSourceText),
+			commandDefinitions: getCommandDefinitions(cleanedSourceText)
+		};
+		this.modifiedSource = {
+			text: modifiedSourceText,
+			args: splitLineIntoArguments(modifiedSourceText),
+			commandDefinitions: getCommandDefinitions(modifiedSourceText)
+		};
+		this.compiled = {
+			text,
+			args: splitLineIntoArguments(text),
+			commandDefinitions: getCommandDefinitions(text)
+		};
+		this.args = this.compiled.args;
+		this.commandDefinitions = this.compiled.commandDefinitions;
 	}
 	static fromLines(text:string, source:Line, cleanedSource:Line){
-		return new Statement(text, source.sourceFilename, source.lineNumber, source.text, cleanedSource.text);
+		return new Statement(text, source.text, cleanedSource.text, cleanedSource.text, source.sourceFilename, source.lineNumber);
 	}
+	// text(){ return this.compiled.text; }
+	// args(){ return this.compiled.args; }
+	// commandDefinitions(){ return this.compiled.commandDefinitions; }
 	sourceLine(){
 		return {
 			lineNumber: this.sourceLineNumber,
@@ -49,7 +90,14 @@ export class Statement {
 		return {
 			lineNumber: this.sourceLineNumber,
 			sourceFilename: this.sourceFilename,
-			text: this.cleanedSourceText
+			text: this.cleanedSource.text,
+		};
+	}
+	modifiedSourceLine(){
+		return {
+			lineNumber: this.sourceLineNumber,
+			sourceFilename: this.sourceFilename,
+			text: this.modifiedSource.text,
 		};
 	}
 }

@@ -185,13 +185,10 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 		return;
 	}
 
-	const compiledCommandDefinitions = getCommandDefinitions(statement.text);
-	const uncompiledCommandArgs = splitLineIntoArguments(statement.cleanedSourceText);
-	const uncompiledCommandDefinitions = getCommandDefinitions(statement.cleanedSourceText);
-	if(compiledCommandDefinitions.length == 0){
+	if(statement.commandDefinitions.length == 0){
 		CompilerError.throw("type checking invalid commands", {});
 	}
-	if(uncompiledCommandDefinitions.length == 0){
+	if(statement.modifiedSource.commandDefinitions.length == 0){
 		Log.printMessage("invalid uncompiled command definition", {statement});
 	}
 
@@ -202,8 +199,8 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 		});
 	}
 
-	for(const commandDefinition of compiledCommandDefinitions){
-		getVariablesDefined(statement.args, commandDefinition, uncompiledCommandArgs, uncompiledCommandDefinitions[0]).forEach(([variableName, variableType]) => {
+	for(const commandDefinition of statement.commandDefinitions){
+		getVariablesDefined(statement, commandDefinition).forEach(([variableName, variableType]) => {
 			typeCheckingData.variableDefinitions[variableName] ??= [];
 			typeCheckingData.variableDefinitions[variableName].push({
 				variableType,
@@ -212,7 +209,7 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 		});
 	}
 
-	getAllPossibleVariablesUsed(statement.text, statement.cleanedSourceText).forEach(([variableName, variableTypes]) => {
+	getAllPossibleVariablesUsed(statement).forEach(([variableName, variableTypes]) => {
 		typeCheckingData.variableUsages[variableName] ??= [];
 		typeCheckingData.variableUsages[variableName].push({
 			variableTypes,

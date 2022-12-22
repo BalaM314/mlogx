@@ -318,18 +318,17 @@ export function parsePreprocessorDirectives(data:string[]): [program_type:string
 
 /**Gets the variables defined by a command, given a list of arguments and a command definition. */
 export function getVariablesDefined(
-	compiledCommandArgs:string[], compiledCommandDefinition:CommandDefinition,
-	uncompiledCommandArgs:string[] = compiledCommandArgs, uncompiledCommandDefinition:CommandDefinition = compiledCommandDefinition
+	statement:Statement, compiledCommandDefinition:CommandDefinition
 ): [name:string, type:ArgType][]{
-	if(uncompiledCommandDefinition.getVariablesDefined){
+	if(statement.modifiedSource.commandDefinitions[0].getVariablesDefined){
 		//TODO check for edge cases.
-		return uncompiledCommandDefinition.getVariablesDefined(uncompiledCommandArgs);
+		return statement.modifiedSource.commandDefinitions[0].getVariablesDefined(statement.modifiedSource.args);
 	}
 	if(compiledCommandDefinition.getVariablesDefined){
 		//TODO check for edge cases.
-		return compiledCommandDefinition.getVariablesDefined(compiledCommandArgs);
+		return compiledCommandDefinition.getVariablesDefined(statement.args);
 	}
-	return compiledCommandArgs
+	return statement.args
 		.slice(1)
 		.map((arg, index) => [arg, compiledCommandDefinition.args[index]] as [name:string, arg:Arg|undefined])
 		.filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
@@ -341,12 +340,10 @@ export function getVariablesDefined(
  * Needed because, for example, the `sensor` command accepts either a building or a unit, so if you have `sensor foo.x foo @x`
  * foo is either being used as a unit or a building.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function getAllPossibleVariablesUsed(compiledLine:string, uncompiledLine:string = compiledLine): [name:string, types:ArgType[]][]{
-	const args = splitLineIntoArguments(compiledLine);
+export function getAllPossibleVariablesUsed(statement:Statement): [name:string, types:ArgType[]][]{
 	const variablesUsed_s = [];
-	for(const commandDefinition of getCommandDefinitions(compiledLine)){
-		variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
+	for(const commandDefinition of statement.commandDefinitions){
+		variablesUsed_s.push(getVariablesUsed(statement.args, commandDefinition));
 	}
 	const variablesToReturn: {
 		[index:string]: ArgType[]

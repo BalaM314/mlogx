@@ -1,3 +1,4 @@
+import { Statement } from "../src/classes.js";
 import { compilerCommands } from "../src/commands.js";
 import { addSourcesToCode, getLocalState, getState } from "../src/funcs.js";
 import { settingsSchema } from "../src/settings.js";
@@ -24,6 +25,9 @@ export function commandErrOfType(type) {
         type: CommandErrorType[type],
         message: jasmine.any(String)
     };
+}
+export function makeStatement(text, source = text, cleanedSource = source, modifiedSource = cleanedSource, lineNumber = 1, sourceFilename = "[test]") {
+    return new Statement(text, source, cleanedSource, modifiedSource, sourceFilename, lineNumber);
 }
 export function makeLine(text, lineNumber = 1, sourceFilename = "[test]") {
     return {

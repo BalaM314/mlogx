@@ -14,7 +14,7 @@ import { CompilerError, Statement } from "../classes.js";
 import { maxLoops, MindustryContent, shortOperandMappings } from "../consts.js";
 import { Log } from "../Log.js";
 import {
-	addNamespacesToLine, getCommandDefinition, impossible, interpolateString, isKey, range,
+	addNamespacesToLine, impossible, interpolateString, isKey, range,
 	replaceCompilerConstants, splitLineIntoArguments
 } from "../funcs.js";
 import { hasDisabledIf, hasElement, topForLoop } from "../stack_elements.js";
@@ -730,10 +730,11 @@ export const compilerCommands = processCompilerCommands({
 						compiledCode.push(
 							...removedElement.loopBuffer.map(line => new Statement(
 								replaceCompilerConstants(line.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+								line.sourceText,
+								line.cleanedSource.text,
+								replaceCompilerConstants(line.modifiedSource.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
 								line.sourceFilename,
 								line.sourceLineNumber,
-								line.sourceText,
-								replaceCompilerConstants(line.cleanedSourceText, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for"))
 							))
 						);
 					}
@@ -767,10 +768,11 @@ export const compilerCommands = processCompilerCommands({
 						compiledCode.push(
 							...removedElement.loopBuffer.map(line => new Statement(
 								replaceCompilerConstants(line.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+								line.sourceText,
+								line.cleanedSource.text,
+								replaceCompilerConstants(line.modifiedSource.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
 								line.sourceFilename,
 								line.sourceLineNumber,
-								line.sourceText,
-								replaceCompilerConstants(line.cleanedSourceText, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for"))
 							))
 						);
 					}
@@ -841,12 +843,14 @@ export const compilerCommands = processCompilerCommands({
 				onpostcompile({compiledOutput, stack}) {
 					return {
 						modifiedOutput: compiledOutput.map(line => {
-							const commandDefinition = getCommandDefinition(line.text);
-							if(!commandDefinition){
-								Log.dump(line);
-								throw new Error("Line compiled to invalid statement. This is an error with MLOGX.");
-							}
-							return new Statement(addNamespacesToLine(line.args, commandDefinition, stack), line.sourceFilename, line.sourceLineNumber, line.sourceText, line.cleanedSourceText);
+							return new Statement(
+								addNamespacesToLine(line.args, line.commandDefinitions[0], stack),
+								line.sourceText,
+								line.cleanedSource.text,
+								line.modifiedSource.text,
+								line.sourceFilename,
+								line.sourceLineNumber,
+							);
 						})
 					};
 				},

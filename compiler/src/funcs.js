@@ -243,24 +243,23 @@ export function parsePreprocessorDirectives(data) {
     }
     return [program_type, required_vars, author];
 }
-export function getVariablesDefined(compiledCommandArgs, compiledCommandDefinition, uncompiledCommandArgs = compiledCommandArgs, uncompiledCommandDefinition = compiledCommandDefinition) {
-    if (uncompiledCommandDefinition.getVariablesDefined) {
-        return uncompiledCommandDefinition.getVariablesDefined(uncompiledCommandArgs);
+export function getVariablesDefined(statement, compiledCommandDefinition) {
+    if (statement.modifiedSource.commandDefinitions[0].getVariablesDefined) {
+        return statement.modifiedSource.commandDefinitions[0].getVariablesDefined(statement.modifiedSource.args);
     }
     if (compiledCommandDefinition.getVariablesDefined) {
-        return compiledCommandDefinition.getVariablesDefined(compiledCommandArgs);
+        return compiledCommandDefinition.getVariablesDefined(statement.args);
     }
-    return compiledCommandArgs
+    return statement.args
         .slice(1)
         .map((arg, index) => [arg, compiledCommandDefinition.args[index]])
         .filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
         .map(([arg, commandArg]) => [arg, commandArg.type]);
 }
-export function getAllPossibleVariablesUsed(compiledLine, uncompiledLine = compiledLine) {
-    const args = splitLineIntoArguments(compiledLine);
+export function getAllPossibleVariablesUsed(statement) {
     const variablesUsed_s = [];
-    for (const commandDefinition of getCommandDefinitions(compiledLine)) {
-        variablesUsed_s.push(getVariablesUsed(args, commandDefinition));
+    for (const commandDefinition of statement.commandDefinitions) {
+        variablesUsed_s.push(getVariablesUsed(statement.args, commandDefinition));
     }
     const variablesToReturn = {};
     for (const variablesUsed of variablesUsed_s) {

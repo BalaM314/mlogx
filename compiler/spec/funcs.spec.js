@@ -3,7 +3,7 @@ import { Statement } from "../src/classes.js";
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
 import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, getParameters, getVariablesDefined, getVariablesUsed, interpolateString, isCommand, isInputAcceptedByAnyType, parseIcons, parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, splitLineOnSemicolons, transformCommand, transformVariables, typeIsAccepted } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
-import { commandErrOfType, makeForEl, makeIfEl, makeLine, makeNamespaceEl } from "./test_utils.js";
+import { commandErrOfType, makeForEl, makeIfEl, makeLine, makeNamespaceEl, makeStatement } from "./test_utils.js";
 describe("templateFunction", () => {
     it("should ", () => {
         expect("functionThing").toEqual("functionThing");
@@ -377,47 +377,49 @@ describe("parsePreprocessorDirectives", () => {
 });
 describe("getVariablesDefined", () => {
     it("should get variables defined in statements", () => {
-        expect(getVariablesDefined(["read", "x", "cell1", "4"], commands["read"][0])).toEqual([["x", "number"]]);
-        expect(getVariablesDefined(["op", "mul", "x", "2", "2"], commands["op"][1])).toEqual([["x", "number"]]);
-        expect(getVariablesDefined(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3]))
+        expect(getVariablesDefined(makeStatement("read x cell1 4"), commands["read"][0])).toEqual([["x", "number"]]);
+        expect(getVariablesDefined(makeStatement("op mul x 2 2"), commands["op"][1])).toEqual([["x", "number"]]);
+        expect(getVariablesDefined(makeStatement("ulocate building core true _ outX outY found building", "ulocate building core true outX outY found building"), commands["ulocate"][4]))
             .toEqual([["outX", "number"], ["outY", "number"], ["found", "boolean"], ["building", "building"]]);
+        expect(getVariablesDefined(makeStatement("ulocate building core true _ core.x core.y core.found core", "ulocate core"), commands["ulocate"][4]))
+            .toEqual([["core.x", "number"], ["core.y", "number"], ["core.found", "boolean"], ["core", "building"]]);
     });
     it("should infer type in a set statement", () => {
-        expect(getVariablesDefined(["set", "core", "nucleus1"], commands["set"][0])).toEqual([["core", "building"]]);
-        expect(getVariablesDefined(["set", "amogus", `"sus"`], commands["set"][0])).toEqual([["amogus", "string"]]);
+        expect(getVariablesDefined(makeStatement("set core nucleus1"), commands["set"][0])).toEqual([["core", "building"]]);
+        expect(getVariablesDefined(makeStatement(`set amogus "sus"`), commands["set"][0])).toEqual([["amogus", "string"]]);
     });
     it("should accept type hints in a set statement", () => {
-        expect(getVariablesDefined(["set", "thing", "null"], commands["set"][0], ["set", "thing", ":building", "null"], commands["set"][1])).toEqual([["thing", "building"]]);
-        expect(getVariablesDefined(["set", "amogus", `otherVar`], commands["set"][0], ["set", "amogus", ":number", `otherVar`], commands["set"][1])).toEqual([["amogus", "number"]]);
+        expect(getVariablesDefined(makeStatement("set thing null", "set thing :building null"), commands["set"][0])).toEqual([["thing", "building"]]);
+        expect(getVariablesDefined(makeStatement("set amogus otherVar", "set amogus :number otherVar"), commands["set"][0])).toEqual([["amogus", "number"]]);
     });
     it("should fail on invalid set statement type hints", () => {
         expect(() => {
-            getVariablesDefined(["set", "amogus", `otherVar`], commands["set"][0], ["set", "amogus", ":sus", `otherVar`], commands["set"][1]);
+            getVariablesDefined(makeStatement("set amogus otherVar", "set amogus :sus otherVar"), commands["set"][0]);
         }).toThrow();
     });
 });
 describe("getVariablesUsed", () => {
     it("should get variables used by a statement", () => {
         expect(getVariablesUsed(["read", "x", "cell1", "y"], commands["read"][0])).toEqual([["y", "number"]]);
-        expect(getVariablesUsed(["op", "abs", "y"], commands["op"][3])).toEqual([["y", "number"]]);
-        expect(getVariablesUsed(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"], commands["ulocate"][3]))
+        expect(getVariablesUsed(["op", "abs", "y", "y"], commands["op"][0])).toEqual([["y", "number"]]);
+        expect(getVariablesUsed(["ulocate", "building", "core", "true", "_", "outX", "outY", "found", "building"], commands["ulocate"][4]))
             .toEqual([]);
     });
 });
 describe("getAllPossibleVariablesUsed", () => {
     it("should get variables used by a statement", () => {
-        expect(getAllPossibleVariablesUsed("read x cell1 y")).toEqual([["y", ["number"]]]);
-        expect(getAllPossibleVariablesUsed("ucontrol within x y 10 close"))
+        expect(getAllPossibleVariablesUsed(makeStatement("read x cell1 y"))).toEqual([["y", ["number"]]]);
+        expect(getAllPossibleVariablesUsed(makeStatement("ucontrol within x y 10 close")))
             .toEqual([["x", ["number"]], ["y", ["number"]]]);
-        expect(getAllPossibleVariablesUsed("ulocate building core true outX outY found building"))
+        expect(getAllPossibleVariablesUsed(makeStatement("ulocate building core true outX outY found building")))
             .toEqual([]);
     });
     it("should return multiple possible types for certain commands", () => {
-        expect(getAllPossibleVariablesUsed("sensor x thing @x"))
+        expect(getAllPossibleVariablesUsed(makeStatement("sensor x thing @x")))
             .toEqual([["thing", ["building", "unit"]]]);
     });
     it("should work for commands that replace", () => {
-        expect(getAllPossibleVariablesUsed("sensor building.x building @x", "sensor building.x"))
+        expect(getAllPossibleVariablesUsed(makeStatement("sensor building.x building @x", "sensor building.x")))
             .toEqual([["building", ["building", "unit"]]]);
     });
 });

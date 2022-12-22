@@ -8,6 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains test-related utility functions.
 */
 
+import { Statement } from "../src/classes.js";
 import { compilerCommands } from "../src/commands.js";
 import { addSourcesToCode, getLocalState, getState } from "../src/funcs.js";
 import { Settings, settingsSchema, State } from "../src/settings.js";
@@ -38,6 +39,10 @@ export function commandErrOfType(type:keyof typeof CommandErrorType):jasmine.Exp
 		type: CommandErrorType[type],
 		message: jasmine.any(String)
 	};
+}
+
+export function makeStatement(text:string, source:string = text, cleanedSource:string = source, modifiedSource:string = cleanedSource, lineNumber:number = 1, sourceFilename:string = "[test]"):Statement {
+	return new Statement(text, source, cleanedSource, modifiedSource, sourceFilename, lineNumber);
 }
 
 export function makeLine(text:string, lineNumber:number = 1, sourceFilename:string = "[test]"):Line {
