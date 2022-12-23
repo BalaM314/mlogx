@@ -541,10 +541,10 @@ describe("getAllPossibleVariablesUsed", () => {
 
 describe("getJumpLabelUsed", () => {
 	it("should get the jump label used", () => {
-		expect(getJumpLabelsUsed("jump label always")).toEqual(["label"]);
+		expect(getJumpLabelsUsed(["jump", "label", "always"], commands.jump[0])).toEqual(["label"]);
 	});
 	it("should return null if no jump label exists", () => {
-		expect(getJumpLabelsUsed("set label \"greaterThan\"")).toEqual([]);
+		expect(getJumpLabelsUsed(["set", "label",  "\"greaterThan\""], commands.set[0])).toEqual([]);
 	});
 });
 

@@ -1,6 +1,5 @@
 import deepmerge from "deepmerge";
 import { CompilerError, Statement } from "./classes.js";
-import { commands } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand } from "./funcs.js";
 import { Log } from "./Log.js";
@@ -146,7 +145,7 @@ export function typeCheckStatement(statement, typeCheckingData) {
     if (statement.modifiedSource.commandDefinitions.length == 0) {
         Log.printMessage("invalid uncompiled command definition", { statement });
     }
-    for (const jumpLabelUsed of getJumpLabelsUsed(statement.text)) {
+    for (const jumpLabelUsed of getJumpLabelsUsed(statement.args, statement.commandDefinitions[0])) {
         typeCheckingData.jumpLabelsUsed[jumpLabelUsed] ??= [];
         typeCheckingData.jumpLabelsUsed[jumpLabelUsed].push({
             line: statement.cleanedSourceLine()
@@ -331,7 +330,11 @@ export function addJumpLabels(code) {
             CompilerError.throw("genLabels contains label", { line });
     });
     for (const line of cleanedCode) {
-        for (const label of getJumpLabelsUsed(line)) {
+        const args = splitLineIntoArguments(line);
+        const commandDefinition = getCommandDefinition(line);
+        if (!commandDefinition)
+            continue;
+        for (const label of getJumpLabelsUsed(args, commandDefinition)) {
             if (label == "0") {
                 jumps[label] = "0";
             }
@@ -342,14 +345,18 @@ export function addJumpLabels(code) {
         }
     }
     for (const line of cleanedCode) {
+        const args = splitLineIntoArguments(line);
         const commandDefinition = getCommandDefinition(line);
-        if (commandDefinition == commands.jump[0] || commandDefinition == commands.jump[1]) {
-            const labels = getJumpLabelsUsed(line);
-            if (labels.length == 0)
-                CompilerError.throw("genLabels invalid jump statement", { line });
-            transformedCode.push(transformCommand(splitLineIntoArguments(line), commandDefinition, (arg) => jumps[arg] ?? (isNaN(parseInt(arg)) ? arg : impossible()), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
+        if (commandDefinition) {
+            const labels = getJumpLabelsUsed(args, commandDefinition);
+            if (labels.length > 0) {
+                transformedCode.push(transformCommand(args, commandDefinition, (arg) => jumps[arg] ?? (isNaN(parseInt(arg)) ? arg : impossible()), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
+            }
+            else {
+                transformedCode.push(line);
+            }
         }
-        else if (commandDefinition != undefined || (getJumpLabelsDefined(line).length > 0)) {
+        else if (getJumpLabelsDefined(line).length > 0) {
             transformedCode.push(line);
         }
         else {

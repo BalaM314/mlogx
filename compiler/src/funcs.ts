@@ -368,11 +368,13 @@ export function getVariablesUsed(args:string[], commandDefinition:CommandDefinit
 }
 
 /**Gets the jump label used in a statement. */
-export function getJumpLabelsUsed(line:string):string[] {
-	const args = splitLineIntoArguments(line);
-	if(args[0] == "jump") return [args[1]];
-	return [];
-	//TODO rewrite
+export function getJumpLabelsUsed(args:string[], commandDefinition:CommandDefinition):string[] {
+	return args
+		.slice(1)
+		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
+		.filter(([, commandArg]) =>
+			commandArg.type == "jumpAddress"
+		).map(([arg]) => arg);
 }
 
 /**Gets the jump label defined in a statement. */

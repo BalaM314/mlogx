@@ -192,7 +192,7 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 		Log.printMessage("invalid uncompiled command definition", {statement});
 	}
 
-	for(const jumpLabelUsed of getJumpLabelsUsed(statement.text)){
+	for(const jumpLabelUsed of getJumpLabelsUsed(statement.args, statement.commandDefinitions[0])){
 		typeCheckingData.jumpLabelsUsed[jumpLabelUsed] ??= [];
 		typeCheckingData.jumpLabelsUsed[jumpLabelUsed].push({
 			line: statement.cleanedSourceLine()
@@ -436,7 +436,10 @@ export function addJumpLabels(code:string[]):string[] {
 
 	//Identify all jump addresses
 	for(const line of cleanedCode){
-		for(const label of getJumpLabelsUsed(line)){
+		const args = splitLineIntoArguments(line);
+		const commandDefinition = getCommandDefinition(line);
+		if(!commandDefinition) continue;
+		for(const label of getJumpLabelsUsed(args, commandDefinition)){
 			if(label == "0"){
 				jumps[label] = "0";
 			} else if(!isNaN(parseInt(label)) && !jumps[label]){
@@ -448,23 +451,27 @@ export function addJumpLabels(code:string[]):string[] {
 
 	//Replace jump addresses with jump labels
 	for(const line of cleanedCode){
+		const args = splitLineIntoArguments(line);
 		const commandDefinition = getCommandDefinition(line);
-		if(commandDefinition == commands.jump[0] || commandDefinition == commands.jump[1]){
-			//TODO bodgy code found
-			const labels = getJumpLabelsUsed(line);
-			if(labels.length == 0) CompilerError.throw("genLabels invalid jump statement", {line});
-			transformedCode.push(
-				transformCommand(
-					splitLineIntoArguments(line),
-					commandDefinition,
-					//Replace arguments
-					(arg:string) => jumps[arg] ?? (isNaN(parseInt(arg)) ? arg : impossible()),
-					//But only if the argument is a jump address
-					(arg:string, carg:Arg) => carg.isGeneric && carg.type == "jumpAddress"
-				).join(" ")
-			);
-		} else if(commandDefinition != undefined || (getJumpLabelsDefined(line).length > 0)){
+		if(commandDefinition){
+			const labels = getJumpLabelsUsed(args, commandDefinition);
+			if(labels.length > 0){
+				transformedCode.push(
+					transformCommand(
+						args,
+						commandDefinition,
+						//Replace arguments
+						(arg:string) => jumps[arg] ?? (isNaN(parseInt(arg)) ? arg : impossible()),
+						//But only if the argument is a jump address
+						(arg:string, carg:Arg) => carg.isGeneric && carg.type == "jumpAddress"
+					).join(" ")
+				);
+			} else {
+				transformedCode.push(line);
+			}
+		} else if(getJumpLabelsDefined(line).length > 0){
 			transformedCode.push(line);
+			//TODO remove this check once jump labels are valid command definitions
 		} else {
 			Log.printMessage("line invalid", {line});
 		}

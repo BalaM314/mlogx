@@ -278,11 +278,11 @@ export function getVariablesUsed(args, commandDefinition) {
         .map((arg, index) => [arg, commandDefinition.args[index]])
         .filter(([arg, commandArg]) => isArgValidForType(arg, "variable") && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
 }
-export function getJumpLabelsUsed(line) {
-    const args = splitLineIntoArguments(line);
-    if (args[0] == "jump")
-        return [args[1]];
-    return [];
+export function getJumpLabelsUsed(args, commandDefinition) {
+    return args
+        .slice(1)
+        .map((arg, index) => [arg, commandDefinition.args[index]])
+        .filter(([, commandArg]) => commandArg.type == "jumpAddress").map(([arg]) => arg);
 }
 export function getJumpLabelsDefined(cleanedLine) {
     const matchData = cleanedLine.match(/^[^ ]+(?=:$)/);
