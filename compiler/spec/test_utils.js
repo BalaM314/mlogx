@@ -23,7 +23,8 @@ export function makeIfEl(enabled) {
 export function commandErrOfType(type) {
     return {
         type: CommandErrorType[type],
-        message: jasmine.any(String)
+        message: jasmine.any(String),
+        lowPriority: false
     };
 }
 export function makeStatement(text, source = text, cleanedSource = source, modifiedSource = cleanedSource, lineNumber = 1, sourceFilename = "[test]") {

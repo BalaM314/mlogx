@@ -277,8 +277,12 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
             }
             else {
                 const typeErrors = errors.filter(error => error.type == CommandErrorType.type);
-                if (typeErrors.length != 0) {
+                const highPriorityErrors = errors.filter(error => !error.lowPriority);
+                if (typeErrors.length == 1) {
                     throw new CompilerError(typeErrors[0].message + `\nErrors for other overloads not displayed.`);
+                }
+                else if (highPriorityErrors.length == 1) {
+                    throw new CompilerError(errors[0].message);
                 }
                 else {
                     CompilerError.throw("line matched no overloads", { commandName: args[0] });

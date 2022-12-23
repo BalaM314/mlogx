@@ -49,6 +49,7 @@ export enum CommandErrorType {
 export interface CommandError {
 	type: CommandErrorType;
 	message: string;
+	lowPriority: boolean;
 }
 
 export interface Line {

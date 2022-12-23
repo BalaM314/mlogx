@@ -343,7 +343,8 @@ export function isCommand(cleanedLine, command) {
     if (commandArguments.length > maxArgs || commandArguments.length < minArgs) {
         return [false, {
                 type: CommandErrorType.argumentCount,
-                message: `Incorrect number of arguments for command "${args[0]}", see \`mlogx info ${args[0]}\``
+                message: `Incorrect number of arguments for command "${command.name}", see \`mlogx info ${command.name}\``,
+                lowPriority: command.checkFirstTokenAsArg,
             }];
     }
     let numSpreadArgs = 0;
@@ -380,12 +381,14 @@ export function isCommand(cleanedLine, command) {
             if (commandArg.isGeneric)
                 return [false, {
                         type: CommandErrorType.type,
-                        message: `Type mismatch: value "${stringArg}" was expected to be of type "${commandArg.isVariable ? "variable" : commandArg.type}", but was of type "${typeofArg(stringArg)}"`
+                        message: `Type mismatch: value "${stringArg}" was expected to be of type "${commandArg.isVariable ? "variable" : commandArg.type}", but was of type "${typeofArg(stringArg)}"`,
+                        lowPriority: command.checkFirstTokenAsArg,
                     }];
             else
                 return [false, {
                         type: CommandErrorType.badStructure,
-                        message: `Incorrect argument: value "${stringArg}" was expected to be "${commandArg.type}", but was "${typeofArg(stringArg)}"`
+                        message: `Incorrect argument: value "${stringArg}" was expected to be "${commandArg.type}", but was "${typeofArg(stringArg)}"`,
+                        lowPriority: command.checkFirstTokenAsArg,
                     }];
         }
     }
@@ -395,14 +398,12 @@ export function getCommandDefinition(cleanedLine) {
     return getCommandDefinitions(cleanedLine)[0];
 }
 export function getCommandDefinitions(cleanedLine, returnErrors = false) {
+    if (cleanedLine == "not provided")
+        throw new Error(`invalid line`);
     const args = splitLineIntoArguments(cleanedLine);
-    if (!isKey(commands, args[0])) {
-        return returnErrors ? [[], [{
-                    type: CommandErrorType.noCommand,
-                    message: `Command "${args[0]}" does not exist.`
-                }]] : [];
-    }
-    const commandList = commands[args[0]].concat(Object.values(commands).flat().filter(def => def.checkFirstTokenAsArg));
+    const commandList = isKey(commands, args[0])
+        ? commands[args[0]]
+        : Object.values(commands).flat().filter(def => def.checkFirstTokenAsArg);
     const possibleCommands = [];
     const errors = [];
     for (const possibleCommand of commandList) {
@@ -414,6 +415,13 @@ export function getCommandDefinitions(cleanedLine, returnErrors = false) {
             errors.push(result[1]);
         }
     }
+    if (possibleCommands.every(command => command.checkFirstTokenAsArg) && possibleCommands.length == 0) {
+        return returnErrors ? [[], [{
+                    type: CommandErrorType.noCommand,
+                    message: `Command "${args[0]}" does not exist.`,
+                    lowPriority: false
+                }]] : [];
+    }
     if (returnErrors)
         return [possibleCommands, errors];
     else
@@ -424,7 +432,8 @@ export function getCompilerCommandDefinitions(cleanedLine) {
     if (!isKey(compilerCommands, args[0])) {
         return [[], [{
                     type: CommandErrorType.noCommand,
-                    message: `Compiler command "${args[0]}" does not exist.`
+                    message: `Compiler command "${args[0]}" does not exist.`,
+                    lowPriority: false
                 }]];
     }
     const commandGroup = compilerCommands[args[0]];

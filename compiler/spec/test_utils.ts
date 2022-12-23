@@ -37,7 +37,8 @@ export function makeIfEl(enabled:boolean):IfStackElement {
 export function commandErrOfType(type:keyof typeof CommandErrorType):jasmine.ExpectedRecursive<CommandError> {
 	return {
 		type: CommandErrorType[type],
-		message: jasmine.any(String)
+		message: jasmine.any(String),
+		lowPriority: false
 	};
 }
 
