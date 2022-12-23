@@ -36,6 +36,8 @@ export interface CommandDefinition {
 	isMlog: boolean;
 	/**Whether this command definition is for a world proc only command. */
 	isWorldProc: boolean;
+	/**Whether the first token should be checked for. Used for jump labels and "x ++" syntax. */
+	checkFirstTokenAsArg: boolean;
 	/**Gets all variables defined by a command. */
 	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][];
 	/**Gets all variables used by a command. */
@@ -84,6 +86,8 @@ export interface CompilerCommandDefinition<StackEl> {
 	args: Arg[];
 	name: string;
 	description: string;
+	/**Whether the first token should be checked for. Used for jump labels and "x ++" syntax. */
+	checkFirstTokenAsArg: boolean;
 	/**Called when a block begins. */
 	onbegin?: ({line, stack, state}:{line:Line, stack:StackElement[], state:State}) => {
 		compiledCode:Statement[];

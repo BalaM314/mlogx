@@ -731,6 +731,11 @@ describe("processCommands", () => {
                     description: "Does nothing."
                 }
             ],
+            "#imposter": [{
+                    args: "x:variable ++",
+                    description: "Sets the suslevel of the imposter.",
+                    isWorldProc: true
+                }],
         })).toEqual({
             "amogus": [{
                     type: "Command",
@@ -741,7 +746,8 @@ describe("processCommands", () => {
                     getVariablesUsed: undefined,
                     port: undefined,
                     isMlog: true,
-                    isWorldProc: true
+                    isWorldProc: true,
+                    checkFirstTokenAsArg: false,
                 }],
             "sus": [
                 {
@@ -762,7 +768,8 @@ describe("processCommands", () => {
                     replace: jasmine.any(Function),
                     port: jasmine.any(Function),
                     isMlog: false,
-                    isWorldProc: false
+                    isWorldProc: false,
+                    checkFirstTokenAsArg: false,
                 }, {
                     type: "Command",
                     args: [],
@@ -772,9 +779,22 @@ describe("processCommands", () => {
                     getVariablesUsed: undefined,
                     port: undefined,
                     isMlog: true,
-                    isWorldProc: false
+                    isWorldProc: false,
+                    checkFirstTokenAsArg: false,
                 }
-            ]
+            ],
+            "#imposter": [{
+                    type: "Command",
+                    args: [makeArg("variable", "x", false, true, false), makeArg("++", "++", false, false, false)],
+                    description: "Sets the suslevel of the imposter.",
+                    name: "#imposter",
+                    getVariablesDefined: undefined,
+                    getVariablesUsed: undefined,
+                    port: undefined,
+                    isMlog: true,
+                    isWorldProc: true,
+                    checkFirstTokenAsArg: true,
+                }]
         });
     });
 });

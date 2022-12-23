@@ -337,7 +337,7 @@ export function acceptsVariable(arg) {
 }
 export function isCommand(cleanedLine, command) {
     const args = splitLineIntoArguments(cleanedLine);
-    const commandArguments = args.slice(1);
+    const commandArguments = command.checkFirstTokenAsArg ? args : args.slice(1);
     const maxArgs = command.args.map(arg => arg.spread ? Infinity : 1).reduce((a, b) => a + b, 0);
     const minArgs = command.args.filter(arg => !arg.isOptional).length;
     if (commandArguments.length > maxArgs || commandArguments.length < minArgs) {
@@ -402,7 +402,7 @@ export function getCommandDefinitions(cleanedLine, returnErrors = false) {
                     message: `Command "${args[0]}" does not exist.`
                 }]] : [];
     }
-    const commandList = commands[args[0]];
+    const commandList = commands[args[0]].concat(Object.values(commands).flat().filter(def => def.checkFirstTokenAsArg));
     const possibleCommands = [];
     const errors = [];
     for (const possibleCommand of commandList) {

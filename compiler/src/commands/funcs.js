@@ -11,6 +11,7 @@ export function processCommands(preprocessedCommands) {
                 args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
                 isMlog: command.replace == undefined,
                 isWorldProc: command.isWorldProc ?? false,
+                checkFirstTokenAsArg: name.startsWith("#"),
                 getVariablesDefined: command.getVariablesDefined,
                 getVariablesUsed: command.getVariablesUsed,
                 port: command.port
@@ -46,6 +47,7 @@ export function processCompilerCommands(preprocessedCommands) {
                 description: command.description,
                 name: id,
                 args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg)) : [],
+                checkFirstTokenAsArg: id.startsWith("#"),
                 onbegin: command.onbegin,
                 onprecompile: command.onprecompile,
                 onpostcompile: command.onpostcompile,

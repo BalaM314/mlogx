@@ -36,6 +36,7 @@ export function processCommands<IDs extends string>(preprocessedCommands:Preproc
 				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as PreprocessedArg)) : [],
 				isMlog: command.replace == undefined,
 				isWorldProc: command.isWorldProc ?? false,
+				checkFirstTokenAsArg: name.startsWith("#"),
 				getVariablesDefined: command.getVariablesDefined,
 				getVariablesUsed: command.getVariablesUsed,
 				port: command.port
@@ -98,6 +99,7 @@ export function processCompilerCommands(preprocessedCommands:PreprocessedCompile
 				description: command.description,
 				name: id,
 				args: command.args ? command.args.split(" ").map(commandArg => arg(commandArg as PreprocessedArg)) : [],
+				checkFirstTokenAsArg: id.startsWith("#"),
 				onbegin: command.onbegin,
 				onprecompile: command.onprecompile,
 				onpostcompile: command.onpostcompile,
