@@ -415,7 +415,7 @@ export function getCommandDefinitions(cleanedLine, returnErrors = false) {
             errors.push(result[1]);
         }
     }
-    if (possibleCommands.every(command => command.checkFirstTokenAsArg) && possibleCommands.length == 0) {
+    if (commandList.every(command => command.checkFirstTokenAsArg) && possibleCommands.length == 0) {
         return returnErrors ? [[], [{
                     type: CommandErrorType.noCommand,
                     message: `Command "${args[0]}" does not exist.`,
