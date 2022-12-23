@@ -402,7 +402,7 @@ export function compileLine(
 		}
 	}
 	return {
-		compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), cleanedLine, sourceLine)
+		compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), cleanedLine, cleanedLine, sourceLine)
 	};
 
 }

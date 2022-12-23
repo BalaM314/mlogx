@@ -456,8 +456,8 @@ export function formatLine(line) {
 export function formatLineWithPrefix(line, prefix = "\t\tat ") {
     return chalk.gray(`${prefix}${line.sourceFilename}:${line.lineNumber}`) + chalk.white(` \`${line.text}\``);
 }
-export function addSourcesToCode(code, cleanedSourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }, sourceLine = { text: `not provided`, lineNumber: 0, sourceFilename: `unknown.mlogx` }) {
-    return code.map(compiledLine => Statement.fromLines(compiledLine, sourceLine, cleanedSourceLine));
+export function addSourcesToCode(code, modifiedSourceLine, cleanedSourceLine = modifiedSourceLine, sourceLine = cleanedSourceLine) {
+    return code.map(compiledLine => new Statement(compiledLine, sourceLine.text, cleanedSourceLine.text, modifiedSourceLine.text, sourceLine.sourceFilename, sourceLine.lineNumber));
 }
 export function exit(message) {
     Log.fatal(message);

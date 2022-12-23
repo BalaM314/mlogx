@@ -587,10 +587,11 @@ export function formatLineWithPrefix(line:Line, prefix:string = "\t\tat "):strin
 /**Adds a source line to a multiple lines of code. */
 export function addSourcesToCode(
 	code:string[],
-	cleanedSourceLine:Line = {text: `not provided`, lineNumber:0, sourceFilename: `unknown.mlogx`},
-	sourceLine:Line = {text: `not provided`, lineNumber:0, sourceFilename: `unknown.mlogx`}
+	modifiedSourceLine:Line,
+	cleanedSourceLine:Line = modifiedSourceLine,
+	sourceLine:Line = cleanedSourceLine
 ):Statement[]{
-	return code.map(compiledLine => Statement.fromLines(compiledLine, sourceLine, cleanedSourceLine));
+	return code.map(compiledLine => new Statement(compiledLine, sourceLine.text, cleanedSourceLine.text, modifiedSourceLine.text, sourceLine.sourceFilename, sourceLine.lineNumber));
 }
 
 /**oh no */

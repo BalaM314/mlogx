@@ -306,7 +306,7 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
         }
     }
     return {
-        compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), cleanedLine, sourceLine)
+        compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), cleanedLine, cleanedLine, sourceLine)
     };
 }
 export function getOutputForCommand(args, command, stack) {

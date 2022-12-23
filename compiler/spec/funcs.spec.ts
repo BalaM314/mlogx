@@ -28,7 +28,7 @@ import {
 } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
 import { CompilerConst } from "../src/types.js";
-import { commandErrOfType, makeForEl, makeIfEl, makeLine, makeNamespaceEl, makeStatement } from "./test_utils.js";
+import { commandErrOfType, makeForEl, makeIfEl, makeLine, makeNamespaceEl, makeStatement, makeStatements } from "./test_utils.js";
 
 
 describe("templateFunction", () => {
@@ -348,20 +348,20 @@ describe("prependFilenameToArg", () => {
 
 describe("removeUnusedJumps", () => {
 	it("should not remove used jumps", () => {
-		expect(removeUnusedJumps(addSourcesToCode([
+		expect(removeUnusedJumps(makeStatements([
 			"label5:",
 			"jump label5 always"
 		]), {
 			label5: [{
 				line: makeLine("jump label5 always")
 			}]
-		})).toEqual(addSourcesToCode([
+		})).toEqual(makeStatements([
 			"label5:",
 			"jump label5 always"
 		]));
 	});
 	it("should remove unused jumps", () => {
-		expect(removeUnusedJumps(addSourcesToCode([
+		expect(removeUnusedJumps(makeStatements([
 			"label5:",
 			"jump label5 always",
 			"label6:"
@@ -369,7 +369,7 @@ describe("removeUnusedJumps", () => {
 			label5: [{
 				line: makeLine("jump label5 always")
 			}]
-		})).toEqual(addSourcesToCode([
+		})).toEqual(makeStatements([
 			"label5:",
 			"jump label5 always"
 		]));

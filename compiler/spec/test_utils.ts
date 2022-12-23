@@ -20,14 +20,14 @@ import { CommandError, CommandErrorType, Line } from "../src/types.js";
 export function makeNamespaceEl(name:string):NamespaceStackElement {
 	return {type: "namespace", commandDefinition: compilerCommands["namespace"].overloads[0], name, line: {lineNumber:1, text: `namespace ${name} {`, sourceFilename: "[test]"}};
 }
-export function makeForEl(varname:string, elements:string[], loopBuffer:string[] = [], sourceLine?:Line):ForStackElement {
+export function makeForEl(varname:string, elements:string[], loopBuffer:string[] = [], sourceLine:Line = {lineNumber:420, text: "[test]", sourceFilename: "[test]"}):ForStackElement {
 	const isNumbers = elements.filter(el => isNaN(parseInt(el))).length == 0;
 	return {
 		type: "&for",
 		commandDefinition: compilerCommands["&for"].overloads[isNumbers ? 0 : 1],
 		variableName: varname,
 		elements,
-		loopBuffer: addSourcesToCode(loopBuffer, sourceLine),
+		loopBuffer: makeStatements(loopBuffer),
 		line: sourceLine ?? {lineNumber:1, text: isNumbers ? `&for ${varname} in ${elements.map(el => parseInt(el)).sort((a, b) => a - b)[0]} ${elements.map(el => parseInt(el)).sort((a, b) => a - b).at(-1)} {` : `&for ${varname} of ${elements.join(" ")} {`, sourceFilename: "[test]"}
 	};
 }
@@ -44,6 +44,10 @@ export function commandErrOfType(type:keyof typeof CommandErrorType):jasmine.Exp
 
 export function makeStatement(text:string, source:string = text, cleanedSource:string = source, modifiedSource:string = cleanedSource, lineNumber:number = 1, sourceFilename:string = "[test]"):Statement {
 	return new Statement(text, source, cleanedSource, modifiedSource, sourceFilename, lineNumber);
+}
+
+export function makeStatements(lines:string[]){
+	return lines.map(line => makeStatement(line));
 }
 
 export function makeLine(text:string, lineNumber:number = 1, sourceFilename:string = "[test]"):Line {

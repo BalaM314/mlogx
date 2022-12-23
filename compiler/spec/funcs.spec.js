@@ -3,7 +3,7 @@ import { Statement } from "../src/classes.js";
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
 import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, getParameters, getVariablesDefined, getVariablesUsed, interpolateString, isCommand, isInputAcceptedByAnyType, parseIcons, parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, splitLineOnSemicolons, transformCommand, transformVariables, typeIsAccepted } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
-import { commandErrOfType, makeForEl, makeIfEl, makeLine, makeNamespaceEl, makeStatement } from "./test_utils.js";
+import { commandErrOfType, makeForEl, makeIfEl, makeLine, makeNamespaceEl, makeStatement, makeStatements } from "./test_utils.js";
 describe("templateFunction", () => {
     it("should ", () => {
         expect("functionThing").toEqual("functionThing");
@@ -257,20 +257,20 @@ describe("prependFilenameToArg", () => {
 });
 describe("removeUnusedJumps", () => {
     it("should not remove used jumps", () => {
-        expect(removeUnusedJumps(addSourcesToCode([
+        expect(removeUnusedJumps(makeStatements([
             "label5:",
             "jump label5 always"
         ]), {
             label5: [{
                     line: makeLine("jump label5 always")
                 }]
-        })).toEqual(addSourcesToCode([
+        })).toEqual(makeStatements([
             "label5:",
             "jump label5 always"
         ]));
     });
     it("should remove unused jumps", () => {
-        expect(removeUnusedJumps(addSourcesToCode([
+        expect(removeUnusedJumps(makeStatements([
             "label5:",
             "jump label5 always",
             "label6:"
@@ -278,7 +278,7 @@ describe("removeUnusedJumps", () => {
             label5: [{
                     line: makeLine("jump label5 always")
                 }]
-        })).toEqual(addSourcesToCode([
+        })).toEqual(makeStatements([
             "label5:",
             "jump label5 always"
         ]));
