@@ -170,7 +170,10 @@ export function splitLineOnSemicolons(cleanedLine:string):string[] {
 //#region argBasedLineManipulation
 
 /**Uses a function to transform variables in a command. */
-export function transformVariables(tokens:string[], commandDefinition:CommandDefinition, transformFunction: (token:string) => string){
+export function transformVariables(
+	tokens:string[], commandDefinition:CommandDefinition,
+	transformFunction: (token:string, arg:Arg) => string
+){
 	return transformCommand(tokens, commandDefinition, transformFunction,
 		(token:string, arg:Arg | undefined) => (
 			arg?.isVariable || (acceptsVariable(arg)

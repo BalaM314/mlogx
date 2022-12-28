@@ -253,7 +253,7 @@ export function getVariablesDefined(statement, compiledCommandDefinition) {
     return statement.tokens
         .slice(1)
         .map((token, index) => [token, compiledCommandDefinition.args[index]])
-        .filter(([token, arg]) => arg && arg.isVariable && token !== "_")
+        .filter((([token, arg]) => arg && arg.isVariable && token !== "_"))
         .map(([token, arg]) => [token, arg.type]);
 }
 export function getAllPossibleVariablesUsed(statement) {
