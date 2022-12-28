@@ -63,7 +63,6 @@ async function copyFiles(version?:string){
 		["License", "build/License"],
 		["gpl.txt", "build/gpl.txt"],
 		["lgpl.txt", "build/lgpl.txt"],
-		["lgpl.txt", "build/lgpl.txt"],
 		["README.md", "build/README.md"],
 		["compiler/cache", "build/cache"],
 		["stdlib", "build/stdlib"],
