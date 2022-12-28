@@ -1,7 +1,7 @@
 import deepmerge from "deepmerge";
 import { CompilerError, Statement } from "./classes.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
-import { addNamespacesToLine, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToToken, removeUnusedJumps, replaceCompilerConstants, splitLineIntoTokens, transformCommand } from "./funcs.js";
+import { addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToToken, removeUnusedJumps, replaceCompilerConstants, splitLineIntoTokens, transformCommand } from "./funcs.js";
 import { Log } from "./Log.js";
 import { hasElement } from "./stack_elements.js";
 import { CommandErrorType } from "./types.js";
@@ -290,22 +290,22 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
         }
     }
     return {
-        compiledCode: addSourcesToCode(getOutputForCommand(tokens, commandList[0], stack), cleanedLine, cleanedLine, sourceLine)
+        compiledCode: addSourcesToCode(getOutputForCommand(tokens, commandList[0]), cleanedLine, cleanedLine, sourceLine)
     };
 }
-export function getOutputForCommand(tokens, command, stack) {
+export function getOutputForCommand(tokens, command) {
     if (command.replace) {
         const compiledCommand = command.replace(tokens);
-        return compiledCommand.map(line => {
+        compiledCommand.forEach(line => {
             const compiledCommandDefinition = getCommandDefinition(line);
             if (!compiledCommandDefinition) {
                 Log.dump({ tokens, command, compiledCommand, line, compiledCommandDefinition });
                 throw new Error("Line compiled to invalid statement. This is an error with MLOGX.");
             }
-            return addNamespacesToLine(splitLineIntoTokens(line), compiledCommandDefinition, stack);
         });
+        return compiledCommand;
     }
-    return [addNamespacesToLine(tokens, command, stack)];
+    return [tokens.join(" ")];
 }
 export function addJumpLabels(code) {
     let lastJumpNameIndex = 0;

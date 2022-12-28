@@ -14,7 +14,7 @@ import { CompilerError, Statement } from "./classes.js";
 import { CommandDefinition, CompilerCommandDefinition } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import {
-	addNamespacesToLine, addSourcesToCode, cleanLine, formatLineWithPrefix,
+	addSourcesToCode, cleanLine, formatLineWithPrefix,
 	getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions,
 	getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons,
 	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType,
@@ -382,25 +382,25 @@ export function compileLine(
 		}
 	}
 	return {
-		compiledCode: addSourcesToCode(getOutputForCommand(tokens, commandList[0], stack), cleanedLine, cleanedLine, sourceLine)
+		compiledCode: addSourcesToCode(getOutputForCommand(tokens, commandList[0]), cleanedLine, cleanedLine, sourceLine)
 	};
 
 }
 
-/**Gets the compiled output for a command given a command definition and the stack. */
-export function getOutputForCommand(tokens:string[], command:CommandDefinition, stack:StackElement[]):string[] {
+/**Gets the compiled output for a command given a command definition. */
+export function getOutputForCommand(tokens:string[], command:CommandDefinition):string[] {
 	if(command.replace){
 		const compiledCommand = command.replace(tokens);
-		return compiledCommand.map(line => {
+		compiledCommand.forEach(line => {
 			const compiledCommandDefinition = getCommandDefinition(line);
 			if(!compiledCommandDefinition){
 				Log.dump({tokens, command, compiledCommand, line, compiledCommandDefinition});
 				throw new Error("Line compiled to invalid statement. This is an error with MLOGX.");
 			}
-			return addNamespacesToLine(splitLineIntoTokens(line), compiledCommandDefinition, stack);
 		});
+		return compiledCommand;
 	}
-	return [ addNamespacesToLine(tokens, command, stack) ];
+	return [ tokens.join(" ") ];
 }
 
 /**Adds jump labels to vanilla MLOG code that uses hardcoded jump indexes. */
