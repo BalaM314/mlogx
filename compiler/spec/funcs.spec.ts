@@ -12,8 +12,8 @@ Contains tests of all functions.
 
 import {
 	Arg,
-	arg, argToString, GAT, GenericArgs, isArgValidFor, isArgValidForType, isArgValidForValidator,
-	isGenericArg, makeArg, typeofArg
+	arg, argToString, GAT, GenericArgs, isTokenValidForType, isTokenValidForGAT, isTokenValidForValidator,
+	isGenericArg, makeArg, guessTokenType
 } from "../src/args.js";
 import { Statement } from "../src/classes.js";
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
@@ -22,8 +22,8 @@ import {
 	areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition,
 	getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed,
 	getParameters, getVariablesDefined, getVariablesUsed, interpolateString, isCommand, isInputAcceptedByAnyType, parseIcons,
-	parsePreprocessorDirectives, prependFilenameToArg, range, removeComments, removeTrailingSpaces,
-	removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, splitLineOnSemicolons, transformCommand,
+	parsePreprocessorDirectives, prependFilenameToToken, range, removeComments, removeTrailingSpaces,
+	removeUnusedJumps, replaceCompilerConstants, splitLineIntoTokens, splitLineOnSemicolons, transformCommand,
 	transformVariables, typeIsAccepted
 } from "../src/funcs.js";
 import { hasElement, topForLoop } from "../src/stack_elements.js";
@@ -86,7 +86,7 @@ describe("isGenericArg", () => {
 	});
 });
 
-describe("typeofArg", () => {
+describe("guessTokenType", () => {
 	it("should determine the type of an arg", () => {
 		const args: [arg:string, expectedType:string][] = [
 			["@unit", "unit"],
@@ -99,56 +99,56 @@ describe("typeofArg", () => {
 			["@malis", "team"]
 		];
 		for(const [arg, expectedOutput] of args){
-			expect(typeofArg(arg)).withContext(`${arg} should be of type ${expectedOutput}`).toBe(expectedOutput);
+			expect(guessTokenType(arg)).withContext(`${arg} should be of type ${expectedOutput}`).toBe(expectedOutput);
 		}
 	});
 });
 
-describe("isArgValidForType", () => {
+describe("isTokenValidForGAT", () => {
 	it("should determine if an arg is of specified type", () => {
 		for(const [arg, expectedType] of argTypeData.correctTypes){
-			expect(isArgValidForType(arg, expectedType)).withContext(`${arg} should be of type ${expectedType}`).toBe(true);
+			expect(isTokenValidForGAT(arg, expectedType)).withContext(`${arg} should be of type ${expectedType}`).toBe(true);
 		}
 	});
 	it("should determine if an arg is not of specified type", () => {
 		for(const [arg, unexpectedType] of argTypeData.wrongTypes){
-			expect(isArgValidForType(arg, unexpectedType)).withContext(`${arg} should not be of type ${unexpectedType}`).toBe(false);
+			expect(isTokenValidForGAT(arg, unexpectedType)).withContext(`${arg} should not be of type ${unexpectedType}`).toBe(false);
 		}
 	});
 });
 
-describe("isArgValidFor", () => {
-	it("should determine if an arg is valid for an arg type", () => {
+describe("isTokenValidForType", () => {
+	it("should determine if a token is valid for an arg type", () => {
 		for(const [arg, expectedType] of argTypeData.correctTypes){
-			expect(isArgValidFor(arg, makeArg(expectedType))).withContext(`${arg} should be of type ${expectedType}`).toBe(true);
+			expect(isTokenValidForType(arg, makeArg(expectedType))).withContext(`${arg} should be of type ${expectedType}`).toBe(true);
 		}
 	});
-	it("should determine if an arg is not of specified type", () => {
+	it("should determine if a token is not valid for an arg type", () => {
 		for(const [arg, unexpectedType] of argTypeData.wrongTypes){
-			expect(isArgValidFor(arg, makeArg(unexpectedType))).withContext(`${arg} should not be of type ${unexpectedType}`).toBe(false);
+			expect(isTokenValidForType(arg, makeArg(unexpectedType))).withContext(`${arg} should not be of type ${unexpectedType}`).toBe(false);
 		}
 	});
-	it("should determine if an arg is valid for an Arg", () => {
+	it("should determine if a token is valid for an Arg", () => {
 		for(const [str, correctArg] of argTypeData.correctArgs){
-			expect(isArgValidFor(str, correctArg)).withContext(`${str} should be of type ${argToString(correctArg)}`).toBe(true);
+			expect(isTokenValidForType(str, correctArg)).withContext(`${str} should be of type ${argToString(correctArg)}`).toBe(true);
 		}
 	});
-	it("should determine if an arg is invalid for an Arg", () => {
+	it("should determine if a token is invalid for an Arg", () => {
 		for(const [str, wrongArg] of argTypeData.wrongArgs){
-			expect(isArgValidFor(str, wrongArg)).withContext(`${str} should not be of type ${argToString(wrongArg)}`).toBe(false);
+			expect(isTokenValidForType(str, wrongArg)).withContext(`${str} should not be of type ${argToString(wrongArg)}`).toBe(false);
 		}
 	});
 });
 
-describe("isArgValidForValidator", () => {
-	it("should determine if an arg is valid for string array validators", () => {
-		expect(isArgValidForValidator("amogus", ["amogus"])).toBe(true);
-		expect(isArgValidForValidator("sus", ["su", "amog", "imposter"])).toBe(false);
-		expect(isArgValidForValidator("su", ["su", "amog", "imposter"])).toBe(true);
+describe("isTokenValidForValidator", () => {
+	it("should determine if a token is valid for string array validators", () => {
+		expect(isTokenValidForValidator("amogus", ["amogus"])).toBe(true);
+		expect(isTokenValidForValidator("sus", ["su", "amog", "imposter"])).toBe(false);
+		expect(isTokenValidForValidator("su", ["su", "amog", "imposter"])).toBe(true);
 	});
-	it("should determine if an arg is valid for regexp array validators", () => {
-		expect(isArgValidForValidator("amog5us", [/amog\dus/])).toBe(true);
-		expect(isArgValidForValidator("amogeus", [/amog us/, /amog\dus/])).toBe(false);
+	it("should determine if a token is valid for regexp array validators", () => {
+		expect(isTokenValidForValidator("amog5us", [/amog\dus/])).toBe(true);
+		expect(isTokenValidForValidator("amogeus", [/amog us/, /amog\dus/])).toBe(false);
 	});
 });
 
@@ -245,16 +245,16 @@ describe("replaceCompilerConstants", () => {
 	});
 });
 
-describe("splitLineIntoArguments", () => {
+describe("splitLineIntoTokens", () => {
 	it("should split a line on space", () => {
-		expect(splitLineIntoArguments("a b cd e")).toEqual(["a", "b", "cd", "e"]);
-		expect(splitLineIntoArguments("ulocate building core true outX outY found building")).toEqual(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"]);
+		expect(splitLineIntoTokens("a b cd e")).toEqual(["a", "b", "cd", "e"]);
+		expect(splitLineIntoTokens("ulocate building core true outX outY found building")).toEqual(["ulocate", "building", "core", "true", "outX", "outY", "found", "building"]);
 	});
 	it("should not split strings", () => {
-		expect(splitLineIntoArguments(`print "amogus sussy" and "a eea "`)).toEqual(["print", `"amogus sussy"`, "and", `"a eea "`]);
+		expect(splitLineIntoTokens(`print "amogus sussy" and "a eea "`)).toEqual(["print", `"amogus sussy"`, "and", `"a eea "`]);
 	});
 	it("should throw an error on unterminated string literals", () => {
-		expect(() => splitLineIntoArguments(`print "amogus sussy" and "a eea '`)).toThrow();
+		expect(() => splitLineIntoTokens(`print "amogus sussy" and "a eea '`)).toThrow();
 	});
 });
 
@@ -263,10 +263,10 @@ describe("splitLineOnSemicolons", () => {
 		expect(splitLineOnSemicolons("set z 98")).toEqual(["set z 98"]);
 	});
 	it("should split lines on a semicolon", () => {
-		expect(splitLineIntoArguments(`print "amogus sussy" and "a eea "`)).toEqual(["print", `"amogus sussy"`, "and", `"a eea "`]);
+		expect(splitLineIntoTokens(`print "amogus sussy" and "a eea "`)).toEqual(["print", `"amogus sussy"`, "and", `"a eea "`]);
 	});
 	it("should not split lines on semicolons within strings", () => {
-		expect(() => splitLineIntoArguments(`print "amogus sussy" and "a eea '`)).toThrow();
+		expect(() => splitLineIntoTokens(`print "amogus sussy" and "a eea '`)).toThrow();
 	});
 });
 
@@ -337,12 +337,12 @@ describe("addNamespacesToLine", () => {
 	});
 });
 
-describe("prependFilenameToArg", () => {
-	it("should prepend filename for an arg with two underscores before it", () => {
-		expect(prependFilenameToArg("__thing", false, "test.mlogx")).toEqual("__test__thing");
+describe("prependFilenameToToken", () => {
+	it("should prepend filename for a token with two underscores before it", () => {
+		expect(prependFilenameToToken("__thing", false, "test.mlogx")).toEqual("__test__thing");
 	});
-	it("should not prepend filename for an arg without two underscores before it", () => {
-		expect(prependFilenameToArg("_thing", false, "test.mlogx")).toEqual("_thing");
+	it("should not prepend filename for a token without two underscores before it", () => {
+		expect(prependFilenameToToken("_thing", false, "test.mlogx")).toEqual("_thing");
 	});
 });
 
@@ -539,7 +539,7 @@ describe("getAllPossibleVariablesUsed", () => {
 	});
 });
 
-describe("getJumpLabelUsed", () => {
+describe("getJumpLabelsUsed", () => {
 	it("should get the jump label used", () => {
 		expect(getJumpLabelsUsed(["jump", "label", "always"], commands.jump[0])).toEqual(["label"]);
 	});

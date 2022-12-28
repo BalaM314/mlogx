@@ -1,7 +1,7 @@
 import deepmerge from "deepmerge";
 import { CompilerError, Statement } from "./classes.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
-import { addNamespacesToLine, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants, splitLineIntoArguments, transformCommand } from "./funcs.js";
+import { addNamespacesToLine, addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToToken, removeUnusedJumps, replaceCompilerConstants, splitLineIntoTokens, transformCommand } from "./funcs.js";
 import { Log } from "./Log.js";
 import { hasElement } from "./stack_elements.js";
 import { CommandErrorType } from "./types.js";
@@ -132,7 +132,7 @@ ${formatLineWithPrefix(element.line)}`);
 export function typeCheckStatement(statement, typeCheckingData) {
     if (cleanLine(statement.text) == "")
         Log.warn("mlogx generated a blank line. This should not happen.");
-    for (const labelName of getJumpLabelsDefined(statement.args, statement.commandDefinitions[0])) {
+    for (const labelName of getJumpLabelsDefined(statement.tokens, statement.commandDefinitions[0])) {
         typeCheckingData.jumpLabelsDefined[labelName] ??= [];
         typeCheckingData.jumpLabelsDefined[labelName].push({
             line: statement.sourceLine()
@@ -145,7 +145,7 @@ export function typeCheckStatement(statement, typeCheckingData) {
     if (statement.modifiedSource.commandDefinitions.length == 0) {
         Log.printMessage("invalid uncompiled command definition", { statement });
     }
-    for (const jumpLabelUsed of getJumpLabelsUsed(statement.args, statement.commandDefinitions[0])) {
+    for (const jumpLabelUsed of getJumpLabelsUsed(statement.tokens, statement.commandDefinitions[0])) {
         typeCheckingData.jumpLabelsUsed[jumpLabelUsed] ??= [];
         typeCheckingData.jumpLabelsUsed[jumpLabelUsed].push({
             line: statement.cleanedSourceLine()
@@ -215,10 +215,10 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, "\t\t")}`);
 }
 export function cleanProgram(program, state) {
     const outputProgram = [];
-    for (const line in program) {
+    for (const index in program) {
         const sourceLine = {
-            lineNumber: +line + 1,
-            text: program[line],
+            lineNumber: +index + 1,
+            text: program[index],
             sourceFilename: state.project.filename
         };
         const cleanedText = cleanLine(sourceLine.text);
@@ -234,9 +234,9 @@ export function cleanProgram(program, state) {
 export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
     cleanedLine.text = replaceCompilerConstants(cleanedLine.text, state.compilerConstants, hasElement(stack, '&for'));
     const cleanedText = cleanedLine.text;
-    const args = splitLineIntoArguments(cleanedText)
-        .map(arg => prependFilenameToArg(arg, isMain, state.project.filename));
-    if (args[0] == "}") {
+    const tokens = splitLineIntoTokens(cleanedText)
+        .map(token => prependFilenameToToken(token, isMain, state.project.filename));
+    if (tokens[0] == "}") {
         const modifiedStack = stack.slice();
         const removedElement = modifiedStack.pop();
         if (!removedElement) {
@@ -255,7 +255,7 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
             };
         }
     }
-    const [commandList, errors] = (args[0].startsWith("&") || args[0] == "namespace" ? getCompilerCommandDefinitions : getCommandDefinitions)(cleanedText, true);
+    const [commandList, errors] = (tokens[0].startsWith("&") || tokens[0] == "namespace" ? getCompilerCommandDefinitions : getCommandDefinitions)(cleanedText, true);
     if (commandList.length == 0) {
         if (errors.length == 0) {
             throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${sourceLine.text}"\nPlease copy this and file an issue on Github.`);
@@ -265,7 +265,7 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
         }
         else {
             if (state.verbose) {
-                CompilerError.throw("line matched no overloads", { commandName: args[0], errors });
+                CompilerError.throw("line matched no overloads", { commandName: tokens[0], errors });
             }
             else {
                 const typeErrors = errors.filter(error => error.type == CommandErrorType.type);
@@ -277,7 +277,7 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
                     throw new CompilerError(errors[0].message);
                 }
                 else {
-                    CompilerError.throw("line matched no overloads", { commandName: args[0] });
+                    CompilerError.throw("line matched no overloads", { commandName: tokens[0] });
                 }
             }
         }
@@ -298,22 +298,22 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
         }
     }
     return {
-        compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), cleanedLine, cleanedLine, sourceLine)
+        compiledCode: addSourcesToCode(getOutputForCommand(tokens, commandList[0], stack), cleanedLine, cleanedLine, sourceLine)
     };
 }
-export function getOutputForCommand(args, command, stack) {
+export function getOutputForCommand(tokens, command, stack) {
     if (command.replace) {
-        const compiledCommand = command.replace(args);
+        const compiledCommand = command.replace(tokens);
         return compiledCommand.map(line => {
             const compiledCommandDefinition = getCommandDefinition(line);
             if (!compiledCommandDefinition) {
-                Log.dump({ args, command, compiledCommand, line, compiledCommandDefinition });
+                Log.dump({ tokens, command, compiledCommand, line, compiledCommandDefinition });
                 throw new Error("Line compiled to invalid statement. This is an error with MLOGX.");
             }
-            return addNamespacesToLine(splitLineIntoArguments(line), compiledCommandDefinition, stack);
+            return addNamespacesToLine(splitLineIntoTokens(line), compiledCommandDefinition, stack);
         });
     }
-    return [addNamespacesToLine(args, command, stack)];
+    return [addNamespacesToLine(tokens, command, stack)];
 }
 export function addJumpLabels(code) {
     let lastJumpNameIndex = 0;
@@ -325,15 +325,15 @@ export function addJumpLabels(code) {
         const commandDefinition = getCommandDefinition(line);
         if (!commandDefinition)
             Log.printMessage("line invalid", { line });
-        else if (getJumpLabelsDefined(splitLineIntoArguments(line), commandDefinition).length > 0)
+        else if (getJumpLabelsDefined(splitLineIntoTokens(line), commandDefinition).length > 0)
             CompilerError.throw("genLabels contains label", { line });
     });
     for (const line of cleanedCode) {
-        const args = splitLineIntoArguments(line);
+        const tokens = splitLineIntoTokens(line);
         const commandDefinition = getCommandDefinition(line);
         if (!commandDefinition)
             continue;
-        for (const label of getJumpLabelsUsed(args, commandDefinition)) {
+        for (const label of getJumpLabelsUsed(tokens, commandDefinition)) {
             if (label == "0") {
                 jumps[label] = "0";
             }
@@ -344,12 +344,12 @@ export function addJumpLabels(code) {
         }
     }
     for (const line of cleanedCode) {
-        const args = splitLineIntoArguments(line);
+        const tokens = splitLineIntoTokens(line);
         const commandDefinition = getCommandDefinition(line);
         if (commandDefinition) {
-            const labels = getJumpLabelsUsed(args, commandDefinition);
+            const labels = getJumpLabelsUsed(tokens, commandDefinition);
             if (labels.length > 0) {
-                transformedCode.push(transformCommand(args, commandDefinition, (arg) => jumps[arg] ?? (isNaN(parseInt(arg)) ? arg : impossible()), (arg, carg) => carg.isGeneric && carg.type == "jumpAddress").join(" "));
+                transformedCode.push(transformCommand(tokens, commandDefinition, (token) => jumps[token] ?? (isNaN(parseInt(token)) ? token : impossible()), (token, arg) => arg.isGeneric && arg.type == "jumpAddress").join(" "));
             }
             else {
                 transformedCode.push(line);
@@ -375,18 +375,18 @@ export function portCode(program, mode) {
         const leadingTabsOrSpaces = line.match(/^[ \t]*/) ?? "";
         const comment = line.match(/#.*$/) ?? "";
         let commandDefinition = getCommandDefinition(cleanedLine.text);
-        const args = splitLineIntoArguments(cleanedLine.text);
-        while (commandDefinition == null && args.at(-1) == "0") {
-            args.splice(-1, 1);
-            cleanedLine.text = args.join(" ");
+        const tokens = splitLineIntoTokens(cleanedLine.text);
+        while (commandDefinition == null && tokens.at(-1) == "0") {
+            tokens.splice(-1, 1);
+            cleanedLine.text = tokens.join(" ");
             commandDefinition = getCommandDefinition(cleanedLine.text);
         }
         if (commandDefinition == null) {
             Log.printMessage("cannot port invalid line", { line: cleanedLine });
         }
         else if (commandDefinition.port) {
-            return leadingTabsOrSpaces + commandDefinition.port(args, mode) + comment;
+            return leadingTabsOrSpaces + commandDefinition.port(tokens, mode) + comment;
         }
-        return leadingTabsOrSpaces + args.join(" ") + comment;
+        return leadingTabsOrSpaces + tokens.join(" ") + comment;
     });
 }

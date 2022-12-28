@@ -1,4 +1,4 @@
-import { getCommandDefinitions, splitLineIntoArguments } from "./funcs.js";
+import { getCommandDefinitions, splitLineIntoTokens } from "./funcs.js";
 import { messages } from "./Log.js";
 export class CompilerError extends Error {
     constructor(message) {
@@ -18,20 +18,20 @@ export class Statement {
         this.sourceLineNumber = sourceLineNumber;
         this.cleanedSource = {
             text: cleanedSourceText,
-            args: splitLineIntoArguments(cleanedSourceText),
+            tokens: splitLineIntoTokens(cleanedSourceText),
             commandDefinitions: getCommandDefinitions(cleanedSourceText)
         };
         this.modifiedSource = {
             text: modifiedSourceText,
-            args: splitLineIntoArguments(modifiedSourceText),
+            tokens: splitLineIntoTokens(modifiedSourceText),
             commandDefinitions: getCommandDefinitions(modifiedSourceText)
         };
         this.compiled = {
             text,
-            args: splitLineIntoArguments(text),
+            tokens: splitLineIntoTokens(text),
             commandDefinitions: getCommandDefinitions(text)
         };
-        this.args = this.compiled.args;
+        this.tokens = this.compiled.tokens;
         this.commandDefinitions = this.compiled.commandDefinitions;
     }
     static fromLines(text, source, cleanedSource) {

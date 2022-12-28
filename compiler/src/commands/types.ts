@@ -29,7 +29,7 @@ export interface CommandDefinition {
 	 * A function that is called to port an instruction from MLOG to MLOGX.
 	 * Example: calling this on the command definition of `jump x always 0 0` will return `jump x` or `jump x always` depending on the mode.
 	 */
-	port?: (args:string[], mode:PortingMode) => string;
+	port?: (tokens:string[], mode:PortingMode) => string;
 	description: string;
 	name: string;
 	/**Whether this command definition is valid MLOG. */
@@ -38,14 +38,14 @@ export interface CommandDefinition {
 	isWorldProc: boolean;
 	/**Whether the first token should be checked for. Used for jump labels and "x ++" syntax. */
 	checkFirstTokenAsArg: boolean;
-	/**Gets all variables defined by a command. */
-	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][];
-	/**Gets all variables used by a command. */
-	getVariablesUsed?: (args:string[]) => [name:string, types:ArgType[]][];
-	/**Gets all variables defined by a command. */
-	getJumpLabelsDefined?: (args:string[]) => string[];
-	/**Gets all variables used by a command. */
-	getJumpLabelsUsed?: (args:string[]) => string[];
+	/**Returns all variables defined by a command. */
+	getVariablesDefined?: (tokens:string[]) => [name:string, type:ArgType][];
+	/**Returns all variables used by a command. */
+	getVariablesUsed?: (tokens:string[]) => [name:string, types:ArgType[]][];
+	/**Returns all variables defined by a command. */
+	getJumpLabelsDefined?: (tokens:string[]) => string[];
+	/**Returns all variables used by a command. */
+	getJumpLabelsUsed?: (tokens:string[]) => string[];
 }
 
 /**Contains all the information for a command definition but without the boilerplate. Processed into a CommandDefinition. */
@@ -56,19 +56,19 @@ export interface PreprocessedCommand {
 	 */
 	args: string;
 	/**Specifies the compiled output for a command. Can be a function or an array of strings, where %1 gets replaced with the first arg, and so on.*/
-	replace?: string[] | ((args:string[]) => string[]);
+	replace?: string[] | ((tokens:string[]) => string[]);
 	/**
 	 * A function that is called to port an instruction from MLOG to MLOGX.
 	 * Example: calling this on the command definition of `jump x always 0 0` will return `jump x` or `jump x always` depending on the mode.
 	 */
-	port?: (args:string[], mode:PortingMode) => string;
+	port?: (tokens:string[], mode:PortingMode) => string;
 	description: string;
 	/**Whether this command definition is for a world proc only command. */
 	isWorldProc?: boolean;
-	/**Gets all variables defined by a command. */
-	getVariablesDefined?: (args:string[]) => [name:string, type:ArgType][]
-	/**Gets all variables used by a command. */
-	getVariablesUsed?: (args:string[]) => [name:string, types:ArgType[]][]
+	/**Returns all variables defined by a command. */
+	getVariablesDefined?: (tokens:string[]) => [name:string, type:ArgType][]
+	/**Returns all variables used by a command. */
+	getVariablesUsed?: (tokens:string[]) => [name:string, types:ArgType[]][]
 }
 
 export type CommandDefinitions<IDs extends string> = {

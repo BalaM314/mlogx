@@ -66,7 +66,7 @@ export type ProgramNode = StatementNode | BlockNode;
 export type StatementNode = {
 	sourceLine: Line;
 	cleanedSourceLine: Line;
-	args: string[];
+	tokens: string[];
 };
 export type BlockNode = {
 	statement: StatementNode;

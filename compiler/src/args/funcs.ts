@@ -49,19 +49,19 @@ export function isGenericArg(val:string): val is GAT {
 }
 
 /**Estimates the type of an argument. May not be right.*/
-export function typeofArg(arg:string):GAT {
-	if(arg == "") return "invalid";
-	if(arg == undefined) return "invalid";
+export function guessTokenType(token:string):GAT {
+	if(token == "") return "invalid";
+	if(token == undefined) return "invalid";
 	for(const [name, argKey] of GenericArgs.entries()){
 		if(argKey.doNotGuess) continue;
 		if(typeof argKey.validator == "function"){
-			if(argKey.validator(arg)) return name;
+			if(argKey.validator(token)) return name;
 		} else {
 			for(const argString of argKey.validator){
 				if(argString instanceof RegExp){
-					if(argString.test(arg)) return name;
+					if(argString.test(token)) return name;
 				} else {
-					if(argString == arg) return name;
+					if(argString == token) return name;
 				}
 			}
 		}
@@ -69,58 +69,59 @@ export function typeofArg(arg:string):GAT {
 	return "invalid";
 }
 
-export function isArgValidForValidator(argToCheck:string, validator:ArgKey["validator"]):boolean {
+export function isTokenValidForValidator(token:string, validator:ArgKey["validator"]):boolean {
 	if(typeof validator == "function"){
-		return validator(argToCheck);
+		return validator(token);
 	} else {
-		for(const argString of validator){
-			if(argString instanceof RegExp){
-				if(argString.test(argToCheck)) return true;
+		for(const el of validator){
+			if(el instanceof RegExp){
+				if(el.test(token)) return true;
 			} else {
-				if(argString == argToCheck) return true;
+				if(el == token) return true;
 			}
 		}
 		return false;
 	}
 }
 
-/**Returns if an arg is of a specified type. */
-export function isArgValidForType(argToCheck:string, arg:GAT, checkAlsoAccepts:boolean = true):boolean {
-	if(argToCheck == "") return false;
-	if(argToCheck == undefined) return false;
-	const argKey = GenericArgs.get(arg);
-	if(!argKey) throw new Error(`Arg ${arg} is not a GAT`);
+/**Returns if a token is valid for a specific GAT. */
+export function isTokenValidForGAT(token:string, type:GAT, checkAlsoAccepts:boolean = true):boolean {
+	if(token == "") return false;
+	if(token == undefined) return false;
+	const argKey = GenericArgs.get(type);
+	if(!argKey) throw new Error(`Arg ${type} is not a GAT`);
 
 	//Check if the string is valid for any excluded arg
 	for(const excludedArg of argKey.exclude){
 		if(!isKey(GenericArgs, excludedArg)){
-			throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies exclude option ${excludedArg} which is not a known generic arg type`);
+			throw new Error(`Arg AST is invalid: generic arg type ${type} specifies exclude option ${excludedArg} which is not a known generic arg type`);
 		}
 		const excludedArgKey = GenericArgs.get(excludedArg)!;
 		//If it is valid, return false
-		if(isArgValidForValidator(argToCheck, excludedArgKey.validator)) return false;
+		if(isTokenValidForValidator(token, excludedArgKey.validator)) return false;
 	}
 
 	//If function is not being called recursively
 	if(checkAlsoAccepts){
 		for(const otherType of argKey.alsoAccepts){
 			if(!isKey(GenericArgs, otherType)){
-				throw new Error(`Arg AST is invalid: generic arg type ${arg} specifies alsoAccepts option ${otherType} which is not a known generic arg type`);
+				throw new Error(`Arg AST is invalid: generic arg type ${type} specifies alsoAccepts option ${otherType} which is not a known generic arg type`);
 			}
 			//If the arg is valid for another accepted type, return true
-			if(isArgValidForType(argToCheck, otherType, false)) return true;
+			if(isTokenValidForGAT(token, otherType, false)) return true;
 		}
 	}
 
-	return isArgValidForValidator(argToCheck, argKey.validator);
+	return isTokenValidForValidator(token, argKey.validator);
 
 }
 
-export function isArgValidFor(str:string, arg:Arg):boolean {
+/** Returns if a token is valid for an arg type. */
+export function isTokenValidForType(token:string, arg:Arg):boolean {
 	if(arg.isVariable)
-		return isArgValidForType(str, "variable");
+		return isTokenValidForGAT(token, "variable");
 	else if(!arg.isGeneric)
-		return str == arg.type;
+		return token == arg.type;
 	else
-		return isArgValidForType(str, arg.type as GAT);
+		return isTokenValidForGAT(token, arg.type as GAT);
 }

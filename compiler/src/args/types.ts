@@ -15,7 +15,7 @@ import { GenericArgs } from "./generic_args.js";
 
 
 
-/**Represents an argument(type) for a command.*/
+/**Represents an argument for a command.*/
 export interface Arg {
 	type:ArgType,
 	name:string,
@@ -25,35 +25,36 @@ export interface Arg {
 	spread:boolean
 }
 
+/** Any generic arg type(like number, building) */
 export type GAT = keyofMap<typeof GenericArgs>;
 export type ArgType = GAT | string;
 export type PreprocessedArg = `${"..."|""}${string}:${"*"|""}${string}${"?"|""}` | `${string}`;
 
 export interface PreprocessedArgKey {
-	/**Checks if a string is valid for this arg. Can be a regex, an array of strings or regexes, or a function. */
+	/**Checks if a token is valid for this arg. Can be a regex, an array of strings or regexes, or a function. */
 	validator: RegExp | (string | RegExp)[] | ((arg:string) => boolean);
 	/**A list of other arg types that are also accepted. Example: "number" also accepts "variable". */
 	alsoAccepts?: string[];
 	/**
-	 * A list of other arg types that cannot be accepted. If the string is valid for any of these, it's invalid.
-	 * Example: if a string is valid for unit, it should not be valid for a variable.
+	 * A list of other arg types that cannot be accepted. If the token is valid for any of these, it's invalid.
+	 * Example: if a token is valid for unit, it should not be valid for variable.
 	 */
 	exclude?: string[];
-	/**If this is true, typeofArg() will not estimate this as the type of an arg. Useful for things like jumpAddress. */
+	/**If this is true, guessTokenType() will not guess this as the type of a token. Useful for things like jumpAddress. */
 	doNotGuess?: true;
 	description?: string;
 }
 export interface ArgKey {
-	/**Checks if a string is valid for this arg. Can be an array of strings or regexes or a function. */
+	/**Checks if a token is valid for this arg. Can be an array of strings or regexes or a function. */
 	validator: (string | RegExp)[] | ((arg:string) => boolean);
 	/**A list of other arg types that are also accepted. Example: "number" also accepts "variable". */
 	alsoAccepts: string[];
 	/**
-	 * A list of other arg types that cannot be accepted. If the string is valid for any of these, it's invalid.
-	 * Example: if a string is valid for unit, it should not be valid for a variable.
+	 * A list of other arg types that cannot be accepted. If the token is valid for any of these, it's invalid.
+	 * Example: if a token is valid for unit, it should not be valid for a variable.
 	 */
 	exclude: string[];
-	/**If this is true, typeofArg() will not estimate this as the type of an arg. Useful for things like jumpAddress. */
+	/**If this is true, guessTokenType() will not guess this as the type of a token. Useful for things like jumpAddress. */
 	doNotGuess: boolean;
 	description?: string;
 }

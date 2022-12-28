@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { GenericArgs } from "./args/generic_args.js";
+import { GenericArgs } from "./args.js";
 import { extend, formatLineWithPrefix, isKey } from "./funcs.js";
 export const logLevels = extend()({
     "debug": [chalk.gray, "[DEBUG]"],
@@ -65,7 +65,7 @@ ${formatLineWithPrefix(d.line)}`,
     "unterminated string literal": { for: (d) => `Unterminated string literal at ${d.line}`, level: "throw" },
     "property not senseable": { for: (d) => `Property ${d.property} is not senseable.`, level: "throw" },
     "line matched no overloads": { for: (d) => `Line did not match any overloads for command ${d.commandName}:` + (d.errors ? "\n" + d.errors.map(err => "\t" + err.message).join("\n") : ""), level: "throw" },
-    "invalid sensor shorthand": { for: (d) => `Invalid sensor statement, "${d.arg}" must be of type thing.property and cannot contain special characters.`, level: "throw" },
+    "invalid sensor shorthand": { for: (d) => `Invalid sensor statement, "${d.token}" must be of type thing.property and cannot contain special characters.`, level: "throw" },
     "invalid type": { for: (d) => `Invalid type "${d.type}", valid types are ${Object.keys(GenericArgs).join(", ")}`, level: "throw" },
     "for loop invalid bound": { for: (d) => `Invalid for loop syntax: ${d.bound} bound(${d.value}) is invalid`, level: "throw" },
     "for loop too many loops": { for: (d) => `Invalid for loop syntax: number of loops(${d.numLoops}) is greater than 200`, level: "throw" },

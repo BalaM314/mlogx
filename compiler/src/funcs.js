@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import * as readline from "readline";
-import { GenericArgs, isArgValidFor, isArgValidForType, isGenericArg, typeofArg } from "./args.js";
+import { GenericArgs, isTokenValidForType, isTokenValidForGAT, isGenericArg, guessTokenType } from "./args.js";
 import { CompilerError, Statement } from "./classes.js";
 import { commands, compilerCommands } from "./commands.js";
 import { bugReportUrl } from "./consts.js";
@@ -93,24 +93,24 @@ export function replaceCompilerConstants(line, variables, ignoreUnknownCompilerC
     }
     return line;
 }
-export function splitLineIntoArguments(cleanedLine) {
+export function splitLineIntoTokens(cleanedLine) {
     if (cleanedLine.includes(`"`)) {
-        const args = [""];
+        const tokens = [""];
         let isInString = false;
         for (const char of cleanedLine) {
             if (char == `"`) {
                 isInString = !isInString;
             }
             if (!isInString && char == " ") {
-                args.push("");
+                tokens.push("");
             }
             else {
-                args[args.length - 1] += char;
+                tokens[tokens.length - 1] += char;
             }
         }
         if (isInString)
             CompilerError.throw("unterminated string literal", { line: cleanedLine });
-        return args;
+        return tokens;
     }
     else {
         return cleanedLine.split(" ");
@@ -142,12 +142,12 @@ export function splitLineOnSemicolons(cleanedLine) {
         return cleanedLine.split(";").map(cleanLine).filter(cleanedLine => cleanedLine != "");
     }
 }
-export function transformVariables(args, commandDefinition, transformFunction) {
-    return transformCommand(args, commandDefinition, transformFunction, (arg, commandArg) => (commandArg?.isVariable || (acceptsVariable(commandArg)
-        && isArgValidForType(arg, "variable"))) && arg !== "_");
+export function transformVariables(tokens, commandDefinition, transformFunction) {
+    return transformCommand(tokens, commandDefinition, transformFunction, (token, arg) => (arg?.isVariable || (acceptsVariable(arg)
+        && isTokenValidForGAT(token, "variable"))) && token !== "_");
 }
-export function transformCommand(args, commandDefinition, transformFunction, filterFunction = () => true) {
-    return args
+export function transformCommand(tokens, commandDefinition, transformFunction, filterFunction = () => true) {
+    return tokens
         .map((arg, index) => [arg, commandDefinition.args[index - 1]])
         .map(([arg, commandArg]) => (commandArg && filterFunction(arg, commandArg))
         ? transformFunction(arg, commandArg) : arg);
@@ -155,17 +155,17 @@ export function transformCommand(args, commandDefinition, transformFunction, fil
 export function addNamespacesToVariable(variable, stack) {
     return `_${stack.filter(el => el.type == "namespace").map(el => el.name).join("_")}_${variable}`;
 }
-export function addNamespacesToLine(args, commandDefinition, stack) {
+export function addNamespacesToLine(tokens, commandDefinition, stack) {
     if (!hasElement(stack, "namespace"))
-        return args.join(" ");
-    return transformVariables(args, commandDefinition, (variable) => addNamespacesToVariable(variable, stack)).join(" ");
+        return tokens.join(" ");
+    return transformVariables(tokens, commandDefinition, (variable) => addNamespacesToVariable(variable, stack)).join(" ");
 }
-export function prependFilenameToArg(arg, isMain, filename) {
-    return arg.startsWith("__") ? `__${isMain ? "" : filename.replace(/\.mlogx?/gi, "")}${arg}` : arg;
+export function prependFilenameToToken(token, isMain, filename) {
+    return token.startsWith("__") ? `__${isMain ? "" : filename.replace(/\.mlogx?/gi, "")}${token}` : token;
 }
 export function removeUnusedJumps(compiledProgram, jumpLabelUsages) {
     return compiledProgram.filter(line => {
-        const labels = getJumpLabelsDefined(line.args, line.commandDefinitions[0]);
+        const labels = getJumpLabelsDefined(line.tokens, line.commandDefinitions[0]);
         if (labels.length == 0)
             return true;
         return labels.some(label => label in jumpLabelUsages);
@@ -245,21 +245,21 @@ export function parsePreprocessorDirectives(data) {
 }
 export function getVariablesDefined(statement, compiledCommandDefinition) {
     if (statement.modifiedSource.commandDefinitions[0].getVariablesDefined) {
-        return statement.modifiedSource.commandDefinitions[0].getVariablesDefined(statement.modifiedSource.args);
+        return statement.modifiedSource.commandDefinitions[0].getVariablesDefined(statement.modifiedSource.tokens);
     }
     if (compiledCommandDefinition.getVariablesDefined) {
-        return compiledCommandDefinition.getVariablesDefined(statement.args);
+        return compiledCommandDefinition.getVariablesDefined(statement.tokens);
     }
-    return statement.args
+    return statement.tokens
         .slice(1)
-        .map((arg, index) => [arg, compiledCommandDefinition.args[index]])
-        .filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
-        .map(([arg, commandArg]) => [arg, commandArg.type]);
+        .map((token, index) => [token, compiledCommandDefinition.args[index]])
+        .filter(([token, arg]) => arg && arg.isVariable && token !== "_")
+        .map(([token, arg]) => [token, arg.type]);
 }
 export function getAllPossibleVariablesUsed(statement) {
     const variablesUsed_s = [];
     for (const commandDefinition of statement.commandDefinitions) {
-        variablesUsed_s.push(getVariablesUsed(statement.args, commandDefinition));
+        variablesUsed_s.push(getVariablesUsed(statement.tokens, commandDefinition));
     }
     const variablesToReturn = {};
     for (const variablesUsed of variablesUsed_s) {
@@ -272,23 +272,23 @@ export function getAllPossibleVariablesUsed(statement) {
     }
     return Object.entries(variablesToReturn);
 }
-export function getVariablesUsed(args, commandDefinition) {
-    return args
+export function getVariablesUsed(tokens, commandDefinition) {
+    return tokens
         .slice(commandDefinition.checkFirstTokenAsArg ? 0 : 1)
-        .map((arg, index) => [arg, commandDefinition.args[index]])
-        .filter(([arg, commandArg]) => isArgValidForType(arg, "variable") && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
+        .map((token, index) => [token, commandDefinition.args[index]])
+        .filter(([token, arg]) => isTokenValidForGAT(token, "variable") && acceptsVariable(arg) && token != "_").map(([token, arg]) => [token, arg.type]);
 }
-export function getJumpLabelsUsed(args, commandDefinition) {
-    return args
+export function getJumpLabelsUsed(tokens, commandDefinition) {
+    return tokens
         .slice(commandDefinition.checkFirstTokenAsArg ? 0 : 1)
-        .map((arg, index) => [arg, commandDefinition.args[index]])
-        .filter(([, commandArg]) => commandArg.type == "jumpAddress").map(([arg]) => arg);
+        .map((token, index) => [token, commandDefinition.args[index]])
+        .filter(([, arg]) => arg.type == "jumpAddress").map(([arg]) => arg);
 }
-export function getJumpLabelsDefined(args, commandDefinition) {
-    return args
+export function getJumpLabelsDefined(tokens, commandDefinition) {
+    return tokens
         .slice(commandDefinition.checkFirstTokenAsArg ? 0 : 1)
-        .map((arg, index) => [arg, commandDefinition.args[index]])
-        .filter(([, commandArg]) => commandArg.type == "definedJumpLabel").map(([arg]) => arg.slice(0, -1));
+        .map((token, index) => [token, commandDefinition.args[index]])
+        .filter(([, arg]) => arg.type == "definedJumpLabel").map(([token]) => token.slice(0, -1));
 }
 export function areAnyOfInputsAcceptedByType(inputs, type) {
     for (const input of inputs) {
@@ -335,11 +335,11 @@ export function acceptsVariable(arg) {
     }
 }
 export function isCommand(cleanedLine, command) {
-    const args = splitLineIntoArguments(cleanedLine);
-    const commandArguments = command.checkFirstTokenAsArg ? args : args.slice(1);
+    const rawTokens = splitLineIntoTokens(cleanedLine);
+    const tokens = command.checkFirstTokenAsArg ? rawTokens : rawTokens.slice(1);
     const maxArgs = command.args.map(arg => arg.spread ? Infinity : 1).reduce((a, b) => a + b, 0);
     const minArgs = command.args.filter(arg => !arg.isOptional).length;
-    if (commandArguments.length > maxArgs || commandArguments.length < minArgs) {
+    if (tokens.length > maxArgs || tokens.length < minArgs) {
         return [false, {
                 type: CommandErrorType.argumentCount,
                 message: `Incorrect number of arguments for command "${command.name}", see \`mlogx info ${command.name}\``,
@@ -347,46 +347,46 @@ export function isCommand(cleanedLine, command) {
             }];
     }
     let numSpreadArgs = 0;
-    for (const arg in command.args) {
-        const commandArg = command.args[+arg];
-        const stringArg = commandArguments[+arg + numSpreadArgs];
-        if (commandArg == undefined) {
+    for (const argIndex in command.args) {
+        const arg = command.args[+argIndex];
+        const token = tokens[+argIndex + numSpreadArgs];
+        if (arg == undefined) {
             Log.dump({
-                args,
-                commandArguments,
+                rawTokens,
+                tokens,
                 maxArgs,
                 minArgs
             });
             throw new Error(`Too many arguments were present for a command, but this was not properly detected.`);
         }
-        if (stringArg == undefined) {
-            if (commandArg.isOptional)
+        if (token == undefined) {
+            if (arg.isOptional)
                 return [true, null];
             Log.dump({
-                args,
-                commandArguments,
+                rawTokens,
+                tokens,
                 maxArgs,
                 minArgs
             });
             throw new Error(`Not enough arguments were present for a command, but this was not properly detected.`);
         }
-        if (commandArg.spread) {
-            if (command.args.slice(+arg + 1).filter(arg => arg.spread || arg.isOptional).length > 0) {
+        if (arg.spread) {
+            if (command.args.slice(+argIndex + 1).filter(arg => arg.spread || arg.isOptional).length > 0) {
                 throw new Error(`Command definitions with more than one spread arg or optional args after a spread arg are not yet implemented.`);
             }
-            numSpreadArgs = commandArguments.slice(+arg).length - command.args.slice(+arg + 1).length - 1;
+            numSpreadArgs = tokens.slice(+argIndex).length - command.args.slice(+argIndex + 1).length - 1;
         }
-        if (!isArgValidFor(stringArg, commandArg)) {
-            if (commandArg.isGeneric)
+        if (!isTokenValidForType(token, arg)) {
+            if (arg.isGeneric)
                 return [false, {
                         type: CommandErrorType.type,
-                        message: `Type mismatch: value "${stringArg}" was expected to be of type "${commandArg.isVariable ? "variable" : commandArg.type}", but was of type "${typeofArg(stringArg)}"`,
+                        message: `Type mismatch: value "${token}" was expected to be of type "${arg.isVariable ? "variable" : arg.type}", but was of type "${guessTokenType(token)}"`,
                         lowPriority: command.checkFirstTokenAsArg,
                     }];
             else
                 return [false, {
                         type: CommandErrorType.badStructure,
-                        message: `Incorrect argument: value "${stringArg}" was expected to be "${commandArg.type}", but was "${typeofArg(stringArg)}"`,
+                        message: `Incorrect argument: value "${token}" was expected to be "${arg.type}", but was "${guessTokenType(token)}"`,
                         lowPriority: command.checkFirstTokenAsArg,
                     }];
         }
@@ -399,9 +399,9 @@ export function getCommandDefinition(cleanedLine) {
 export function getCommandDefinitions(cleanedLine, returnErrors = false) {
     if (cleanedLine == "not provided")
         throw new Error(`invalid line`);
-    const args = splitLineIntoArguments(cleanedLine);
-    const commandList = isKey(commands, args[0])
-        ? commands[args[0]]
+    const tokens = splitLineIntoTokens(cleanedLine);
+    const commandList = isKey(commands, tokens[0])
+        ? commands[tokens[0]]
         : Object.values(commands).flat().filter(def => def.checkFirstTokenAsArg);
     const possibleCommands = [];
     const errors = [];
@@ -417,7 +417,7 @@ export function getCommandDefinitions(cleanedLine, returnErrors = false) {
     if (commandList.every(command => command.checkFirstTokenAsArg) && possibleCommands.length == 0) {
         return returnErrors ? [[], [{
                     type: CommandErrorType.noCommand,
-                    message: `Command "${args[0]}" does not exist.`,
+                    message: `Command "${tokens[0]}" does not exist.`,
                     lowPriority: false
                 }]] : [];
     }
@@ -427,15 +427,15 @@ export function getCommandDefinitions(cleanedLine, returnErrors = false) {
         return possibleCommands;
 }
 export function getCompilerCommandDefinitions(cleanedLine) {
-    const args = splitLineIntoArguments(cleanedLine);
-    if (!isKey(compilerCommands, args[0])) {
+    const tokens = splitLineIntoTokens(cleanedLine);
+    if (!isKey(compilerCommands, tokens[0])) {
         return [[], [{
                     type: CommandErrorType.noCommand,
-                    message: `Compiler command "${args[0]}" does not exist.`,
+                    message: `Compiler command "${tokens[0]}" does not exist.`,
                     lowPriority: false
                 }]];
     }
-    const commandGroup = compilerCommands[args[0]];
+    const commandGroup = compilerCommands[tokens[0]];
     const possibleCommands = [];
     const errors = [];
     for (const possibleCommand of commandGroup.overloads) {

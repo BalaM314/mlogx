@@ -10,7 +10,7 @@ Contains various classes.
 */
 
 import { CommandDefinition } from "./commands.js";
-import { getCommandDefinitions, splitLineIntoArguments } from "./funcs.js";
+import { getCommandDefinitions, splitLineIntoTokens } from "./funcs.js";
 import { messages } from "./Log.js";
 import { Line } from "./types.js";
 
@@ -32,7 +32,7 @@ export class CompilerError extends Error {
 //is this the best name?
 interface ProcessedLine {
 	text: string;
-	args: string[];
+	tokens: string[];
 	commandDefinitions: CommandDefinition[];
 }
 
@@ -41,7 +41,7 @@ export class Statement implements ProcessedLine {
 	readonly cleanedSource: ProcessedLine;
 	readonly modifiedSource: ProcessedLine;
 	readonly compiled: ProcessedLine;
-	readonly args: string[];
+	readonly tokens: string[];
 	readonly commandDefinitions: CommandDefinition[];
 	/*cleanedSource: {
 		text: string;
@@ -57,20 +57,20 @@ export class Statement implements ProcessedLine {
 	){
 		this.cleanedSource = {
 			text: cleanedSourceText,
-			args: splitLineIntoArguments(cleanedSourceText),
+			tokens: splitLineIntoTokens(cleanedSourceText),
 			commandDefinitions: getCommandDefinitions(cleanedSourceText)
 		};
 		this.modifiedSource = {
 			text: modifiedSourceText,
-			args: splitLineIntoArguments(modifiedSourceText),
+			tokens: splitLineIntoTokens(modifiedSourceText),
 			commandDefinitions: getCommandDefinitions(modifiedSourceText)
 		};
 		this.compiled = {
 			text,
-			args: splitLineIntoArguments(text),
+			tokens: splitLineIntoTokens(text),
 			commandDefinitions: getCommandDefinitions(text)
 		};
-		this.args = this.compiled.args;
+		this.tokens = this.compiled.tokens;
 		this.commandDefinitions = this.compiled.commandDefinitions;
 	}
 	static fromLines(text:string, source:Line, cleanedSource:Line){

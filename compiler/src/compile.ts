@@ -18,8 +18,8 @@ import {
 	getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions,
 	getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons,
 	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType,
-	parsePreprocessorDirectives, prependFilenameToArg, removeUnusedJumps, replaceCompilerConstants,
-	splitLineIntoArguments, transformCommand
+	parsePreprocessorDirectives, prependFilenameToToken, removeUnusedJumps, replaceCompilerConstants,
+	splitLineIntoTokens, transformCommand
 } from "./funcs.js";
 import { Log } from "./Log.js";
 import { State } from "./settings.js";
@@ -177,7 +177,7 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 	//TODO maybe remove this check?
 
 
-	for(const labelName of getJumpLabelsDefined(statement.args, statement.commandDefinitions[0])){
+	for(const labelName of getJumpLabelsDefined(statement.tokens, statement.commandDefinitions[0])){
 		typeCheckingData.jumpLabelsDefined[labelName] ??= [];
 		typeCheckingData.jumpLabelsDefined[labelName].push({
 			line: statement.sourceLine()
@@ -192,7 +192,7 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 		Log.printMessage("invalid uncompiled command definition", {statement});
 	}
 
-	for(const jumpLabelUsed of getJumpLabelsUsed(statement.args, statement.commandDefinitions[0])){
+	for(const jumpLabelUsed of getJumpLabelsUsed(statement.tokens, statement.commandDefinitions[0])){
 		typeCheckingData.jumpLabelsUsed[jumpLabelUsed] ??= [];
 		typeCheckingData.jumpLabelsUsed[jumpLabelUsed].push({
 			line: statement.cleanedSourceLine()
@@ -284,10 +284,10 @@ ${formatLineWithPrefix(variableDefinitions[name][0].line, "\t\t")}`
 
 export function cleanProgram(program:string[], state:State){
 	const outputProgram:[cleanedLine:Line, sourceLine:Line][] = [];
-	for(const line in program){
+	for(const index in program){
 		const sourceLine:Line = {
-			lineNumber: +line+1,
-			text: program[line],
+			lineNumber: + index + 1,
+			text: program[index],
 			sourceFilename: state.project.filename
 		};
 		const cleanedText = cleanLine(sourceLine.text);
@@ -316,13 +316,13 @@ export function compileLine(
 	cleanedLine.text = replaceCompilerConstants(cleanedLine.text, state.compilerConstants, hasElement(stack, '&for'));
 	const cleanedText = cleanedLine.text;
 
-	const args = splitLineIntoArguments(cleanedText)
-		.map(arg => prependFilenameToArg(arg, isMain, state.project.filename));
+	const tokens = splitLineIntoTokens(cleanedText)
+		.map(token => prependFilenameToToken(token, isMain, state.project.filename));
 	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
 
 
 	//Handle ending of blocks
-	if(args[0] == "}"){
+	if(tokens[0] == "}"){
 		const modifiedStack = stack.slice();
 		const removedElement = modifiedStack.pop();
 		if(!removedElement){
@@ -342,7 +342,7 @@ export function compileLine(
 	}
 
 	const [ commandList, errors ] = (
-		args[0].startsWith("&") || args[0] == "namespace" ? getCompilerCommandDefinitions : getCommandDefinitions
+		tokens[0].startsWith("&") || tokens[0] == "namespace" ? getCompilerCommandDefinitions : getCommandDefinitions
 	)(cleanedText, true);
 
 	if(commandList.length == 0){
@@ -356,7 +356,7 @@ export function compileLine(
 
 			//Find the right error message
 			if(state.verbose){
-				CompilerError.throw("line matched no overloads", {commandName: args[0], errors});
+				CompilerError.throw("line matched no overloads", {commandName: tokens[0], errors});
 			} else {
 				const typeErrors = errors.filter(error => error.type == CommandErrorType.type);
 				const highPriorityErrors = errors.filter(error => !error.lowPriority);
@@ -367,7 +367,7 @@ export function compileLine(
 					throw new CompilerError(errors[0].message);
 				} else {
 					//Otherwise there's nothing that can be done and we have to say "no overloads matched"
-					CompilerError.throw("line matched no overloads", {commandName: args[0]});
+					CompilerError.throw("line matched no overloads", {commandName: tokens[0]});
 				}
 			}
 		}
@@ -388,25 +388,25 @@ export function compileLine(
 		}
 	}
 	return {
-		compiledCode: addSourcesToCode(getOutputForCommand(args, commandList[0], stack), cleanedLine, cleanedLine, sourceLine)
+		compiledCode: addSourcesToCode(getOutputForCommand(tokens, commandList[0], stack), cleanedLine, cleanedLine, sourceLine)
 	};
 
 }
 
 /**Gets the compiled output for a command given a command definition and the stack. */
-export function getOutputForCommand(args:string[], command:CommandDefinition, stack:StackElement[]):string[] {
+export function getOutputForCommand(tokens:string[], command:CommandDefinition, stack:StackElement[]):string[] {
 	if(command.replace){
-		const compiledCommand = command.replace(args);
+		const compiledCommand = command.replace(tokens);
 		return compiledCommand.map(line => {
 			const compiledCommandDefinition = getCommandDefinition(line);
 			if(!compiledCommandDefinition){
-				Log.dump({args, command, compiledCommand, line, compiledCommandDefinition});
+				Log.dump({tokens, command, compiledCommand, line, compiledCommandDefinition});
 				throw new Error("Line compiled to invalid statement. This is an error with MLOGX.");
 			}
-			return addNamespacesToLine(splitLineIntoArguments(line), compiledCommandDefinition, stack);
+			return addNamespacesToLine(splitLineIntoTokens(line), compiledCommandDefinition, stack);
 		});
 	}
-	return [ addNamespacesToLine(args, command, stack) ];
+	return [ addNamespacesToLine(tokens, command, stack) ];
 }
 
 /**Adds jump labels to vanilla MLOG code that uses hardcoded jump indexes. */
@@ -427,16 +427,16 @@ export function addJumpLabels(code:string[]):string[] {
 		const commandDefinition = getCommandDefinition(line);
 		if(!commandDefinition)
 			Log.printMessage("line invalid", {line});
-		else if(getJumpLabelsDefined(splitLineIntoArguments(line), commandDefinition).length > 0)
+		else if(getJumpLabelsDefined(splitLineIntoTokens(line), commandDefinition).length > 0)
 			CompilerError.throw("genLabels contains label", {line});
 	});
 
 	//Identify all jump addresses
 	for(const line of cleanedCode){
-		const args = splitLineIntoArguments(line);
+		const tokens = splitLineIntoTokens(line);
 		const commandDefinition = getCommandDefinition(line);
 		if(!commandDefinition) continue;
-		for(const label of getJumpLabelsUsed(args, commandDefinition)){
+		for(const label of getJumpLabelsUsed(tokens, commandDefinition)){
 			if(label == "0"){
 				jumps[label] = "0";
 			} else if(!isNaN(parseInt(label)) && !jumps[label]){
@@ -448,19 +448,19 @@ export function addJumpLabels(code:string[]):string[] {
 
 	//Replace jump addresses with jump labels
 	for(const line of cleanedCode){
-		const args = splitLineIntoArguments(line);
+		const tokens = splitLineIntoTokens(line);
 		const commandDefinition = getCommandDefinition(line);
 		if(commandDefinition){
-			const labels = getJumpLabelsUsed(args, commandDefinition);
+			const labels = getJumpLabelsUsed(tokens, commandDefinition);
 			if(labels.length > 0){
 				transformedCode.push(
 					transformCommand(
-						args,
+						tokens,
 						commandDefinition,
 						//Replace arguments
-						(arg:string) => jumps[arg] ?? (isNaN(parseInt(arg)) ? arg : impossible()),
+						(token:string) => jumps[token] ?? (isNaN(parseInt(token)) ? token : impossible()),
 						//But only if the argument is a jump address
-						(arg:string, carg:Arg) => carg.isGeneric && carg.type == "jumpAddress"
+						(token:string, arg:Arg) => arg.isGeneric && arg.type == "jumpAddress"
 					).join(" ")
 				);
 			} else {
@@ -493,18 +493,20 @@ export function portCode(program:string[], mode:PortingMode):string[] {
 		const leadingTabsOrSpaces = line.match(/^[ \t]*/) ?? "";
 		const comment = line.match(/#.*$/) ?? "";
 		let commandDefinition = getCommandDefinition(cleanedLine.text);
-		const args = splitLineIntoArguments(cleanedLine.text);
-		while(commandDefinition == null && args.at(-1) == "0"){
-			args.splice(-1, 1);
-			cleanedLine.text = args.join(" ");
+		const tokens = splitLineIntoTokens(cleanedLine.text);
+
+		while(commandDefinition == null && tokens.at(-1) == "0"){
+			//If the line is invalid, and there's a zero at the end, try removing it
+			tokens.splice(-1, 1);
+			cleanedLine.text = tokens.join(" ");
 			commandDefinition = getCommandDefinition(cleanedLine.text);
 		}
 		if(commandDefinition == null){
 			Log.printMessage("cannot port invalid line", {line: cleanedLine});
 		} else if(commandDefinition.port) {
-			return leadingTabsOrSpaces + commandDefinition.port(args, mode) + comment;
+			return leadingTabsOrSpaces + commandDefinition.port(tokens, mode) + comment;
 		}
-		return leadingTabsOrSpaces + args.join(" ") + comment;
+		return leadingTabsOrSpaces + tokens.join(" ") + comment;
 	});
 }
 
