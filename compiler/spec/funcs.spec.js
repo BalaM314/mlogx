@@ -431,12 +431,12 @@ describe("getJumpLabelUsed", () => {
         expect(getJumpLabelsUsed(["set", "label", "\"greaterThan\""], commands.set[0])).toEqual([]);
     });
 });
-describe("getJumpLabel", () => {
+describe("getJumpLabelsDefined", () => {
     it("should get the jump label defined", () => {
-        expect(getJumpLabelsDefined("label:")).toEqual(["label"]);
+        expect(getJumpLabelsDefined(["label:"], commands["#jumplabel"][0])).toEqual(["label"]);
     });
-    it("should return null if no jump label exists", () => {
-        expect(getJumpLabelsDefined("jump label greaterThan x 5")).toEqual([]);
+    it("should return empty if no jump label exists", () => {
+        expect(getJumpLabelsDefined(["jump", "label", "greaterThan", "x", "5"], commands["jump"][1])).toEqual([]);
     });
 });
 describe("hasElement", () => {

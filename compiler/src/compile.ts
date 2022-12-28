@@ -11,10 +11,10 @@ Contains pure-ish functions related to compiling.
 import deepmerge from "deepmerge";
 import { Arg } from "./args.js";
 import { CompilerError, Statement } from "./classes.js";
-import { CommandDefinition, commands, CompilerCommandDefinition } from "./commands.js";
+import { CommandDefinition, CompilerCommandDefinition } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import {
-	addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, cleanLine, formatLineWithPrefix,
+	addNamespacesToLine, addSourcesToCode, cleanLine, formatLineWithPrefix,
 	getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions,
 	getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons,
 	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType,
@@ -177,7 +177,7 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 	//TODO maybe remove this check?
 
 
-	for(const labelName of getJumpLabelsDefined(statement.text)){
+	for(const labelName of getJumpLabelsDefined(statement.args, statement.commandDefinitions[0])){
 		typeCheckingData.jumpLabelsDefined[labelName] ??= [];
 		typeCheckingData.jumpLabelsDefined[labelName].push({
 			line: statement.sourceLine()
@@ -316,20 +316,6 @@ export function compileLine(
 	cleanedLine.text = replaceCompilerConstants(cleanedLine.text, state.compilerConstants, hasElement(stack, '&for'));
 	const cleanedText = cleanedLine.text;
 
-	//If the text is a jump label, return
-	if(getJumpLabelsDefined(cleanedText).length > 0){
-		return {
-			compiledCode: [
-				Statement.fromLines(
-					hasElement(stack, "namespace") ?
-						`${addNamespacesToVariable(getJumpLabelsDefined(cleanedText)[0], stack)}:` : cleanedText,
-					cleanedLine, sourceLine
-				)
-			]
-		};
-		//TODO fix this bodgy code
-	}
-
 	const args = splitLineIntoArguments(cleanedText)
 		.map(arg => prependFilenameToArg(arg, isMain, state.project.filename));
 	//If an argument starts with __, then prepend __[filename] to avoid name conflicts.
@@ -425,6 +411,10 @@ export function getOutputForCommand(args:string[], command:CommandDefinition, st
 
 /**Adds jump labels to vanilla MLOG code that uses hardcoded jump indexes. */
 export function addJumpLabels(code:string[]):string[] {
+
+	//This code calls functions like splitLineIntoArguments and getCommandDefinitions multiple times due to the need for multiple passes.
+	//It can probably be reworked to not do that.
+
 	let lastJumpNameIndex = 0;
 	const jumps: {
 		[index: string]: string;
@@ -434,7 +424,11 @@ export function addJumpLabels(code:string[]):string[] {
 
 	const cleanedCode = code.map(line => cleanLine(line)).filter(line => line);
 	cleanedCode.forEach(line => {
-		if(getJumpLabelsDefined(line).length > 0) CompilerError.throw("genLabels contains label", {line});
+		const commandDefinition = getCommandDefinition(line);
+		if(!commandDefinition)
+			Log.printMessage("line invalid", {line});
+		else if(getJumpLabelsDefined(splitLineIntoArguments(line), commandDefinition).length > 0)
+			CompilerError.throw("genLabels contains label", {line});
 	});
 
 	//Identify all jump addresses
@@ -472,11 +466,6 @@ export function addJumpLabels(code:string[]):string[] {
 			} else {
 				transformedCode.push(line);
 			}
-		} else if(getJumpLabelsDefined(line).length > 0){
-			transformedCode.push(line);
-			//TODO remove this check once jump labels are valid command definitions
-		} else {
-			Log.printMessage("line invalid", {line});
 		}
 	}
 

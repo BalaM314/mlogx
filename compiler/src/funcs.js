@@ -165,7 +165,7 @@ export function prependFilenameToArg(arg, isMain, filename) {
 }
 export function removeUnusedJumps(compiledProgram, jumpLabelUsages) {
     return compiledProgram.filter(line => {
-        const labels = getJumpLabelsDefined(line.text);
+        const labels = getJumpLabelsDefined(line.args, line.commandDefinitions[0]);
         if (labels.length == 0)
             return true;
         return labels.some(label => label in jumpLabelUsages);
@@ -274,22 +274,21 @@ export function getAllPossibleVariablesUsed(statement) {
 }
 export function getVariablesUsed(args, commandDefinition) {
     return args
-        .slice(1)
+        .slice(commandDefinition.checkFirstTokenAsArg ? 0 : 1)
         .map((arg, index) => [arg, commandDefinition.args[index]])
         .filter(([arg, commandArg]) => isArgValidForType(arg, "variable") && acceptsVariable(commandArg) && arg != "_").map(([arg, commandArg]) => [arg, commandArg.type]);
 }
 export function getJumpLabelsUsed(args, commandDefinition) {
     return args
-        .slice(1)
+        .slice(commandDefinition.checkFirstTokenAsArg ? 0 : 1)
         .map((arg, index) => [arg, commandDefinition.args[index]])
         .filter(([, commandArg]) => commandArg.type == "jumpAddress").map(([arg]) => arg);
 }
-export function getJumpLabelsDefined(cleanedLine) {
-    const matchData = cleanedLine.match(/^[^ ]+(?=:$)/);
-    if (matchData == null)
-        return [];
-    else
-        return [matchData[0]];
+export function getJumpLabelsDefined(args, commandDefinition) {
+    return args
+        .slice(commandDefinition.checkFirstTokenAsArg ? 0 : 1)
+        .map((arg, index) => [arg, commandDefinition.args[index]])
+        .filter(([, commandArg]) => commandArg.type == "definedJumpLabel").map(([arg]) => arg.slice(0, -1));
 }
 export function areAnyOfInputsAcceptedByType(inputs, type) {
     for (const input of inputs) {

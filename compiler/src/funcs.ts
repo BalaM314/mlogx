@@ -214,7 +214,7 @@ export function prependFilenameToArg(arg:string, isMain:boolean, filename:string
 /**Removes unused jumps from a compiled program. */
 export function removeUnusedJumps(compiledProgram:Statement[], jumpLabelUsages:TData.jumpLabelsUsed):Statement[] {
 	return compiledProgram.filter(line => {
-		const labels = getJumpLabelsDefined(line.text);
+		const labels = getJumpLabelsDefined(line.args, line.commandDefinitions[0]);
 		if(labels.length == 0) return true;
 		return labels.some(label => label in jumpLabelUsages);
 	});
@@ -329,7 +329,7 @@ export function getVariablesDefined(
 		return compiledCommandDefinition.getVariablesDefined(statement.args);
 	}
 	return statement.args
-		.slice(1)
+		.slice(1) //TODO commandDefinition.checkFirstTokenAsArg ? 0 : 1 maybe
 		.map((arg, index) => [arg, compiledCommandDefinition.args[index]] as [name:string, arg:Arg|undefined])
 		.filter(([arg, commandArg]) => commandArg && commandArg.isVariable && arg !== "_")
 		.map(([arg, commandArg]) => [arg, commandArg!.type]);
@@ -360,7 +360,7 @@ export function getAllPossibleVariablesUsed(statement:Statement): [name:string, 
 /**Gets variables used for a specific command definition. */
 export function getVariablesUsed(args:string[], commandDefinition:CommandDefinition): [name:string, type:ArgType][]{
 	return args
-		.slice(1)
+		.slice(commandDefinition.checkFirstTokenAsArg ? 0 : 1)
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
 		.filter(([arg, commandArg]) =>
 			isArgValidForType(arg, "variable") && acceptsVariable(commandArg) && arg != "_"
@@ -370,7 +370,7 @@ export function getVariablesUsed(args:string[], commandDefinition:CommandDefinit
 /**Gets the jump label used in a statement. */
 export function getJumpLabelsUsed(args:string[], commandDefinition:CommandDefinition):string[] {
 	return args
-		.slice(1)
+		.slice(commandDefinition.checkFirstTokenAsArg ? 0 : 1)
 		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
 		.filter(([, commandArg]) =>
 			commandArg.type == "jumpAddress"
@@ -378,11 +378,13 @@ export function getJumpLabelsUsed(args:string[], commandDefinition:CommandDefini
 }
 
 /**Gets the jump label defined in a statement. */
-export function getJumpLabelsDefined(cleanedLine:string):string[] {
-	const matchData = cleanedLine.match(/^[^ ]+(?=:$)/);
-	if(matchData == null) return [];
-	else return [matchData[0]];
-	//TODO rewrite
+export function getJumpLabelsDefined(args:string[], commandDefinition:CommandDefinition):string[] {
+	return args
+		.slice(commandDefinition.checkFirstTokenAsArg ? 0 : 1)
+		.map((arg, index) => [arg, commandDefinition.args[index]] as [name:string, arg:Arg])
+		.filter(([, commandArg]) =>
+			commandArg.type == "definedJumpLabel"
+		).map(([arg]) => arg.slice(0, -1));
 }
 
 //#endregion

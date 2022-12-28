@@ -511,6 +511,13 @@ export const commands = processCommands({
 			replace: (args) => [`ulocate building core ${args[2] ?? "false"} _ core.x core.y core.found core`]
 		},
 	],
+
+	//ok this is cursed now
+	"#jumplabel": [{
+		args: "jumpLabel:definedJumpLabel",
+		description: "Defines a jump label.",
+	}],
+
 	//getblock [floor, ore, block, building] result x y
 	getblock: [
 		{

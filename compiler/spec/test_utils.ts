@@ -10,7 +10,7 @@ Contains test-related utility functions.
 
 import { Statement } from "../src/classes.js";
 import { compilerCommands } from "../src/commands.js";
-import { addSourcesToCode, getLocalState, getState } from "../src/funcs.js";
+import { getLocalState, getState } from "../src/funcs.js";
 import { Settings, settingsSchema, State } from "../src/settings.js";
 import { ForStackElement, IfStackElement, NamespaceStackElement } from "../src/stack_elements.js";
 import { CommandError, CommandErrorType, Line } from "../src/types.js";
