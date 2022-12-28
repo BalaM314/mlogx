@@ -124,14 +124,11 @@ export function splitLineOnSemicolons(cleanedLine) {
             if (char == `"`) {
                 isInString = !isInString;
             }
-            if (isInString) {
-                lines[0] += char;
-            }
-            else if (char == ";") {
+            if (char == ";" && !isInString) {
                 lines.push("");
             }
             else {
-                lines[0] += char;
+                lines[lines.length - 1] += char;
             }
         }
         if (isInString)
