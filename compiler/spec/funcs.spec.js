@@ -214,10 +214,12 @@ describe("splitLineOnSemicolons", () => {
         expect(splitLineOnSemicolons("set z 98")).toEqual(["set z 98"]);
     });
     it("should split lines on a semicolon", () => {
-        expect(splitLineIntoTokens(`print "amogus sussy" and "a eea "`)).toEqual(["print", `"amogus sussy"`, "and", `"a eea "`]);
+        expect(splitLineOnSemicolons(`print "amogus sussy"; print "a eea "`)).toEqual([`print "amogus sussy"`, `print "a eea"`]);
+        expect(splitLineOnSemicolons(`print "amogus sussy";;;print "a eea ";`)).toEqual([`print "amogus sussy"`, `print "a eea"`]);
+        expect(splitLineOnSemicolons(`print "amogus sussy";;set x 5 ; print "a eea ";`)).toEqual([`print "amogus sussy"`, `set x 5`, `print "a eea"`]);
     });
     it("should not split lines on semicolons within strings", () => {
-        expect(() => splitLineIntoTokens(`print "amogus sussy" and "a eea '`)).toThrow();
+        expect(() => splitLineOnSemicolons(`print "this string ; contains ';'"`)).toThrow();
     });
 });
 describe("transformVariables", () => {
