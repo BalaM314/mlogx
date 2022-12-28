@@ -32,21 +32,13 @@ export function compileMlogxToMlog(mlogxProgram, state, typeDefinitions = {
     });
     for (const requiredVar of requiredVars) {
         if (requiredVarCode[requiredVar]) {
-            compiledProgram.push(...requiredVarCode[requiredVar][0].map(line => Statement.fromLines(line, {
-                text: `[#require'd variable]`,
-                lineNumber: 0,
-                sourceFilename: "[#require'd variable]",
-            }, {
-                text: `[#require'd variable]`,
-                lineNumber: 0,
-                sourceFilename: "[#require'd variable]",
-            })));
+            compiledProgram.push(...requiredVarCode[requiredVar][0].map(line => new Statement(line, `['#require'd variable]`, `['#require'd variable]`, `['#require'd variable]`, `['#require'd variable]`, 0)));
             typeCheckingData.variableDefinitions[requiredVar] = [{
                     variableType: requiredVarCode[requiredVar][1],
                     line: {
-                        text: `[#require'd variable]`,
+                        text: `['#require'd variable]`,
                         lineNumber: 0,
-                        sourceFilename: "[#require'd variable]",
+                        sourceFilename: `['#require'd variable]`,
                     }
                 }];
         }
