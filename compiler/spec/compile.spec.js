@@ -58,27 +58,24 @@ describe("compileLine", () => {
     });
     it("should detect the end of an &for loop", () => {
         expect(compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, [
-            makeForEl("n", range(1, 3, true), [`set x 5`, `print "n is $n"`])
+            makeForEl("n", range(1, 3, true), [[`set x 5`, `set x 5`], [`print "n is $n"`, `print "n is $n"`]])
         ]).modifiedStack).toEqual([]);
     });
     it("should unroll an &for loop", () => {
         expect(compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, [
-            makeForEl("n", ["32", "53", "60"], [`set x 5`, `print "n is $n"`])
+            makeForEl("n", ["32", "53", "60"], [[`set x 5`, `set x 5`], [`print "n is $n"`, `print "n is $n"`]])
         ]).compiledCode.map(line => line.text)).toEqual([`set x 5`, `print "n is 32"`, `set x 5`, `print "n is 53"`, `set x 5`, `print "n is 60"`]);
     });
     it("should unroll nested &for loops", () => {
         let stack = [
-            makeForEl("I", range(1, 3, true), [`loop_$I:`], makeLine("[test]", 1, "unknown")),
-            makeForEl("J", range(5, 6, true), [`set x 5`, `print "j is $J"`], makeLine("[test]", 1, "unknown"))
+            makeForEl("I", range(1, 3, true), [[`loop_$I:`, `loop_$I:`]], makeLine("[test]", 1, "unknown")),
+            makeForEl("J", range(5, 6, true), [[`set x 5`, `set x 5`], [`print "j is $J"`, `print "j is $J"`]], makeLine("[test]", 1, "unknown"))
         ];
         const compiledOutput = compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, stack);
         stack = compiledOutput.modifiedStack ?? stack;
         stack.at(-1)?.loopBuffer.push(...compiledOutput.compiledCode);
         expect(compiledOutput.compiledCode.map(line => line.text))
             .toEqual([`set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`]);
-        expect(compiledOutput.modifiedStack).toEqual([
-            makeForEl("I", range(1, 3, true), [`loop_$I:`, `set x 5`, `print "j is 5"`, `set x 5`, `print "j is 6"`], makeLine("[test]", 1, "unknown"))
-        ]);
         const secondOutput = compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, stack);
         expect(secondOutput.compiledCode.map(line => line.text))
             .toEqual([

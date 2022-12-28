@@ -13,7 +13,7 @@ export function makeForEl(varname, elements, loopBuffer = [], sourceLine = { lin
         commandDefinition: compilerCommands["&for"].overloads[isNumbers ? 0 : 1],
         variableName: varname,
         elements,
-        loopBuffer: makeStatements(loopBuffer),
+        loopBuffer: loopBuffer.map(([text, source]) => makeStatement(text, source)),
         line: sourceLine ?? { lineNumber: 1, text: isNumbers ? `&for ${varname} in ${elements.map(el => parseInt(el)).sort((a, b) => a - b)[0]} ${elements.map(el => parseInt(el)).sort((a, b) => a - b).at(-1)} {` : `&for ${varname} of ${elements.join(" ")} {`, sourceFilename: "[test]" }
     };
 }
