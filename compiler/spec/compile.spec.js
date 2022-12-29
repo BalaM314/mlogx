@@ -2,7 +2,7 @@ import { compilerCommands } from "../src/commands.js";
 import { addJumpLabels, compileLine, compileMlogxToMlog } from "../src/compile.js";
 import { range } from "../src/funcs.js";
 import { Log } from "../src/Log.js";
-import { addLabelsTests, allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace, testPrograms } from "./samplePrograms.js";
+import { addLabelsTests, allMlogCommands, allMlogxCommands, allShorthandCommands, startNamespace, testPrograms } from "./samplePrograms.js";
 import { makeForEl, makeIfEl, makeLine, makeNamespaceEl, anyLine, makeCompileLineInput, stateForFilename } from "./test_utils.js";
 describe("compileLine", () => {
     beforeAll(() => {
@@ -28,11 +28,6 @@ describe("compileLine", () => {
     });
     it("should detect the end of a namespace", () => {
         expect(compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, [makeNamespaceEl("testname")]).modifiedStack).toEqual([]);
-    });
-    it("should prepend namespaces", () => {
-        for (const [input, stack, output] of namespaceTests) {
-            expect(compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, stack).compiledCode.map(line => line.text)).toEqual([output]);
-        }
     });
     it("should detect the start of an &for in loop", () => {
         expect(compileLine(makeCompileLineInput(`&for i in 0 5 {`), stateForFilename("sample.mlogx"), false, []).modifiedStack).toEqual([{

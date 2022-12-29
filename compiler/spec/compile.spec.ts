@@ -64,13 +64,14 @@ describe("compileLine", () => {
 		).toEqual([]);
 	});
 
-	it("should prepend namespaces", () => {
-		for(const [input, stack, output] of namespaceTests){
-			expect(
-				compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, stack).compiledCode.map(line => line.text)
-			).toEqual([output]);
-		}
-	});
+	//TODO determine fate
+	// it("should prepend namespaces", () => {
+	// 	for(const [input, stack, output] of namespaceTests){
+	// 		expect(
+	// 			compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, stack).compiledCode.map(line => line.text)
+	// 		).toEqual([output]);
+	// 	}
+	// });
 
 	it("should detect the start of an &for in loop", () => {
 		expect(
