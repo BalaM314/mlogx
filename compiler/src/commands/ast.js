@@ -45,7 +45,8 @@ export const commands = processCommands({
     printf: [{
             args: "message:string",
             replace(tokens) {
-                return interpolateString(tokens[1].slice(1, -1)).map(chunk => chunk.type == "string" ? `print "${chunk.content}"` : `print ${chunk.content}`);
+                return interpolateString(tokens[1].slice(1, -1))
+                    .map(chunk => chunk.type == "string" ? `print "${chunk.content}"` : `print ${chunk.content}`);
             },
             description: "Print statement with string interpolation."
         }],
@@ -230,7 +231,9 @@ export const commands = processCommands({
         {
             args: "variable:*any value:any",
             description: "Sets the value of (variable) to (value).",
-            getVariablesDefined: (tokens) => [[tokens[1], guessTokenType(tokens[2]) == "variable" ? "any" : guessTokenType(tokens[2])]]
+            getVariablesDefined: (tokens) => [
+                [tokens[1], guessTokenType(tokens[2]) == "variable" ? "any" : guessTokenType(tokens[2])]
+            ]
         }, {
             args: "variable:*any type:ctype value:any",
             description: "Sets the value of (variable) to (value), and the type of (variable) to (type).",
@@ -500,7 +503,9 @@ export const commands = processCommands({
         }, {
             args: "building buildingGroup:buildingGroup buildingName:*building enemy:boolean?",
             description: "Finds a building of specified group near the bound unit, storing its position in (buildingName.x, buildingName.y) and the building in (building) if it is on the same team.",
-            replace: (tokens) => [`ulocate building ${tokens[2]} ${tokens[4] ?? "false"} _ ${tokens[3]}.x ${tokens[3]}.y ${tokens[3]}.found ${tokens[3]}`]
+            replace: (tokens) => [
+                `ulocate building ${tokens[2]} ${tokens[4] ?? "false"} _ ${tokens[3]}.x ${tokens[3]}.y ${tokens[3]}.found ${tokens[3]}`
+            ]
         }, {
             args: "core enemy:boolean?",
             description: "Finds the core.",

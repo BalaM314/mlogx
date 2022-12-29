@@ -37,7 +37,10 @@ export function argToString(arg:Arg):string {
 }
 
 /**Makes an arg using ordered arguments */
-export function makeArg(type:string, name:string = "WIP", isOptional:boolean = false, isGeneric:boolean = true, isVariable:boolean = false, spread:boolean = false){
+export function makeArg(
+	type:string, name:string = "WIP", isOptional:boolean = false,
+	isGeneric:boolean = true, isVariable:boolean = false, spread:boolean = false
+){
 	return {
 		type, name, isOptional, isGeneric, isVariable, spread
 	};

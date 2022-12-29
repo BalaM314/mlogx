@@ -53,7 +53,8 @@ ${matchingCommands.map(commandDefinition =>
 		);
 		return 0;
 	} else if(isKey(compilerCommands, name)){
-		const matchingCommands = (compilerCommands[name].overloads as CompilerCommandDefinition<StackElement>[]).filter(c => opts.positionalArgs[1] ? c.args[0].type.startsWith(opts.positionalArgs[1]) : true);
+		const matchingCommands = (compilerCommands[name].overloads as CompilerCommandDefinition<StackElement>[])
+			.filter(c => opts.positionalArgs[1] ? c.args[0].type.startsWith(opts.positionalArgs[1]) : true);
 		if(matchingCommands.length == 0){
 			Log.none(chalk.red(
 `No commands found for "${commandName}".`
@@ -78,7 +79,14 @@ ${matchingCommands.map(commandDefinition =>
 
 ${arg.description ?? ""}
 Accepts:
-${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof RegExp ? `* Any string matching the regex /${thing.source}/` : `* "${thing}"`).join("\n") : `* Anything accepted by the function ${arg.validator.toString()}`}
+${arg.validator instanceof Array
+	? arg.validator.map(thing => 
+		thing instanceof RegExp
+			? `* Any string matching the regex /${thing.source}/`
+			: `* "${thing}"`
+	).join("\n")
+	: `* Anything accepted by the function ${arg.validator.toString()}`
+}
 `
 		));
 		return 0;
@@ -110,7 +118,9 @@ ${arg.validator instanceof Array ? arg.validator.map(thing => thing instanceof R
 
 mlogx.command("version", "Displays the version of mlogx", (opts, app) => {
 	try {
-		const packageJsonFilepath = fs.existsSync(path.join(app.sourceDirectory, "package.json")) ? path.join(app.sourceDirectory, "package.json") : path.join(app.sourceDirectory, "../package.json");
+		const packageJsonFilepath = fs.existsSync(path.join(app.sourceDirectory, "package.json"))
+			? path.join(app.sourceDirectory, "package.json")
+			: path.join(app.sourceDirectory, "../package.json");
 		const packageJsonData = JSON.parse(fs.readFileSync(packageJsonFilepath, 'utf-8'));
 		Log.none(chalk.blue(`MLOGX v${chalk.cyan(packageJsonData.version)}`));
 	} catch(err){
@@ -151,8 +161,12 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
 		Log.printMessage("cannot compile dir", {dirname: "mlogx's installation location"});
 		return 1;
 	}
-	const stdlibDirectory = fs.existsSync(path.join(app.sourceDirectory, "stdlib")) ? path.join(app.sourceDirectory, "stdlib") : path.join(app.sourceDirectory, "../stdlib");
-	const cacheDirectory = fs.existsSync(path.join(app.sourceDirectory, "cache")) ? path.join(app.sourceDirectory, "cache") : path.join(app.sourceDirectory, "../cache");
+	const stdlibDirectory = fs.existsSync(path.join(app.sourceDirectory, "stdlib"))
+		? path.join(app.sourceDirectory, "stdlib")
+		: path.join(app.sourceDirectory, "../stdlib");
+	const cacheDirectory = fs.existsSync(path.join(app.sourceDirectory, "cache"))
+		? path.join(app.sourceDirectory, "cache")
+		: path.join(app.sourceDirectory, "../cache");
 	const icons = parseIcons(fs.readFileSync(path.join(cacheDirectory, "icons.properties"), "utf-8").split(/\r?\n/));
 	
 	if("verbose" in opts.namedArgs){

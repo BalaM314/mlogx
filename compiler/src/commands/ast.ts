@@ -63,7 +63,8 @@ export const commands = processCommands({
 	printf: [{
 		args: "message:string",
 		replace(tokens){
-			return interpolateString(tokens[1].slice(1,-1)).map(chunk => chunk.type == "string" ? `print "${chunk.content}"` : `print ${chunk.content}`);
+			return interpolateString(tokens[1].slice(1,-1))
+				.map(chunk => chunk.type == "string" ? `print "${chunk.content}"` : `print ${chunk.content}`);
 		},
 		description: "Print statement with string interpolation."
 	}],
@@ -164,7 +165,9 @@ export const commands = processCommands({
 			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria turret:building sortOrder:number output:*unit",
 			description: "Finds a unit of specified type within the range of (turret) and stores it in (output).",
 			port(tokens, mode){
-				if(mode >= PortingMode.shortenSyntax && ((tokens[1] == tokens[2] && tokens[2] == tokens[3]) || (tokens[2] == "any" && tokens[3] == "any")))
+				if(mode >= PortingMode.shortenSyntax && (
+					(tokens[1] == tokens[2] && tokens[2] == tokens[3]) || (tokens[2] == "any" && tokens[3] == "any")
+				))
 					return `${tokens[0]} ${tokens[1]} ${tokens[4]} ${tokens[5]} ${tokens[6]} ${tokens[7]}`;
 				else
 					return tokens.join(" ");
@@ -242,7 +245,9 @@ export const commands = processCommands({
 		{
 			args: "variable:*any value:any",
 			description: "Sets the value of (variable) to (value).",
-			getVariablesDefined: (tokens) => [[tokens[1], guessTokenType(tokens[2]) == "variable" ? "any" : guessTokenType(tokens[2])]]
+			getVariablesDefined: (tokens) => [
+				[tokens[1], guessTokenType(tokens[2]) == "variable" ? "any" : guessTokenType(tokens[2])]
+			]
 		},{
 			args: "variable:*any type:ctype value:any",
 			description: "Sets the value of (variable) to (value), and the type of (variable) to (type).",
@@ -447,7 +452,9 @@ export const commands = processCommands({
 			args: "targetClass1:targetClass targetClass2:targetClass targetClass3:targetClass sortCriteria:unitSortCriteria sillyness:0 sortOrder:number output:*unit",
 			description: "Today I learned that the default signature of uradar has a random 0 that doesn't mean anything.",
 			port(tokens, mode) {
-				if(mode >= PortingMode.shortenSyntax && ((tokens[1] == tokens[2] && tokens[2] == tokens[3]) || (tokens[2] == "any" && tokens[3] == "any")))
+				if(mode >= PortingMode.shortenSyntax && (
+					(tokens[1] == tokens[2] && tokens[2] == tokens[3]) || (tokens[2] == "any" && tokens[3] == "any")
+				))
 					return `${tokens[0]} ${tokens[1]} ${tokens[4]} ${tokens[6]} ${tokens[7]}`;
 				else if(mode >= PortingMode.removeZeroes)
 					return `${tokens[0]} ${tokens[1]} ${tokens[2]} ${tokens[3]} ${tokens[4]} ${tokens[6]} ${tokens[7]}`;
@@ -504,7 +511,9 @@ export const commands = processCommands({
 		},{
 			args: "building buildingGroup:buildingGroup buildingName:*building enemy:boolean?",
 			description: "Finds a building of specified group near the bound unit, storing its position in (buildingName.x, buildingName.y) and the building in (building) if it is on the same team.",
-			replace: (tokens) => [`ulocate building ${tokens[2]} ${tokens[4] ?? "false"} _ ${tokens[3]}.x ${tokens[3]}.y ${tokens[3]}.found ${tokens[3]}`]
+			replace: (tokens) => [
+				`ulocate building ${tokens[2]} ${tokens[4] ?? "false"} _ ${tokens[3]}.x ${tokens[3]}.y ${tokens[3]}.found ${tokens[3]}`
+			]
 		},{
 			args: "core enemy:boolean?",
 			description: "Finds the core.",
@@ -736,10 +745,14 @@ export const compilerCommands = processCompilerCommands({
 					for(const el of removedElement.elements){
 						compiledCode.push(
 							...removedElement.loopBuffer.map(line => new Statement(
-								replaceCompilerConstants(line.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+								replaceCompilerConstants(
+									line.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")
+								),
 								line.sourceText,
 								line.cleanedSource.text,
-								replaceCompilerConstants(line.modifiedSource.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+								replaceCompilerConstants(
+									line.modifiedSource.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")
+								),
 								line.sourceFilename,
 								line.sourceLineNumber,
 							))
@@ -774,10 +787,14 @@ export const compilerCommands = processCompilerCommands({
 					for(const el of removedElement.elements){
 						compiledCode.push(
 							...removedElement.loopBuffer.map(line => new Statement(
-								replaceCompilerConstants(line.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+								replaceCompilerConstants(
+									line.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")
+								),
 								line.sourceText,
 								line.cleanedSource.text,
-								replaceCompilerConstants(line.modifiedSource.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")),
+								replaceCompilerConstants(
+									line.modifiedSource.text, new Map([[removedElement.variableName, el]]), hasElement(stack, "&for")
+								),
 								line.sourceFilename,
 								line.sourceLineNumber,
 							))

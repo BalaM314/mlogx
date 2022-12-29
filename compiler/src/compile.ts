@@ -65,7 +65,10 @@ export function compileMlogxToMlog(
 	for(const requiredVar of requiredVars){
 		if(requiredVarCode[requiredVar]){
 			compiledProgram.push(...requiredVarCode[requiredVar][0].map(
-				line => new Statement(line, `['#require'd variable]`, `['#require'd variable]`, `['#require'd variable]`, `['#require'd variable]`, 0)
+				line => new Statement(
+					line, `['#require'd variable]`, `['#require'd variable]`,
+					`['#require'd variable]`, `['#require'd variable]`, 0
+				)
 			));
 			typeCheckingData.variableDefinitions[requiredVar] = [{
 				variableType: requiredVarCode[requiredVar][1],
@@ -94,7 +97,8 @@ export function compileMlogxToMlog(
 					modifiedLine = outputData.output;
 				}
 			}
-			const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData } = compileLine([modifiedLine, sourceLine], state, isMain, stack);
+			const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData }
+				= compileLine([modifiedLine, sourceLine], state, isMain, stack);
 			if(modifiedStack) stack = modifiedStack; //ew mutable data
 			let doTypeChecks = !skipTypeChecks;
 			let modifiedCode = compiledCode;
@@ -141,7 +145,10 @@ ${formatLineWithPrefix(sourceLine)}`
 	if(stack.length !== 0){
 		for(const element of stack){
 			Log.err(
-`${element.type == "namespace" ? `Namespace "${element.name}"` : element.type == "&for" ? `For loop with variable "${element.variableName}"` : `&if statement`} was not closed.
+`${
+	element.type == "namespace" ? `Namespace "${element.name}"` :
+		element.type == "&for" ? `For loop with variable "${element.variableName}"`
+			: `&if statement`} was not closed.
 ${formatLineWithPrefix(element.line)}`
 			);
 		}
@@ -231,7 +238,9 @@ export function printTypeErrors({variableDefinitions, variableUsages, jumpLabels
 		//TODO do this properly
 		if(types.length > 1){
 			Log.printMessage("variable redefined with conflicting type", {
-				name, types, firstDefinitionLine: definitions.filter(d => d.variableType == types[0])[0].line, conflictingDefinitionLine: definitions.filter(v => v.variableType == types[1])[0].line
+				name, types,
+				firstDefinitionLine: definitions.filter(d => d.variableType == types[0])[0].line,
+				conflictingDefinitionLine: definitions.filter(v => v.variableType == types[1])[0].line
 			});
 		}
 	}
@@ -324,7 +333,9 @@ export function compileLine(
 		}
 		if(removedElement.commandDefinition.onend){
 			return {
-				...(removedElement.commandDefinition as CompilerCommandDefinition<StackElement>).onend!({line: cleanedLine, removedElement, state, stack}),
+				...(removedElement.commandDefinition as CompilerCommandDefinition<StackElement>).onend!(
+					{line: cleanedLine, removedElement, state, stack}
+				),
 				modifiedStack
 			};
 		} else {
@@ -342,7 +353,11 @@ export function compileLine(
 	if(commandList.length == 0){
 		//No commands were valid
 		if(errors.length == 0){
-			throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${sourceLine.text}"\nPlease copy this and file an issue on Github.`);
+			throw new Error(
+`An error message was not generated. This is an error with MLOGX.
+Debug information: "${sourceLine.text}"
+Please copy this and file an issue on Github.`
+			);
 		}
 		if(errors.length == 1){
 			throw new CompilerError(errors[0].message);

@@ -106,7 +106,9 @@ ${formatLineWithPrefix(sourceLine)}`);
     }
     if (stack.length !== 0) {
         for (const element of stack) {
-            Log.err(`${element.type == "namespace" ? `Namespace "${element.name}"` : element.type == "&for" ? `For loop with variable "${element.variableName}"` : `&if statement`} was not closed.
+            Log.err(`${element.type == "namespace" ? `Namespace "${element.name}"` :
+                element.type == "&for" ? `For loop with variable "${element.variableName}"`
+                    : `&if statement`} was not closed.
 ${formatLineWithPrefix(element.line)}`);
         }
         CompilerError.throw("unclosed blocks", {});
@@ -170,7 +172,9 @@ export function printTypeErrors({ variableDefinitions, variableUsages, jumpLabel
         ];
         if (types.length > 1) {
             Log.printMessage("variable redefined with conflicting type", {
-                name, types, firstDefinitionLine: definitions.filter(d => d.variableType == types[0])[0].line, conflictingDefinitionLine: definitions.filter(v => v.variableType == types[1])[0].line
+                name, types,
+                firstDefinitionLine: definitions.filter(d => d.variableType == types[0])[0].line,
+                conflictingDefinitionLine: definitions.filter(v => v.variableType == types[1])[0].line
             });
         }
     }
@@ -250,7 +254,9 @@ export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
     const [commandList, errors] = (tokens[0].startsWith("&") || tokens[0] == "namespace" ? getCompilerCommandDefinitions : getCommandDefinitions)(cleanedText, true);
     if (commandList.length == 0) {
         if (errors.length == 0) {
-            throw new Error(`An error message was not generated. This is an error with MLOGX.\nDebug information: "${sourceLine.text}"\nPlease copy this and file an issue on Github.`);
+            throw new Error(`An error message was not generated. This is an error with MLOGX.
+Debug information: "${sourceLine.text}"
+Please copy this and file an issue on Github.`);
         }
         if (errors.length == 1) {
             throw new CompilerError(errors[0].message);

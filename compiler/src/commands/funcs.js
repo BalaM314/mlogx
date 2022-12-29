@@ -1,4 +1,4 @@
-import { arg } from "../args/funcs.js";
+import { arg } from "../args.js";
 export function processCommands(preprocessedCommands) {
     const out = {};
     for (const [name, commands] of Object.entries(preprocessedCommands)) {

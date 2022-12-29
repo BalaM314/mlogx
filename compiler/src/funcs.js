@@ -150,7 +150,8 @@ export function transformCommand(tokens, commandDefinition, transformFunction, f
         ? transformFunction(arg, commandArg) : arg);
 }
 export function addNamespacesToVariable(variable, stack) {
-    return `_${stack.filter(el => el.type == "namespace").map(el => el.name).join("_")}_${variable}`;
+    const namespaces = stack.filter(el => el.type == "namespace");
+    return `_${namespaces.map(el => el.name).join("_")}_${variable}`;
 }
 export function addNamespacesToLine(tokens, commandDefinition, stack) {
     if (!hasElement(stack, "namespace"))
@@ -263,7 +264,7 @@ export function getAllPossibleVariablesUsed(statement) {
         for (const [variableName, variableType] of variablesUsed) {
             if (!variablesToReturn[variableName])
                 variablesToReturn[variableName] = [variableType];
-            if (!variablesToReturn[variableName].includes(variableType))
+            else if (!variablesToReturn[variableName].includes(variableType))
                 variablesToReturn[variableName].push(variableType);
         }
     }
@@ -490,7 +491,9 @@ export function flattenObject(object, parentName, output = {}) {
 export function range(min, max, strings) {
     if (min > max)
         return [];
-    return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
+    return strings
+        ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString())
+        : [...Array(max + 1 - min).keys()].map(i => i + min);
 }
 export function getCompilerConsts(icons, state, projectInfo) {
     const outputMap = new Map();

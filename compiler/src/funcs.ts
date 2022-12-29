@@ -99,7 +99,9 @@ export function removeComments(line:string):string {
 }
 
 /**Replaces compiler constants in a line. */
-export function replaceCompilerConstants(line:string, variables:CompilerConsts, ignoreUnknownCompilerConsts:boolean = false):string {
+export function replaceCompilerConstants(
+	line:string, variables:CompilerConsts, ignoreUnknownCompilerConsts:boolean = false
+):string {
 	const specifiedConsts = line.match(/(?<!\\\$\()(?<=\$\()[^()]+(?=\))/g);
 	specifiedConsts?.forEach(key => {
 		if(variables.has(key)){
@@ -181,7 +183,11 @@ export function transformVariables(
 }
 
 /**Transforms a command given a list of tokens, command definition, a transformer function, and a filter function. */
-export function transformCommand(tokens:string[], commandDefinition:CommandDefinition, transformFunction: (token:string, arg:Arg) => string, filterFunction: (token:string, arg:Arg) => boolean = () => true){
+export function transformCommand(
+	tokens:string[], commandDefinition:CommandDefinition,
+	transformFunction: (token:string, arg:Arg) => string,
+	filterFunction: (token:string, arg:Arg) => boolean = () => true
+){
 	return tokens
 		.map((arg, index) => [arg, commandDefinition.args[index - 1]] as [name:string, arg:Arg|undefined])
 		.map(([arg, commandArg]) =>
@@ -192,7 +198,8 @@ export function transformCommand(tokens:string[], commandDefinition:CommandDefin
 
 /**Prepends namespaces on a stack to a variable. */
 export function addNamespacesToVariable(variable:string, stack:StackElement[]):string {
-	return `_${(stack.filter(el => el.type == "namespace") as NamespaceStackElement[]).map(el => el.name).join("_")}_${variable}`;
+	const namespaces = stack.filter(el => el.type == "namespace") as NamespaceStackElement[];
+	return `_${namespaces.map(el => el.name).join("_")}_${variable}`;
 }
 
 /**Prepends namespaces on the given stack to all variables in a line. */
@@ -204,7 +211,10 @@ export function addNamespacesToLine(tokens:string[], commandDefinition:CommandDe
 	// 		(arg:string, commandArg:Arg|undefined) => commandArg?.type == GenericArgType.jumpAddress
 	// 	).join(" ");
 	// }
-	return transformVariables(tokens, commandDefinition, (variable:string) => addNamespacesToVariable(variable, stack)).join(" ");
+	return transformVariables(
+		tokens, commandDefinition,
+		(variable:string) => addNamespacesToVariable(variable, stack)
+	).join(" ");
 }
 
 /**Prepends the filename to a token if it starts with two underscores. */
@@ -291,13 +301,17 @@ export function getParameters(program:string[]):[name:string, type:string][]{
 }
 
 /**Parses preprocessor directives from a program. */
-export function parsePreprocessorDirectives(data:string[]): [program_type:string, required_vars:string[], author:string] {
+export function parsePreprocessorDirectives(
+	data:string[]
+): [program_type:string, required_vars:string[], author:string] {
 	let program_type:string = "unknown";
 	const required_vars:string[] = [];
 	let author = "unknown";
 	for(const line of data){
 		if(line.startsWith("#require ")){
-			required_vars.push(...line.split("#require ")[1].split(",").map(el => el.replaceAll(" ", "")).filter(el => el != ""));
+			required_vars.push(
+				...line.split("#require ")[1].split(",").map(el => el.replaceAll(" ", "")).filter(el => el != "")
+			);
 		}
 		if(line.startsWith("#program_type ")){
 			const type = line.split("#program_type ")[1];
@@ -332,7 +346,10 @@ export function getVariablesDefined(
 	return statement.tokens
 		.slice(compiledCommandDefinition.checkFirstTokenAsArg ? 0 : 1)
 		.map((token, index) => [token, compiledCommandDefinition.args[index]] as [token:string, arg:Arg | undefined])
-		.filter((([token, arg]) => arg && arg.isVariable && token !== "_") as (e:[string, Arg | undefined]) => e is [string, Arg])
+		.filter(
+			(([token, arg]) => arg && arg.isVariable && token !== "_") as
+			(e:[string, Arg | undefined]) => e is [string, Arg]
+		)
 		.map(([token, arg]) => [token, arg.type]);
 }
 
@@ -351,8 +368,10 @@ export function getAllPossibleVariablesUsed(statement:Statement): [name:string, 
 	} = {};
 	for(const variablesUsed of variablesUsed_s){
 		for(const [variableName, variableType] of variablesUsed){
-			if(!variablesToReturn[variableName]) variablesToReturn[variableName] = [variableType];
-			if(!variablesToReturn[variableName].includes(variableType)) variablesToReturn[variableName].push(variableType);
+			if(!variablesToReturn[variableName])
+				variablesToReturn[variableName] = [variableType];
+			else if(!variablesToReturn[variableName].includes(variableType))
+				variablesToReturn[variableName].push(variableType);
 		}
 	}
 	return Object.entries(variablesToReturn);
@@ -434,7 +453,9 @@ export function acceptsVariable(arg: Arg|undefined):boolean {
 //#region commandchecking
 
 /**Checks if a line is valid for a command definition. */
-export function isCommand(cleanedLine:string, command:CommandDefinition | CompilerCommandDefinition<StackElement>): [valid:false, error:CommandError] | [valid:true, error:null] {
+export function isCommand(
+	cleanedLine:string, command:CommandDefinition | CompilerCommandDefinition<StackElement>
+): [valid:false, error:CommandError] | [valid:true, error:null] {
 	const rawTokens = splitLineIntoTokens(cleanedLine);
 	const tokens = command.checkFirstTokenAsArg ? rawTokens : rawTokens.slice(1);
 	const maxArgs = command.args.map(arg => arg.spread ? Infinity : 1).reduce((a, b) => a + b, 0);
@@ -543,7 +564,9 @@ export function getCommandDefinitions(cleanedLine:string, returnErrors:boolean =
 		return possibleCommands;
 }
 
-export function getCompilerCommandDefinitions(cleanedLine:string):[CompilerCommandDefinition<StackElement>[], CommandError[]] {
+export function getCompilerCommandDefinitions(
+	cleanedLine:string
+):[CompilerCommandDefinition<StackElement>[], CommandError[]] {
 	const tokens = splitLineIntoTokens(cleanedLine);
 
 	if(!isKey(compilerCommands, tokens[0])){
@@ -595,7 +618,10 @@ export function addSourcesToCode(
 	cleanedSourceLine:Line = modifiedSourceLine,
 	sourceLine:Line = cleanedSourceLine
 ):Statement[]{
-	return code.map(compiledLine => new Statement(compiledLine, sourceLine.text, cleanedSourceLine.text, modifiedSourceLine.text, sourceLine.sourceFilename, sourceLine.lineNumber));
+	return code.map(compiledLine => new Statement(
+		compiledLine, sourceLine.text, cleanedSourceLine.text,
+		modifiedSourceLine.text, sourceLine.sourceFilename, sourceLine.lineNumber
+	));
 }
 
 /**oh no */
@@ -625,7 +651,9 @@ export function isObject(thing:unknown):thing is Record<string, unknown> {
 	return thing != null && typeof thing == "object" && !Array.isArray(thing);//js why
 }
 
-export function flattenObject<T extends Record<string, unknown>>(object:T, parentName?:string, output:Record<string, ValuesRecursive<T>> = {}){
+export function flattenObject<T extends Record<string, unknown>>(
+	object:T, parentName?:string, output:Record<string, ValuesRecursive<T>> = {}
+){
 	for(const key in object){
 		const name = (parentName ? parentName + "." : "") + key;
 		if(isObject(object[key])){
@@ -642,10 +670,14 @@ export function range(min:number, max:number):number[];
 export function range(min:number, max:number, strings:true):string[];
 export function range(min:number, max:number, strings?:true):number[] | string[] {
 	if(min > max) return [];
-	return strings ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString()) : [...Array(max + 1 - min).keys()].map(i => i + min);
+	return strings
+		? [...Array(max + 1 - min).keys()].map(i => (i + min).toString())
+		: [...Array(max + 1 - min).keys()].map(i => i + min);
 }
 
-export function getCompilerConsts(icons:Map<string, string>, state:GlobalState, projectInfo:State["project"]):CompilerConsts {
+export function getCompilerConsts(
+	icons:Map<string, string>, state:GlobalState, projectInfo:State["project"]
+):CompilerConsts {
 	const outputMap = new Map<string, CompilerConst>();
 	for(const [key, value] of icons){
 		outputMap.set(key, value);

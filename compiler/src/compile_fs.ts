@@ -23,7 +23,7 @@ export function compileDirectory(directory:string, stdlibPath:string, icons:Map<
 
 	const settings = getSettings(directory);
 	const globalState = getState(settings, directory, options);
-	const srcDirectoryExists = fs.existsSync(path.join(directory, "src")) && fs.lstatSync(path.join(directory, "src")).isDirectory();
+	const srcDirectoryExists = fs.existsSync(path.join(directory, "src"))&& fs.lstatSync(path.join(directory, "src")).isDirectory();
 
 	if(!srcDirectoryExists && globalState.compilerOptions.mode == "project"){
 		Log.printMessage("compiler mode project but no src directory", {});
@@ -149,7 +149,9 @@ function getSettings(directory:string, ignoreMissing?:true):Settings {
 		}) as Settings;
 		if("compilerVariables" in settings){
 			Log.printMessage("settings.compilerVariables deprecated", {});
-			settings.compilerConstants = (settings as Settings & {compilerVariables: typeof settings.compilerConstants}).compilerVariables;
+			settings.compilerConstants = (
+				settings as Settings & {compilerVariables: typeof settings.compilerConstants}
+			).compilerVariables;
 		}
 		return settings;
 	} catch(err){

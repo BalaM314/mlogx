@@ -51,9 +51,9 @@ export class Statement implements ProcessedLine {
 		sourceFilename: string;
 	};*/
 	constructor(
-		public readonly text:string, public readonly sourceText:string, cleanedSourceText:string, modifiedSourceText:string,
-		public readonly sourceFilename:string,
-		public readonly sourceLineNumber:number,
+		public readonly text:string, public readonly sourceText:string,
+		cleanedSourceText:string, modifiedSourceText:string,
+		public readonly sourceFilename:string, public readonly sourceLineNumber:number,
 	){
 		this.cleanedSource = {
 			text: cleanedSourceText,
@@ -74,7 +74,10 @@ export class Statement implements ProcessedLine {
 		this.commandDefinitions = this.compiled.commandDefinitions;
 	}
 	static fromLines(text:string, source:Line, cleanedSource:Line){
-		return new Statement(text, source.text, cleanedSource.text, cleanedSource.text, source.sourceFilename, source.lineNumber);
+		return new Statement(
+			text, source.text, cleanedSource.text,
+			cleanedSource.text, source.sourceFilename, source.lineNumber
+		);
 	}
 	// text(){ return this.compiled.text; }
 	// args(){ return this.compiled.args; }

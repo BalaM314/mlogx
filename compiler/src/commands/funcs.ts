@@ -8,8 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains functions related to the commands AST.
 */
 
-import { arg } from "../args/funcs.js";
-import { PreprocessedArg } from "../args/types.js";
+import { arg, PreprocessedArg } from "../args.js";
 import { StackElement, StackElementMapping } from "../stack_elements.js";
 import { Line } from "../types.js";
 import {
@@ -23,7 +22,9 @@ import {
  * Processes commands(adds in what would otherwise be boilerplate).
  * Warning: called during initialization.
  **/
-export function processCommands<IDs extends string>(preprocessedCommands:PreprocessedCommandDefinitions<IDs>):CommandDefinitions<IDs> {
+export function processCommands<IDs extends string>(
+	preprocessedCommands:PreprocessedCommandDefinitions<IDs>
+):CommandDefinitions<IDs> {
 
 	const out:Partial<CommandDefinitions<IDs>> = {};
 	for(const [name, commands] of (Object.entries(preprocessedCommands) as [name:IDs, commands:PreprocessedCommand[]][])){
@@ -59,15 +60,23 @@ export function processCommands<IDs extends string>(preprocessedCommands:Preproc
 	return out as CommandDefinitions<IDs>;
 }
 
-export function processCompilerCommands(preprocessedCommands:PreprocessedCompilerCommandDefinitions):CompilerCommandDefinitions {
+export function processCompilerCommands(
+	preprocessedCommands:PreprocessedCompilerCommandDefinitions
+):CompilerCommandDefinitions {
 	const out:Partial<CompilerCommandDefinitions> = {};
-	for(const [id, group] of Object.entries(preprocessedCommands) as [keyof StackElementMapping, PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[keyof StackElementMapping]>][]){
+	for(
+		const [id, group] of Object.entries(preprocessedCommands) as 
+		[keyof StackElementMapping, PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[keyof StackElementMapping]>][]
+	){
 		out[id] = {
 			stackElement: group.stackElement,
 			overloads: []
 		};
 
-		type _PreprocessedCompilerCommandDefinitionGroup<T> = T extends infer A ? PreprocessedCompilerCommandDefinitionGroup<A> : never;
+		type _PreprocessedCompilerCommandDefinitionGroup<T> =
+			T extends infer A
+			? PreprocessedCompilerCommandDefinitionGroup<A>
+			: never;
 		// interface SusCompilerCommandDefinition<StackEl> {
 		// 	type: "CompilerCommand"
 		// 	args: Arg[];
@@ -118,7 +127,9 @@ export function processCompilerCommands(preprocessedCommands:PreprocessedCompile
 					};
 				};
 			}
-			(out[id]!.overloads as CompilerCommandDefinitionGroup<StackElement>["overloads"]).push(commandDefinition as CompilerCommandDefinition<StackElement>);
+			(out[id]!.overloads as CompilerCommandDefinitionGroup<StackElement>["overloads"]).push(
+				commandDefinition as CompilerCommandDefinition<StackElement>
+			);
 		}
 	}
 	return out as CompilerCommandDefinitions;
