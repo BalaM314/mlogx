@@ -330,7 +330,7 @@ export function getVariablesDefined(
 		return compiledCommandDefinition.getVariablesDefined(statement.tokens);
 	}
 	return statement.tokens
-		.slice(1) //TODO commandDefinition.checkFirstTokenAsArg ? 0 : 1 maybe
+		.slice(compiledCommandDefinition.checkFirstTokenAsArg ? 0 : 1)
 		.map((token, index) => [token, compiledCommandDefinition.args[index]] as [token:string, arg:Arg | undefined])
 		.filter((([token, arg]) => arg && arg.isVariable && token !== "_") as (e:[string, Arg | undefined]) => e is [string, Arg])
 		.map(([token, arg]) => [token, arg.type]);

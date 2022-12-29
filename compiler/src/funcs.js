@@ -248,7 +248,7 @@ export function getVariablesDefined(statement, compiledCommandDefinition) {
         return compiledCommandDefinition.getVariablesDefined(statement.tokens);
     }
     return statement.tokens
-        .slice(1)
+        .slice(compiledCommandDefinition.checkFirstTokenAsArg ? 0 : 1)
         .map((token, index) => [token, compiledCommandDefinition.args[index]])
         .filter((([token, arg]) => arg && arg.isVariable && token !== "_"))
         .map(([token, arg]) => [token, arg.type]);
