@@ -80,7 +80,7 @@ ${matchingCommands.map(commandDefinition =>
 ${arg.description ?? ""}
 Accepts:
 ${arg.validator instanceof Array
-	? arg.validator.map(thing => 
+	? arg.validator.map(thing =>
 		thing instanceof RegExp
 			? `* Any string matching the regex /${thing.source}/`
 			: `* "${thing}"`

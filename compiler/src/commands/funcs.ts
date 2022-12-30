@@ -65,7 +65,7 @@ export function processCompilerCommands(
 ):CompilerCommandDefinitions {
 	const out:Partial<CompilerCommandDefinitions> = {};
 	for(
-		const [id, group] of Object.entries(preprocessedCommands) as 
+		const [id, group] of Object.entries(preprocessedCommands) as
 		[keyof StackElementMapping, PreprocessedCompilerCommandDefinitionGroup<StackElementMapping[keyof StackElementMapping]>][]
 	){
 		out[id] = {
