@@ -737,7 +737,8 @@ export const compilerCommands = processCompilerCommands({
 				onpostcompile({compiledOutput, stack}){
 					topForLoop(stack)?.loopBuffer.push(...compiledOutput);
 					return {
-						modifiedOutput: []
+						modifiedOutput: [],
+						skipTypeChecks: true
 					};
 				},
 				onend({removedElement, stack}){
@@ -779,7 +780,8 @@ export const compilerCommands = processCompilerCommands({
 				onpostcompile({compiledOutput, stack}) {
 					topForLoop(stack)?.loopBuffer.push(...compiledOutput);
 					return {
-						modifiedOutput: []
+						modifiedOutput: [],
+						skipTypeChecks: true
 					};
 				},
 				onend({removedElement, stack}){
