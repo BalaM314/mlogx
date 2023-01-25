@@ -126,7 +126,7 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             description: "Used in the typed set statement, specifies the type of a variable. Example: :building :unitType"
         }],
     ["definedJumpLabel", {
-            validator: /[\w-$]+:/,
+            validator: /[\w-$()]+:/,
             description: "Defines a jump label. Example: label:, bind_unit:"
         }],
     ["sOperandDouble", {
