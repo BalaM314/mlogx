@@ -162,7 +162,7 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
         }],
     ["variable", {
             validator: [/^@?[^"@[\]{}/\\:]+$/, "@counter"],
-            exclude: ["number", "string", "boolean", "building", "buildingType", "unitType", "itemType", "fluidType", "imageType", "senseable", "unit", "null", "ctype"],
+            exclude: ["number", "string", "boolean", "building", "buildingType", "unitType", "itemType", "fluidType", "imageType", "senseable", "unit", "null", "ctype", "team"],
             description: "Refers to a variable."
         }],
     ["getblockable", {
