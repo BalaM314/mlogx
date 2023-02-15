@@ -676,12 +676,12 @@ export const commands = processCommands({
         }
     ],
     getflag: [{
-            args: "output:*any flag:string",
+            args: "output:*boolean flag:string",
             description: "Gets the value of flag (flag) and stores it in (output).",
             isWorldProc: true
         }],
     setflag: [{
-            args: "flag:string value:any",
+            args: "flag:string value:boolean",
             description: "Sets the value of flag (flag) to (value)",
             isWorldProc: true
         }],
