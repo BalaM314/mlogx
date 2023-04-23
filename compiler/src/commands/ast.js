@@ -668,9 +668,41 @@ export const commands = processCommands({
         }],
     setflag: [{
             args: "flag:string value:boolean",
-            description: "Sets the value of flag (flag) to (value)",
+            description: "Sets the value of flag (flag) to (value).",
             isWorldProc: true
         }],
+    setprop: [{
+            args: "type:settable target:unit value:any",
+            description: "Sets property (type) of (target) to (value).",
+            isWorldProc: true,
+        }, {
+            args: "type:settable target:building value:any",
+            description: "Sets property (type) of (target) to (value).",
+            isWorldProc: true,
+        }, {
+            args: "target.type:any value:any",
+            description: "Sets property (type) of (target) to (value). Example usage: setprop @unit.health 100",
+            isWorldProc: true,
+            replace(tokens) {
+                if (tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)) {
+                    const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i);
+                    if (target == null || property == null)
+                        impossible();
+                    if (!MindustryContent.settables.includes(property))
+                        CompilerError.throw("property not senseable", { property });
+                    return [`setprop @${property} ${target} ${tokens[1]}`];
+                }
+                else if (tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)]\$/i)) {
+                    const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i);
+                    if (target == null || property == null)
+                        impossible();
+                    return [`setprop ${property} ${target} ${tokens[1]}`];
+                }
+                else {
+                    CompilerError.throw("invalid sensor shorthand", { token: tokens[1] });
+                }
+            },
+        }]
 });
 export const compilerCommands = processCompilerCommands({
     '&for': {
