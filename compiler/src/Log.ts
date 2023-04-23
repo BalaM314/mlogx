@@ -94,7 +94,7 @@ ${formatLineWithPrefix(d.line)}`
 	"unterminated string literal": {for:(d:{line:string}) => `Unterminated string literal at ${d.line}`, level:"throw"},
 	"property not senseable": {for:(d:{property:string}) => `Property ${d.property} is not senseable.`, level:"throw"},
 	"line matched no overloads": {for:(d:{commandName:string, errors?:CommandError[]}) => `Line did not match any overloads for command ${d.commandName}:` + (d.errors ? "\n" + d.errors.map(err => "\t" + err.message).join("\n") : ""), level:"throw"},
-	"invalid sensor shorthand": {for:(d:{token:string}) => `Invalid sensor statement, "${d.token}" must be of type thing.property and cannot contain special characters.`, level:"throw"},
+	"invalid sensor shorthand": {for:(d:{token:string}) => `Invalid sensor statement, "${d.token}" must be of form "thing.property" or "thing[property]" and cannot contain special characters.`, level:"throw"},
 	"invalid type": {for:(d:{type:string}) => `Invalid type "${d.type}", valid types are ${Object.keys(GenericArgs).join(", ")}`, level:"throw"},
 	"for loop invalid bound": {for:(d:{bound:string, value:string}) => `Invalid for loop syntax: ${d.bound} bound(${d.value}) is invalid`, level:"throw"},
 	"for loop too many loops": {for:(d:{numLoops:number}) => `Invalid for loop syntax: number of loops(${d.numLoops}) is greater than 200`, level:"throw"},
