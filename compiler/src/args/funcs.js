@@ -1,7 +1,7 @@
 import { isKey } from "../funcs.js";
 import { GenericArgs } from "./generic_args.js";
 export function arg(str) {
-    const matchResult = str.match(/(\.\.\.)?(\w+):(\*)?(\w+)(\?)?/);
+    const matchResult = str.match(/^(\.\.\.)?([\w.]+):(\*)?(\w+)(\?)?$/);
     if (!matchResult) {
         if (str.includes(":")) {
             throw new Error(`Probably bad arg string ${str}`);

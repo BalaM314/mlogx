@@ -16,7 +16,7 @@ import { Arg, ArgKey, GAT, PreprocessedArg } from "./types.js";
 
 /**Converts an arg string into an Arg. */
 export function arg(str:PreprocessedArg):Arg {
-	const matchResult = str.match(/(\.\.\.)?(\w+):(\*)?(\w+)(\?)?/);
+	const matchResult = str.match(/^(\.\.\.)?([\w.]+):(\*)?(\w+)(\?)?$/);
 	if(!matchResult){
 		if(str.includes(":")){
 			throw new Error(`Probably bad arg string ${str}`);
