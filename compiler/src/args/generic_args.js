@@ -69,7 +69,13 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             validator: (arg) => arg.startsWith("@") &&
                 (MindustryContent.senseables.includes(arg.slice(1))),
             alsoAccepts: ["variable", "itemType", "fluidType"],
-            description: "Represents any piece of information that can be accessed about a building, like x position(@x), whether it is shooting, (@shooting), the amount of lead it contains(@lead), etc."
+            description: "Represents any piece of information that can be accessed about a building or unit, like x position(@x), whether it is shooting, (@shooting), the amount of lead it contains(@lead), etc."
+        }],
+    ["settable", {
+            validator: (arg) => arg.startsWith("@") &&
+                (MindustryContent.settables.includes(arg.slice(1))),
+            alsoAccepts: ["variable", "itemType", "fluidType"],
+            description: "Represents any piece of information that can be set for a building or unit, like x position(@x), rotation, (@rotation), the amount of lead it contains(@lead), etc."
         }],
     ["building", {
             validator: [buildingNameRegex, "@this"],
