@@ -230,17 +230,6 @@ export const commands = processCommands({
 				}
 			},
 			description: "Gets information about a unit or building and stores it in (thing.property), does not need to be linked or on the same team. Example usage: sensor player.shootX will read the player's shootX into the variable player.shootX",
-			getVariablesUsed(tokens){
-				let target, property;
-				if(tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)){
-					[, target, property] = tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)!;
-					if(target == null || property == null) impossible();
-				} else if(tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)]\$/i)){
-					[, target, property] = tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)!;
-					if(target == null || property == null) impossible();
-				}
-				return [[target, ["building", "unit"]] as [name:string, types:string[]]];
-			}
 		}
 	],
 	set: [
