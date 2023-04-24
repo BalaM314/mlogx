@@ -78,7 +78,7 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             description: "Represents any piece of information that can be set for a building or unit, like x position(@x), rotation, (@rotation), the amount of lead it contains(@lead), etc."
         }],
     ["building", {
-            validator: [buildingNameRegex, "@this"],
+            validator: [buildingNameRegex, "@this", "@air", "@ground"],
             alsoAccepts: ["variable"],
             description: "Represents an in-world building."
         }],
@@ -167,7 +167,7 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             description: "Anything that is ulocateable."
         }],
     ["variable", {
-            validator: [/^@?[^"@[\]{}/\\:]+$/, "@counter"],
+            validator: [/^@?[^"{}/\\:]+$/, "@counter"],
             exclude: ["number", "string", "boolean", "building", "buildingType", "unitType", "itemType", "fluidType", "imageType", "senseable", "unit", "null", "ctype", "team"],
             description: "Refers to a variable."
         }],

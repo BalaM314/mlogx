@@ -107,7 +107,7 @@ export const GenericArgs = (
 		description: "Represents any piece of information that can be set for a building or unit, like x position(@x), rotation, (@rotation), the amount of lead it contains(@lead), etc."
 	}],
 	["building", {
-		validator: [buildingNameRegex, "@this"],
+		validator: [buildingNameRegex, "@this", "@air", "@ground"],
 		alsoAccepts: ["variable"],
 		description: "Represents an in-world building."
 	}],
@@ -196,7 +196,7 @@ export const GenericArgs = (
 		description: "Anything that is ulocateable."
 	}],
 	["variable", {
-		validator: [/^@?[^"@[\]{}/\\:]+$/, "@counter"],
+		validator: [/^@?[^"{}/\\:]+$/, "@counter"],
 		//TODO see if this causes performance issues
 		exclude: ["number", "string", "boolean", "building", "buildingType", "unitType", "itemType", "fluidType", "imageType", "senseable", "unit", "null", "ctype", "team"],
 		description: "Refers to a variable."

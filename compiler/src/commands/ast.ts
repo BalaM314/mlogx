@@ -220,9 +220,9 @@ export const commands = processCommands({
 					if(target == null || property == null) impossible();
 					if(!MindustryContent.senseables.includes(property)) CompilerError.throw("property not senseable", {property});
 					return [`sensor ${tokens[1]} ${target == "unit" ? "@unit" : target} @${property}`];
-				} else if(tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)]\$/i)){
+				} else if(tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)\]$/i)){
 					//sensor thing[property]
-					const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)!;
+					const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)\]$/i)!;
 					if(target == null || property == null) impossible();
 					return [`sensor ${tokens[1]} ${target == "unit" ? "@unit" : target} ${property}`];
 				} else {
@@ -543,17 +543,17 @@ export const commands = processCommands({
 		{
 			args: "floor floorType:any x:number y:number",//TODO floorType
 			description: "sets the floor type at coordinates (x,y)",
-			replace: ["setblock %1 %2 %3 %4 0 0"],
+			replace: ["setblock %1 %2 %3 %4 @derelict 0"],
 			isWorldProc: true
 		},{
-			args: "ore oreType:item x:number y:number",
+			args: "ore oreType:any x:number y:number",
 			description: "sets the ore type at coordinates (x,y)",
-			replace: ["setblock %1 %2 %3 %4 0 0"],
+			replace: ["setblock %1 %2 %3 %4 @derelict 0"],
 			isWorldProc: true
 		},{
 			args: "block buildingType:buildingType x:number y:number team:team rotation:number",
 			description: "sets the block at coordinates (x,y) with a team and a counter clockwise rotation starting at the right [0 - 3]",
-			replace: ["setblock %1 %2 %3 %4 0 0"],
+			replace: ["setblock %1 %2 %3 %4 %5 %6"],
 			isWorldProc: true
 		},{
 			args: "floorOrOreOrBlock:any type:any x:number y:number team:team? rotation:number?",
@@ -569,14 +569,6 @@ export const commands = processCommands({
 	}],
 	status: [
 		{
-			args: "false effect:statusEffect unit:unit duration:number",
-			description: "Applies (effect) to (unit) for (duration) seconds.",
-			isWorldProc: true
-		},{
-			args: "true effect:statusEffect unit:unit",
-			description: "Removes (effect) from (unit).",
-			isWorldProc: true
-		},{
 			args: "apply effect:statusEffect unit:unit duration:number",
 			description: "Applies (effect) to (unit) for (duration) seconds.",
 			replace: ["status false %2 %3 %4"],
@@ -584,9 +576,13 @@ export const commands = processCommands({
 		},{
 			args: "clear effect:statusEffect unit:unit",
 			description: "Removes (effect) from (unit).",
-			replace: ["status true %2 %3"],
+			replace: ["status true %2 %3 0"],
 			isWorldProc: true
-		},
+		},{
+			args: "applyOrClear:boolean effect:statusEffect unit:unit duration:number?",
+			description: "Applies (effect) to (unit) for (duration) seconds.",
+			isWorldProc: true
+		}
 	],
 	spawnwave: [{
 		args: "x:number y:number natural:boolean",
@@ -695,27 +691,27 @@ export const commands = processCommands({
 	setprop: [{
 		args: "type:settable target:unit value:any",
 		description: "Sets property (type) of (target) to (value).",
-		isWorldProc: true,	
+		isWorldProc: true,
 	},{
 		args: "type:settable target:building value:any",
 		description: "Sets property (type) of (target) to (value).",
-		isWorldProc: true,	
+		isWorldProc: true,
 	},{
 		args: "target.type:any value:any",
 		description: "Sets property (type) of (target) to (value). Example usage: setprop @unit.health 100",
 		isWorldProc: true,
 		replace(tokens) {
 			if(tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)){
-				//sensor thing.property
+				//setprop thing.property value
 				const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)!;
 				if(target == null || property == null) impossible();
 				if(!MindustryContent.settables.includes(property)) CompilerError.throw("property not senseable", {property});
-				return [`setprop @${property} ${target} ${tokens[1]}`];
-			} else if(tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)]\$/i)){
-				//sensor thing[property]
-				const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)!;
+				return [`setprop @${property} ${target} ${tokens[2]}`];
+			} else if(tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)\]$/i)){
+				//setprop thing[property] value
+				const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)\]$/i)!;
 				if(target == null || property == null) impossible();
-				return [`setprop ${property} ${target} ${tokens[1]}`];
+				return [`setprop ${property} ${target} ${tokens[2]}`];
 			} else {
 				CompilerError.throw("invalid sensor shorthand", {token: tokens[1]});
 			}
