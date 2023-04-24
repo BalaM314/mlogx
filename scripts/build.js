@@ -101,7 +101,7 @@ async function print(message) {
 }
 async function main(argv) {
     process.chdir(path.join(fileURLToPath(import.meta.url), "..", ".."));
-    let version = process.argv.map(thing => thing.match(/version=(\d\.\d\.\d)/)).filter(thing => thing)[0]?.[1];
+    let version = process.argv.find(arg => arg.match(/version=(\d\.\d\.\d)/))?.match(/version=(\d\.\d\.\d)/)[1];
     print(version ? `\nBuilding MLOGX v${version}\n` : "\nBuilding MLOGX\n");
     print("Cleaning build directory...");
     await cleanBuildDirectory();

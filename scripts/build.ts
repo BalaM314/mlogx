@@ -128,7 +128,7 @@ async function main(argv:string[]){
 	//Make sure the current working directory is the root directory of mlogx
 	process.chdir(path.join(fileURLToPath(import.meta.url), "..", ".."));
 
-	let version:string | undefined = process.argv.map(thing => thing.match(/version=(\d\.\d\.\d)/)).filter(thing => thing)[0]?.[1];
+	let version:string | undefined = process.argv.find(arg => arg.match(/version=(\d\.\d\.\d)/))?.match(/version=(\d\.\d\.\d)/)![1];
 	
 	print(version ? `\nBuilding MLOGX v${version}\n` : "\nBuilding MLOGX\n");
 
