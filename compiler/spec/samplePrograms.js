@@ -53,7 +53,36 @@ ulocate building core true @copper outX outY found building
 ulocate building generator false _ outX outY found building
 ulocate ore turret true @copper outX outY found building
 ulocate damaged repair true @copper outX outY found building
-ulocate spawn factory false @copper outX outY found building`
+ulocate spawn factory false @copper outX outY found building
+getblock floor result 10 32
+getblock ore result 10 32
+getblock block result 10 32
+getblock building result 10 32
+setblock floor @dark-panel-1 10 32 @derelict 1
+setblock ore @plastanium 10 32 @derelict 1
+setblock block @foreshadow 10 32 @derelict 1
+spawn @dagger 10 10 90 @sharded output
+status false tarred unit 10
+status true shocked unit 10
+spawnwave 10 10 false
+setrule unitBuildSpeed 10
+message announce 3
+message notify
+message mission
+message toast 3
+cutscene pan 100 100 0.06
+cutscene zoom 100
+cutscene stop
+explosion @crux 0 0 5 50 true true false
+setrate 10
+fetch unit result @sharded 0
+fetch player result @sharded 0
+fetch coreCount result @sharded
+fetch buildCount result @sharded 0 @conveyor
+getflag result "flag"
+setflag "flag" true
+setprop @team nucleus1 @sharded
+setprop @plastanium @unit 20`
     .split("\n");
 export const allMlogxCommands = `call amogus
 return
@@ -64,6 +93,7 @@ export const allShorthandCommands = [
     [`radar enemy distance scatter1 0 unit`, `radar enemy any any distance scatter1 0 unit`],
     [`uradar enemy distance 0 unit`, `uradar enemy any any distance 0 0 unit`],
     [`sensor arc1.shootX`, `sensor arc1.shootX arc1 @shootX`],
+    [`sensor nucleus1[item]`, `sensor nucleus1[item] nucleus1 item`],
     [`sensor unit.x`, `sensor unit.x @unit @x`],
     [`op abs xDiff`, `op abs xDiff xDiff 0`],
     [`op add x 1`, `op add x x 1`],
@@ -71,7 +101,11 @@ export const allShorthandCommands = [
     [`ulocate spawn spawn.x spawn.y spawn.found`, `ulocate spawn core _ _ spawn.x spawn.y spawn.found _`],
     [`ulocate damaged damaged.x damaged.y damaged.found damaged`, `ulocate damaged core _ _ damaged.x damaged.y damaged.found damaged`],
     [`ulocate building core true core.x core.y core.exists core`, `ulocate building core true _ core.x core.y core.exists core`],
-    [`set thing :unit null`, `set thing null`]
+    [`set thing :unit null`, `set thing null`],
+    [`status apply tarred unit 10`, `status false tarred unit 10`],
+    [`status clear shocked unit`, `status true shocked unit 0`],
+    [`setprop @unit.x 30`, `setprop @x @unit 30`],
+    [`setprop nucleus1[item] 9000`, `setprop item nucleus1 9000`],
 ];
 export const startNamespace = `namespace testname {`;
 export const namespaceTests = [
