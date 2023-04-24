@@ -705,7 +705,7 @@ export const commands = processCommands({
 				//setprop thing.property value
 				const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)!;
 				if(target == null || property == null) impossible();
-				if(!MindustryContent.settables.includes(property)) CompilerError.throw("property not senseable", {property});
+				if(!MindustryContent.settables.includes(property)) CompilerError.throw("property not settable", {property});
 				return [`setprop @${property} ${target} ${tokens[2]}`];
 			} else if(tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)\]$/i)){
 				//setprop thing[property] value
@@ -713,7 +713,7 @@ export const commands = processCommands({
 				if(target == null || property == null) impossible();
 				return [`setprop ${property} ${target} ${tokens[2]}`];
 			} else {
-				CompilerError.throw("invalid sensor shorthand", {token: tokens[1]});
+				CompilerError.throw("invalid setprop shorthand", {token: tokens[1]});
 			}
 		},
 	}]
