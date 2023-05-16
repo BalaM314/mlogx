@@ -392,8 +392,8 @@ export const commands = processCommands({
 			args: "boost enable:boolean",
 			description: "Tells the bound unit to boost or not boost."
 		},{
-			args: "pathfind",
-			description: "Tells the bound unit to follow its normal AI."
+			args: "pathfind x:number y:number",
+			description: "Tells the bound unit to pathfind to (x,y)."
 		},{
 			args: "target x:number y:number shoot:boolean",
 			description: "Tells the bound unit to target/shoot (x,y).\nWill not shoot if the position is outside the unit's range."
