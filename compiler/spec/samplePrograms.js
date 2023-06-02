@@ -35,7 +35,7 @@ ucontrol stop
 ucontrol move 0 0
 ucontrol approach 50 50 5
 ucontrol boost true
-ucontrol pathfind
+ucontrol pathfind 20 20
 ucontrol target 50 50 true
 ucontrol targetp @unit false
 ucontrol itemDrop core 5
