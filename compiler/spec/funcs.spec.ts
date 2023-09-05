@@ -853,7 +853,7 @@ describe("arg", () => {
 });
 
 describe("processCommands", () => {
-	it("should process the commands ast", () => {
+	it("should process the commands data", () => {
 		
 		expect(processCommands({
 			"amogus": [{

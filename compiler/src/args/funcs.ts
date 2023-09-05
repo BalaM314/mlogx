@@ -97,7 +97,7 @@ export function isTokenValidForGAT(token:string, type:GAT, checkAlsoAccepts:bool
 	//Check if the string is valid for any excluded arg
 	for(const excludedArg of argKey.exclude){
 		if(!isKey(GenericArgs, excludedArg)){
-			throw new Error(`Arg AST is invalid: generic arg type ${type} specifies exclude option ${excludedArg} which is not a known generic arg type`);
+			throw new Error(`generic_args.ts data is invalid: generic arg type ${type} specifies exclude option ${excludedArg} which is not a known generic arg type`);
 		}
 		const excludedArgKey = GenericArgs.get(excludedArg)!;
 		//If it is valid, return false
@@ -108,7 +108,7 @@ export function isTokenValidForGAT(token:string, type:GAT, checkAlsoAccepts:bool
 	if(checkAlsoAccepts){
 		for(const otherType of argKey.alsoAccepts){
 			if(!isKey(GenericArgs, otherType)){
-				throw new Error(`Arg AST is invalid: generic arg type ${type} specifies alsoAccepts option ${otherType} which is not a known generic arg type`);
+				throw new Error(`generic_args.ts data is invalid: generic arg type ${type} specifies alsoAccepts option ${otherType} which is not a known generic arg type`);
 			}
 			//If the arg is valid for another accepted type, return true
 			if(isTokenValidForGAT(token, otherType, false)) return true;

@@ -5,7 +5,7 @@ The Mindustry Logic Extended Compiler(mlogx) is free software: you can redistrib
 mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License along with mlogx. If not, see <https://www.gnu.org/licenses/>.
 
-Contains two massive command ASTs.
+Contains two massive command data structs.
 */
 
 
@@ -22,7 +22,6 @@ import { PortingMode } from "../types.js";
 import { processCommands, processCompilerCommands } from "./funcs.js";
 
 
-//welcome to AST hell
 /** Contains the data for all commands.*/
 export const commands = processCommands({
 	call: [{
