@@ -6,7 +6,8 @@
 	"main": "./compiler/index.js",
 	"scripts": {
 		"test": "jasmine",
-		"build": "node scripts/build.js"
+		"build": "node scripts/build.js",
+		"start": "tsc -w"
 	},
 	"repository": {
 		"type": "git",
