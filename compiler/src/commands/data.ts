@@ -715,7 +715,47 @@ export const commands = processCommands({
 				CompilerError.throw("invalid setprop shorthand", {token: tokens[1]});
 			}
 		},
-	}]
+	}],
+	effect: [{
+		args: "effect:effectNone x:number y:number",
+		description: "Displays the effect (effect) at (x), (y).",
+		isWorldProc: true,
+		replace: ["effect %1 %2 %3 0 0 0"]
+	},{
+		args: "effect:effectData x:number y:number data:buildingType",
+		description: "Displays the effect (effect) at (x), (y) with data (data).",
+		isWorldProc: true,
+		replace: ["effect %1 %2 %3 0 0 %4"]
+	},{
+		args: "effect:effectRotate x:number y:number rotation:number",
+		description: "Displays the effect (effect) at (x), (y) with rotation (rotation).",
+		isWorldProc: true,
+		replace: ["effect %1 %2 %3 %4 0 0"]
+	},{
+		args: "effect:effectSize x:number y:number size:number",
+		description: "Displays the effect (effect) at (x), (y) with size (size).",
+		isWorldProc: true,
+		replace: ["effect %1 %2 %3 %4 0 0"]
+	},{
+		args: "effect:effectColor x:number y:number color:color",
+		description: "Displays the effect (effect) at (x), (y) with color (color).",
+		isWorldProc: true,
+		replace: ["effect %1 %2 %3 0 %4"]
+	},{
+		args: "effect:effectSizeColor x:number y:number size:number color:color",
+		description: "Displays the effect (effect) at (x), (y) with size (size) and color (color).",
+		isWorldProc: true,
+		replace: ["effect %1 %2 %3 %4 %5 0"]
+	},{
+		args: "effect:effectRotateColor x:number y:number rotation:number color:color",
+		description: "Displays the effect (effect) at (x), (y) with rotation (rotation) and color (color).",
+		isWorldProc: true,
+		replace: ["effect %1 %2 %3 %4 %5 0"]
+	},{
+		args: "effect:effect x:number y:number sizerot:number color:color data:any",
+		description: "Displays the effect (effect) at (x), (y) with size or rotation (sizerot) depending on the effect type, and color (color) and data (data).",
+		isWorldProc: true,
+	}],
 
 });
 

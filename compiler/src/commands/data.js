@@ -627,32 +627,32 @@ export const commands = processCommands({
         }],
     fetch: [
         {
-            args: "buildCount output:*number team:team type:buildingType",
+            args: "buildCount output:*number team:number type:buildingType",
             description: "Fetches (thing) and stores it in (output).",
             replace: ["fetch %1 %2 %3 0 %4"],
             isWorldProc: true
         }, {
-            args: "buildCount output:*number team:team 0 type:buildingType",
+            args: "buildCount output:*number team:number 0 type:buildingType",
             description: "Default fetch buildCount signature with extra 0. Included for compatibility.",
             isWorldProc: true
         }, {
-            args: "thing:fetchableCount output:*number team:team",
+            args: "thing:fetchableCount output:*number team:number",
             description: "Fetches (thing) for (team) and stores it in (output).",
             isWorldProc: true
         }, {
-            args: "unit output:*unit team:team n:number",
+            args: "unit output:*unit team:number n:number",
             description: "Fetches the (n)th unit on (team) and stores it in (output).",
             isWorldProc: true
         }, {
-            args: "player output:*unit team:team n:number",
+            args: "player output:*unit team:number n:number",
             description: "Fetches the (n)th player on (team) and stores it in (output).",
             isWorldProc: true
         }, {
-            args: "core output:*building team:team n:number",
+            args: "core output:*building team:number n:number",
             description: "Fetches the (n)th core on (team) and stores it in (output).",
             isWorldProc: true
         }, {
-            args: "build output:*building team:team n:number type:buildingType",
+            args: "build output:*building team:number n:number type:buildingType",
             description: "Fetches the (n)th building on (team) of type (type) and stores it in (output).",
             isWorldProc: true
         }
@@ -698,7 +698,47 @@ export const commands = processCommands({
                     CompilerError.throw("invalid setprop shorthand", { token: tokens[1] });
                 }
             },
-        }]
+        }],
+    effect: [{
+            args: "effect:effectNone x:number y:number",
+            description: "Displays the effect (effect) at (x), (y).",
+            isWorldProc: true,
+            replace: ["effect %1 %2 %3 0 0 0"]
+        }, {
+            args: "effect:effectData x:number y:number data:buildingType",
+            description: "Displays the effect (effect) at (x), (y) with data (data).",
+            isWorldProc: true,
+            replace: ["effect %1 %2 %3 0 0 %4"]
+        }, {
+            args: "effect:effectRotate x:number y:number rotation:number",
+            description: "Displays the effect (effect) at (x), (y) with rotation (rotation).",
+            isWorldProc: true,
+            replace: ["effect %1 %2 %3 %4 0 0"]
+        }, {
+            args: "effect:effectSize x:number y:number size:number",
+            description: "Displays the effect (effect) at (x), (y) with size (size).",
+            isWorldProc: true,
+            replace: ["effect %1 %2 %3 %4 0 0"]
+        }, {
+            args: "effect:effectColor x:number y:number color:color",
+            description: "Displays the effect (effect) at (x), (y) with color (color).",
+            isWorldProc: true,
+            replace: ["effect %1 %2 %3 0 %4"]
+        }, {
+            args: "effect:effectSizeColor x:number y:number size:number color:color",
+            description: "Displays the effect (effect) at (x), (y) with size (size) and color (color).",
+            isWorldProc: true,
+            replace: ["effect %1 %2 %3 %4 %5 0"]
+        }, {
+            args: "effect:effectRotateColor x:number y:number rotation:number color:color",
+            description: "Displays the effect (effect) at (x), (y) with rotation (rotation) and color (color).",
+            isWorldProc: true,
+            replace: ["effect %1 %2 %3 %4 %5 0"]
+        }, {
+            args: "effect:effect x:number y:number sizerot:number color:color data:any",
+            description: "Displays the effect (effect) at (x), (y) with size or rotation (sizerot) depending on the effect type, and color (color) and data (data).",
+            isWorldProc: true,
+        }],
 });
 export const compilerCommands = processCompilerCommands({
     '&for': {
