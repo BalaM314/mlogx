@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "mlogx",
-	"version": "2.2.4-beta",
+	"version": "2.3.0-beta",
 	"description": "MLOGX transpiler targeting Mindustry Logic.",
 	"main": "./compiler/index.js",
 	"scripts": {
