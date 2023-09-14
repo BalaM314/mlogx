@@ -82,7 +82,11 @@ fetch buildCount result @sharded 0 @conveyor
 getflag result "flag"
 setflag "flag" true
 setprop @team nucleus1 @sharded
-setprop @plastanium @unit 20`
+setprop @plastanium @unit 20
+effect warn 30 40 0 0 0
+effect smokeSquare 30 40 2 %ffaaff 0
+effect blockFall 30 40 0 0 @core-nucleus
+effect smokeColor 30 40 rotationVar colorVar 0`
     .split("\n");
 export const allMlogxCommands = `call amogus
 return
@@ -106,6 +110,9 @@ export const allShorthandCommands = [
     [`status clear shocked unit`, `status true shocked unit 0`],
     [`setprop @unit.x 30`, `setprop @x @unit 30`],
     [`setprop nucleus1[item] 9000`, `setprop item nucleus1 9000`],
+    [`effect blockFall 30 40 @core-nucleus`, `effect blockFall 30 40 0 0 @core-nucleus`],
+    [`effect placeBlockSpark 30 40 20`, `effect placeBlockSpark 30 40 20 0 0`],
+    [`effect vapor 30 40 %aaffaa`, `effect vapor 30 40 0 %aaffaa 0`],
 ];
 export const startNamespace = `namespace testname {`;
 export const namespaceTests = [
