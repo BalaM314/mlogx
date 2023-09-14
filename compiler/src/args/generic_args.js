@@ -207,4 +207,39 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             doNotGuess: true,
             description: "Accepts anything except invalid arguments."
         }],
+    ["effectNone", {
+            validator: ["warn", "cross", "spawn"],
+            doNotGuess: true,
+            description: "A logic effect with no size, rotation, color, or data."
+        }],
+    ["effectData", {
+            validator: ["blockFall"],
+            doNotGuess: true,
+            description: "A logic effect with data, but no size, rotation, or color."
+        }],
+    ["effectSize", {
+            validator: ["placeBlock", "placeBlockSpark", "breakBlock"],
+            doNotGuess: true,
+            description: "A logic effect with size, but no rotation, color, or data."
+        }],
+    ["effectSizeColor", {
+            validator: ["trail", "breakProp", "lightBlock", "crossExplosion", "wave"],
+            doNotGuess: true,
+            description: "A logic effect with size and color, but no rotation or data."
+        }],
+    ["effectColor", {
+            validator: ["smokeCloud", "vapor", "hit", "hitSquare", "spark", "sparkBig", "drill", "drillBig", "smokePuff", "sparkExplosion"],
+            doNotGuess: true,
+            description: "A logic effect with color, but no size, rotation, or data."
+        }],
+    ["effectRotate", {
+            validator: ["shootBig", "smokeSmall", "smokeBig"],
+            doNotGuess: true,
+            description: "A logic effect with color, but no size, rotation, or data."
+        }],
+    ["effectRotateColor", {
+            validator: ["shootSmall", "shootBig", "smokeColor", "smokeSquare", "smokeSquareBig", "sparkShoot", "sparkShootBig"],
+            doNotGuess: true,
+            description: "A logic effect with color, but no size, rotation, or data."
+        }],
 ]);
