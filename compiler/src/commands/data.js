@@ -723,7 +723,7 @@ export const commands = processCommands({
             args: "effect:effectColor x:number y:number color:color",
             description: "Displays the effect (effect) at (x), (y) with color (color).",
             isWorldProc: true,
-            replace: ["effect %1 %2 %3 0 %4"]
+            replace: ["effect %1 %2 %3 0 %4 0"]
         }, {
             args: "effect:effectSizeColor x:number y:number size:number color:color",
             description: "Displays the effect (effect) at (x), (y) with size (size) and color (color).",
@@ -735,7 +735,7 @@ export const commands = processCommands({
             isWorldProc: true,
             replace: ["effect %1 %2 %3 %4 %5 0"]
         }, {
-            args: "effect:effect x:number y:number sizerot:number? color:color? data:any?",
+            args: "effect:effectAny x:number y:number sizerot:number? color:color? data:any?",
             description: "Displays the effect (effect) at (x), (y) with size or rotation (sizerot) depending on the effect type, and color (color) and data (data).",
             isWorldProc: true,
         }],

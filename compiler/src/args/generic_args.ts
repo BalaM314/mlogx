@@ -272,4 +272,9 @@ export const GenericArgs = (
 		doNotGuess: true,
 		description: "A logic effect with color, but no size, rotation, or data."
 	}],
+	["effectAny", {
+		validator: ["warn", "cross", "blockFall", "placeBlock", "placeBlockSpark", "breakBlock", "spawn", "trail", "breakProp", "smokeCloud", "vapor", "hit", "hitSquare", "shootSmall", "shootBig", "smokeSmall", "smokeBig", "smokeColor", "smokeSquare", "smokeSquareBig", "spark", "sparkBig", "sparkShoot", "sparkShootBig", "drill", "drillBig", "lightBlock", "explosion", "smokePuff", "sparkExplosion", "crossExplosion", "wave", "bubble"],
+		doNotGuess: true,
+		description: "A logic effect."
+	}],
 ]);
