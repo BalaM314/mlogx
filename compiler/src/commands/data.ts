@@ -930,8 +930,7 @@ export const compilerCommands = processCompilerCommands({
 					return {
 						modifiedOutput: compiledOutput.map(line => {
 							return new Statement(
-								//TODO remove this once jump labels are valid
-								line.commandDefinitions[0] ? addNamespacesToLine(line.tokens, line.commandDefinitions[0], stack) : line.text,
+								addNamespacesToLine(line.tokens, line.commandDefinitions[0], stack),
 								line.sourceText,
 								line.cleanedSource.text,
 								line.modifiedSource.text,

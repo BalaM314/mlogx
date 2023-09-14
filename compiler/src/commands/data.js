@@ -888,7 +888,7 @@ export const compilerCommands = processCompilerCommands({
                 onpostcompile({ compiledOutput, stack }) {
                     return {
                         modifiedOutput: compiledOutput.map(line => {
-                            return new Statement(line.commandDefinitions[0] ? addNamespacesToLine(line.tokens, line.commandDefinitions[0], stack) : line.text, line.sourceText, line.cleanedSource.text, line.modifiedSource.text, line.sourceFilename, line.sourceLineNumber);
+                            return new Statement(addNamespacesToLine(line.tokens, line.commandDefinitions[0], stack), line.sourceText, line.cleanedSource.text, line.modifiedSource.text, line.sourceFilename, line.sourceLineNumber);
                         })
                     };
                 },
