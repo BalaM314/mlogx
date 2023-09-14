@@ -40,6 +40,11 @@ export const GenericArgs = (
 		alsoAccepts: ["variable", "boolean"],
 		description: "Any numeric value. Can be a regular number like 5, -3.6, or a number in exponential notation like 1e2, which means 1 times 10 ^ 2."
 	}],
+	["color", {
+		validator: /^%[0-9a-f]{6}(?:[0-9a-f]{2})?$/i,
+		alsoAccepts: ["variable", "number"],
+		description: "Represents a value that is either true or false."
+	}],
 	["string", {
 		validator: /^"(?:[^"]|(\\"))*"$/,
 		alsoAccepts: ["variable"],
