@@ -86,7 +86,8 @@ setprop @plastanium @unit 20
 effect warn 30 40 0 0 0
 effect smokeSquare 30 40 2 %ffaaff 0
 effect blockFall 30 40 0 0 @core-nucleus
-effect smokeColor 30 40 rotationVar colorVar 0`
+effect smokeColor 30 40 rotationVar colorVar 0
+sync varname`
     .split("\n");
 export const allMlogxCommands = `call amogus
 return

@@ -739,6 +739,11 @@ export const commands = processCommands({
             description: "Displays the effect (effect) at (x), (y) with size or rotation (sizerot) depending on the effect type, and color (color) and data (data).",
             isWorldProc: true,
         }],
+    sync: [{
+            args: "var:variable",
+            description: "Syncs the value of a variable from the server.",
+            isWorldProc: true,
+        }]
 });
 export const compilerCommands = processCompilerCommands({
     '&for': {
