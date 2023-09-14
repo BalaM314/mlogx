@@ -94,7 +94,7 @@ export const GenericArgs = (
 		validator: (arg:string) =>
 			arg.startsWith("@") &&
 			MindustryContent.teams.includes(arg.slice(1)),
-		alsoAccepts: ["variable"],
+		alsoAccepts: ["variable", "number"],
 		description: "Represents a team, like @sharded or @purple."
 	}],
 	["senseable", {

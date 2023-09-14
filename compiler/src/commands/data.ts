@@ -647,32 +647,32 @@ export const commands = processCommands({
 	}],
 	fetch: [
 		{
-			args: "buildCount output:*number team:number type:buildingType",
+			args: "buildCount output:*number team:team type:buildingType",
 			description: "Fetches (thing) and stores it in (output).",
 			replace: [ "fetch %1 %2 %3 0 %4" ],
 			isWorldProc: true
 		},{
-			args: "buildCount output:*number team:number 0 type:buildingType",
+			args: "buildCount output:*number team:team 0 type:buildingType",
 			description: "Default fetch buildCount signature with extra 0. Included for compatibility.",
 			isWorldProc: true
 		},{
-			args: "thing:fetchableCount output:*number team:number",
+			args: "thing:fetchableCount output:*number team:team",
 			description: "Fetches (thing) for (team) and stores it in (output).",
 			isWorldProc: true
 		},{
-			args: "unit output:*unit team:number n:number",
+			args: "unit output:*unit team:team n:number",
 			description: "Fetches the (n)th unit on (team) and stores it in (output).",
 			isWorldProc: true
 		},{
-			args: "player output:*unit team:number n:number",
+			args: "player output:*unit team:team n:number",
 			description: "Fetches the (n)th player on (team) and stores it in (output).",
 			isWorldProc: true
 		},{
-			args: "core output:*building team:number n:number",
+			args: "core output:*building team:team n:number",
 			description: "Fetches the (n)th core on (team) and stores it in (output).",
 			isWorldProc: true
 		},{
-			args: "build output:*building team:number n:number type:buildingType",
+			args: "build output:*building team:team n:number type:buildingType",
 			description: "Fetches the (n)th building on (team) of type (type) and stores it in (output).",
 			isWorldProc: true
 		}
@@ -752,7 +752,7 @@ export const commands = processCommands({
 		isWorldProc: true,
 		replace: ["effect %1 %2 %3 %4 %5 0"]
 	},{
-		args: "effect:effect x:number y:number sizerot:number color:color data:any",
+		args: "effect:effect x:number y:number sizerot:number? color:color? data:any?",
 		description: "Displays the effect (effect) at (x), (y) with size or rotation (sizerot) depending on the effect type, and color (color) and data (data).",
 		isWorldProc: true,
 	}],
