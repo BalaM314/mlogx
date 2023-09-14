@@ -82,3 +82,11 @@ export const anyLine:jasmine.ExpectedRecursive<Line> = {
 	text: jasmine.any(String),
 	sourceFilename: jasmine.any(String)
 };
+
+export function errorWith<T>(callback:() => T, errorMessage:string):T {
+	try {
+		return callback();
+	} catch(err){
+		throw new Error((err as Error).message + "\n" + errorMessage);
+	}
+}

@@ -3,14 +3,14 @@ import { addJumpLabels, compileLine, compileMlogxToMlog } from "../src/compile.j
 import { range } from "../src/funcs.js";
 import { Log } from "../src/Log.js";
 import { addLabelsTests, allMlogCommands, allMlogxCommands, allShorthandCommands, startNamespace, testPrograms } from "./samplePrograms.js";
-import { makeForEl, makeIfEl, makeLine, makeNamespaceEl, anyLine, makeCompileLineInput, stateForFilename } from "./test_utils.js";
+import { makeForEl, makeIfEl, makeLine, makeNamespaceEl, anyLine, makeCompileLineInput, stateForFilename, errorWith } from "./test_utils.js";
 describe("compileLine", () => {
     beforeAll(() => {
         Log.throwWarnAndErr = true;
     });
     it("should not change any mlog commands", () => {
         for (const line of allMlogCommands) {
-            expect(compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line.text)).toEqual([line]);
+            expect(errorWith(() => compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line.text), `Line ${line}`)).toEqual([line]);
         }
     });
     it("should mark all mlogx commands as valid", () => {
@@ -96,7 +96,7 @@ describe("compileLine", () => {
 describe("compileMlogxToMlog", () => {
     it("should not change any mlog commands", () => {
         for (const line of allMlogCommands) {
-            expect(compileMlogxToMlog([line], stateForFilename("sample1.mlogx")).outputProgram.map(line => line.text)).toEqual([line]);
+            expect(errorWith(() => compileMlogxToMlog([line], stateForFilename("sample1.mlogx")).outputProgram.map(line => line.text), `Line ${line}`)).toEqual([line]);
         }
     });
     it("should mark all mlogx commands as valid", () => {

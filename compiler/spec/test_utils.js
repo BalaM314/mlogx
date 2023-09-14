@@ -62,3 +62,11 @@ export const anyLine = {
     text: jasmine.any(String),
     sourceFilename: jasmine.any(String)
 };
+export function errorWith(callback, errorMessage) {
+    try {
+        return callback();
+    }
+    catch (err) {
+        throw new Error(err.message + "\n" + errorMessage);
+    }
+}

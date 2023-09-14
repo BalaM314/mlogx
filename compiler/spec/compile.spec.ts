@@ -16,11 +16,13 @@ import { range } from "../src/funcs.js";
 import { Log } from "../src/Log.js";
 import { StackElement, ForStackElement } from "../src/stack_elements.js";
 import {
-	addLabelsTests,
-	allMlogCommands, allMlogxCommands, allShorthandCommands, namespaceTests, startNamespace,
+	addLabelsTests, allMlogCommands, allMlogxCommands, allShorthandCommands, startNamespace,
 	testPrograms
 } from "./samplePrograms.js";
-import { makeForEl, makeIfEl, makeLine, makeNamespaceEl, anyLine, makeCompileLineInput, stateForFilename } from "./test_utils.js";
+import {
+	makeForEl, makeIfEl, makeLine, makeNamespaceEl, anyLine, makeCompileLineInput, stateForFilename,
+	errorWith
+} from "./test_utils.js";
 
 
 
@@ -30,9 +32,9 @@ describe("compileLine", () => {
 	});
 	it("should not change any mlog commands", () => {
 		for (const line of allMlogCommands) {
-			expect(
+			expect(errorWith(() =>
 				compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line.text)
-			).toEqual([line]);
+			, `Line ${line}`)).toEqual([line]);
 		}
 	});
 
@@ -169,11 +171,11 @@ describe("compileLine", () => {
 describe("compileMlogxToMlog", () => {
 	it("should not change any mlog commands", () => {
 		for(const line of allMlogCommands){
-			expect(
+			expect(errorWith(() =>
 				compileMlogxToMlog([line],
 					stateForFilename("sample1.mlogx")
 				).outputProgram.map(line => line.text)
-			).toEqual([line]);
+			, `Line ${line}`)). toEqual([line]);
 		}
 	});
 
