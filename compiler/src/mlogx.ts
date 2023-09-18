@@ -289,7 +289,13 @@ mlogx.command("port", "Ports MLOG code.", (opts) => {
 		return 1;
 	}
 	const program = fs.readFileSync(sourcePath, "utf-8").split(/\r?\n/g);
-	const portedProgram = portCode(program, PortingMode.shortenSyntax);
+	const mode = (arg => {switch(arg.toLowerCase()){ //match() please... https://github.com/tc39/proposal-pattern-matching
+		case "r": case "1": case "rm": case "rm0": case "removezero": case "removezeroes": case "removezeros": return PortingMode.removeZeroes;
+		case "s": case "2": case "sh": case "short": case "shorten": case "shortensyntax": return PortingMode.shortenSyntax;
+		case "m": case "3": case "modern": case "max": case "modernSyntax": return PortingMode.modernSyntax;
+		default: throw new Error(`Invalid porting mode ${arg}`);
+	}})(opts.namedArgs.mode);
+	const portedProgram = portCode(program, mode);
 	fs.writeFileSync(outputPath, portedProgram.join("\r\n"), "utf-8");
 	Log.printMessage("port successful", {filename: sourcePath});
 	return 0;
@@ -298,6 +304,11 @@ mlogx.command("port", "Ports MLOG code.", (opts) => {
 		output: {
 			description: "Output file path",
 			aliases: ["out", "o"]
+		},
+		mode: {
+			description: "Porting mode to be used. removeZeroes to just removes trailing zeroes. shortenSyntax to switch to syntax with improved argument order. modernSyntax to switch to the modern op syntax (op add x 5 5 => set x 5 + 5).",
+			default: "shortenSyntax",
+			aliases: ["m", "pm", "portingMode"],
 		}
 	},
 	positionalArgs: [{

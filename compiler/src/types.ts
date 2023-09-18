@@ -35,7 +35,7 @@ export enum PortingMode {
 	removeZeroes,
 	/** Goes to syntax with improved argument order. */
 	shortenSyntax,
-	/** Switches to the modern op syntax. Not yet implemented. */
+	/** Switches to the modern op syntax. */
 	modernSyntax
 }
 
