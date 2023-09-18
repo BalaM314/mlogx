@@ -600,7 +600,8 @@ export const commands = processCommands({
 		},{
 			args: "rule:ruleTeam team:team value:number",
 			description: "Sets (rule) to (value) for (team), with better argument order",
-			isWorldProc: true
+			isWorldProc: true,
+			replace: ["setrule %1 %3 %2"]
 		},{
 			args: "mapArea x:number y:number width:number height:number",
 			description: "Sets the map area.",
