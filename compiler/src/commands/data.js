@@ -1,6 +1,6 @@
 import { GenericArgs, guessTokenType } from "../args.js";
 import { CompilerError, Statement } from "../classes.js";
-import { maxLoops, MindustryContent, shortOperandMappings } from "../consts.js";
+import { maxLoops, MindustryContent, shortOperandMappings, shortOperandMappingsReversed } from "../consts.js";
 import { Log } from "../Log.js";
 import { addNamespacesToLine, impossible, interpolateString, isKey, range, replaceCompilerConstants, splitLineIntoTokens } from "../funcs.js";
 import { hasDisabledIf, hasElement, topForLoop } from "../stack_elements.js";
@@ -267,10 +267,10 @@ export const commands = processCommands({
             args: "operand:operandDouble output:*number arg1:number arg2:number",
             description: "Sets (output) to (arg1) (operand) (arg2).",
             port(tokens, mode) {
-                if (mode >= PortingMode.shortenSyntax) {
-                    if (tokens[2] == tokens[3])
-                        return `op ${tokens[1]} ${tokens[2]} ${tokens[4]}`;
-                }
+                if (mode >= PortingMode.modernSyntax && tokens[1] in shortOperandMappingsReversed.double)
+                    return `set ${tokens[2]} ${tokens[3]} ${shortOperandMappingsReversed.double[tokens[1]]} ${tokens[4]}`;
+                if (mode >= PortingMode.shortenSyntax && tokens[2] == tokens[3])
+                    return `op ${tokens[1]} ${tokens[2]} ${tokens[4]}`;
                 return tokens.join(" ");
             },
         }, {
@@ -331,16 +331,14 @@ export const commands = processCommands({
         }, {
             args: "jumpAddress:jumpAddress operand:operandTest var1:any var2:any",
             description: "Jumps to (jumpAddress) if (var1) (operand) (var2).",
-            port(tokens, mode) {
-                if (mode >= PortingMode.shortenSyntax) {
-                    if (tokens[2] == "always")
-                        return `jump ${tokens[1]}`;
-                }
-                else if (mode >= PortingMode.removeZeroes) {
-                    if (tokens[2] == "always")
-                        return `jump ${tokens[1]} always`;
-                }
-                return tokens.join(" ");
+            port([, addr, op, arg1, arg2], mode) {
+                if (mode >= PortingMode.shortenSyntax && op == "always")
+                    return `jump ${addr}`;
+                if (mode >= PortingMode.removeZeroes && op == "always")
+                    return `jump ${addr} always`;
+                if (mode >= PortingMode.modernSyntax && op in shortOperandMappingsReversed.test)
+                    return `jump ${addr} ${arg1} ${shortOperandMappingsReversed.test[op]} ${arg2}`;
+                return `jump ${addr} ${op} ${arg1} ${arg2}`;
             },
         }, {
             args: "jumpAddress:jumpAddress",
