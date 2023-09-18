@@ -488,6 +488,9 @@ export function flattenObject(object, parentName, output = {}) {
     }
     return output;
 }
+export function reverseObject(obj) {
+    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k]));
+}
 export function range(min, max, strings) {
     if (min > max)
         return [];

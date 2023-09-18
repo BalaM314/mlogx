@@ -10,6 +10,7 @@ Contains various constants.
 
 import { Log } from "./Log.js";
 import type { ArgType, GAT } from "./args.js";
+import { reverseObject } from "./funcs.js";
 import type { Line } from "./types.js";
 
 export const compilerMark = [
@@ -89,6 +90,10 @@ export const shortOperandMappings: {
 		"<=": "lessThanEq",
 		">=": "greaterThanEq",
 	}
+};
+export const shortOperandMappingsReversed = {
+	double: reverseObject(shortOperandMappings.double),
+	test: reverseObject(shortOperandMappings.test),
 };
 
 /**Brought to you by #id-s in the Mindustry Logic discord server */

@@ -665,6 +665,10 @@ export function flattenObject<T extends Record<string, unknown>>(
 	return output;
 }
 
+export function reverseObject<K extends PropertyKey, V extends PropertyKey>(obj:Record<K, V>){
+	return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k] as const));
+}
+
 /**Returns a list of numbers within two bounds inclusive */
 export function range(min:number, max:number):number[];
 export function range(min:number, max:number, strings:true):string[];
