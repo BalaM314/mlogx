@@ -186,10 +186,20 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             doNotGuess: true,
             description: "Anything that is setblockable."
         }],
-    ["rule", {
-            validator: ["currentWaveTimer", "waveTimer", "waves", "wave", "waveSpacing", "waveSending", "attackMode", "enemyCoreBuildRadius", "dropZoneRadius", "unitCap", "lighting", "ambientLight", "solarMultiplier", "buildSpeed", "unitBuildSpeed", "unitCost", "unitDamage", "blockHealth", "blockDamage", "rtsMinWeight", "rtsMinSquad"],
+    ["ruleAny", {
+            validator: ["currentWaveTimer", "waveTimer", "waves", "wave", "waveSpacing", "waveSending", "attackMode", "enemyCoreBuildRadius", "dropZoneRadius", "unitCap", "lighting", "ambientLight", "solarMultiplier", "buildSpeed", "unitBuildSpeed", "unitCost", "unitDamage", "blockHealth", "blockDamage", "rtsMinWeight", "rtsMinSquad", "mapArea"],
             doNotGuess: true,
-            description: "A rule that can be set with setrule, except mapArea."
+            description: "A rule that can be set with setrule."
+        }],
+    ["ruleNormal", {
+            validator: ["currentWaveTimer", "waveTimer", "waves", "wave", "waveSpacing", "waveSending", "attackMode", "enemyCoreBuildRadius", "dropZoneRadius", "unitCap", "lighting", "ambientLight", "solarMultiplier"],
+            doNotGuess: true,
+            description: "A normal rule that can be set with setrule."
+        }],
+    ["ruleTeam", {
+            validator: ["buildSpeed", "unitBuildSpeed", "unitCost", "unitDamage", "blockHealth", "blockDamage", "rtsMinWeight", "rtsMinSquad"],
+            doNotGuess: true,
+            description: "A team-specific rule that can be set with setrule."
         }],
     ["fetchableCount", {
             validator: ["unitCount", "playerCount", "coreCount"],
@@ -235,12 +245,12 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
     ["effectRotate", {
             validator: ["shootBig", "smokeSmall", "smokeBig"],
             doNotGuess: true,
-            description: "A logic effect with color, but no size, rotation, or data."
+            description: "A logic effect with rotation, but no size, color, or data."
         }],
     ["effectRotateColor", {
             validator: ["shootSmall", "shootBig", "smokeColor", "smokeSquare", "smokeSquareBig", "sparkShoot", "sparkShootBig"],
             doNotGuess: true,
-            description: "A logic effect with color, but no size, rotation, or data."
+            description: "A logic effect with rotation and color, but no size, or data."
         }],
     ["effectAny", {
             validator: ["warn", "cross", "blockFall", "placeBlock", "placeBlockSpark", "breakBlock", "spawn", "trail", "breakProp", "smokeCloud", "vapor", "hit", "hitSquare", "shootSmall", "shootBig", "smokeSmall", "smokeBig", "smokeColor", "smokeSquare", "smokeSquareBig", "spark", "sparkBig", "sparkShoot", "sparkShootBig", "drill", "drillBig", "lightBlock", "explosion", "smokePuff", "sparkExplosion", "crossExplosion", "wave", "bubble"],

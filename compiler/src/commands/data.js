@@ -572,13 +572,26 @@ export const commands = processCommands({
         }],
     setrule: [
         {
-            args: "rule:rule value:number",
+            args: "rule:ruleNormal value:number",
             description: "Sets (rule) to (value).",
+            isWorldProc: true
+        }, {
+            args: "rule:ruleTeam value:number team:team",
+            description: "Sets (rule) to (value) for (team).",
+            isWorldProc: true
+        }, {
+            args: "rule:ruleTeam team:team value:number",
+            description: "Sets (rule) to (value) for (team), with better argument order",
             isWorldProc: true
         }, {
             args: "mapArea x:number y:number width:number height:number",
             description: "Sets the map area.",
-            isWorldProc: true
+            isWorldProc: true,
+            replace: ["setrule %1 0 %2 %3 %4 %5"]
+        }, {
+            args: "rule:ruleAny value:number xOrTeam:any y:number width:number height:number",
+            description: "Default setrule signature. Bad.",
+            isWorldProc: true,
         },
     ],
     message: [

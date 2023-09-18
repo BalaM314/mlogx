@@ -65,7 +65,11 @@ spawn @dagger 10 10 90 @sharded output
 status false tarred unit 10
 status true shocked unit 10
 spawnwave 10 10 false
-setrule unitBuildSpeed 10
+setrule waveSpacing 60
+setrule unitCap 70
+setrule unitBuildSpeed 1.1 @sharded
+setrule blockHealth 0.2 @sharded
+setrule mapArea 0 10 10 380 380
 message announce 3
 message notify
 message mission
@@ -109,6 +113,8 @@ export const allShorthandCommands = [
     [`set thing :unit null`, `set thing null`],
     [`status apply tarred unit 10`, `status false tarred unit 10`],
     [`status clear shocked unit`, `status true shocked unit 0`],
+    [`setrule unitBuildSpeed @crux 1.1`, `setrule unitBuildSpeed 1.1 @crux`],
+    [`setrule mapArea 10 10 380 380`, `setrule mapArea 0 10 10 380 380`],
     [`setprop @unit.x 30`, `setprop @x @unit 30`],
     [`setprop nucleus1[item] 9000`, `setprop item nucleus1 9000`],
     [`effect blockFall 30 40 @core-nucleus`, `effect blockFall 30 40 0 0 @core-nucleus`],
