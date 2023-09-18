@@ -1,4 +1,3 @@
-import { reverseObject } from "./funcs.js";
 export const compilerMark = [
     `print "Made with mlogx"`,
     `print "github.com/BalaM314/mlogx/"`
@@ -58,8 +57,8 @@ export const shortOperandMappings = {
     }
 };
 export const shortOperandMappingsReversed = {
-    double: reverseObject(shortOperandMappings.double),
-    test: reverseObject(shortOperandMappings.test),
+    double: Object.fromEntries(Object.entries(shortOperandMappings.double).map(([k, v]) => [v, k])),
+    test: Object.fromEntries(Object.entries(shortOperandMappings.test).map(([k, v]) => [v, k])),
 };
 export const MindustryContent = {
     items: ["copper", "lead", "metaglass", "graphite", "sand", "coal", "titanium", "thorium", "scrap", "silicon", "plastanium", "phase-fabric", "surge-alloy", "spore-pod", "blast-compound", "pyratite", "beryllium", "fissile-matter", "dormant-cyst", "tungsten", "carbide", "oxide"],
