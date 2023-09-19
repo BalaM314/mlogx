@@ -8,7 +8,7 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains tests related to compilation.
 */
 
-
+//TODO specs for portings
 
 import { compilerCommands } from "../src/commands.js";
 import { addJumpLabels, compileLine, compileMlogxToMlog } from "../src/compile.js";
