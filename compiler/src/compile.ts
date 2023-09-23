@@ -492,13 +492,14 @@ export function addJumpLabels(code:string[]):string[] {
 }
 
 export function portCode(program:string[], mode:PortingMode):string[] {
-	return program.map((line, index) => {
-
+	const output:string[] = [];
+	for(const [index, line] of program.entries()){
 		const cleanedLine:Line = {
 			text: cleanLine(line),
 			lineNumber: index + 1,
-			sourceFilename: "unknown.mlogx"
+			sourceFilename: "unknown.mlogx" //TODO obtain
 		};
+		if(cleanedLine.text == "") continue;
 		const leadingTabsOrSpaces = line.match(/^[ \t]*/) ?? "";
 		const comment = line.match(/#.*$/) ?? "";
 		let commandDefinition = getCommandDefinition(cleanedLine.text);
@@ -513,9 +514,10 @@ export function portCode(program:string[], mode:PortingMode):string[] {
 		if(commandDefinition == null){
 			Log.printMessage("cannot port invalid line", {line: cleanedLine});
 		} else if(commandDefinition.port) {
-			return leadingTabsOrSpaces + commandDefinition.port(tokens, mode) + comment;
+			output.push(leadingTabsOrSpaces + commandDefinition.port(tokens, mode) + comment);
 		}
-		return leadingTabsOrSpaces + tokens.join(" ") + comment;
-	});
+		output.push(leadingTabsOrSpaces + tokens.join(" ") + comment);
+	}
+	return output;
 }
 
