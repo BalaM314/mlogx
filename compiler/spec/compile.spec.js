@@ -1,8 +1,8 @@
 import { compilerCommands } from "../src/commands.js";
-import { addJumpLabels, compileLine, compileMlogxToMlog } from "../src/compile.js";
+import { addJumpLabels, compileLine, compileMlogxToMlog, portCode } from "../src/compile.js";
 import { range } from "../src/funcs.js";
 import { Log } from "../src/Log.js";
-import { addLabelsTests, allMlogCommands, allMlogxCommands, allShorthandCommands, startNamespace, testPrograms } from "./samplePrograms.js";
+import { addLabelsTests, allMlogCommands, allMlogxCommands, allShorthandCommands, startNamespace, testPrograms, testPortPrograms } from "./samplePrograms.js";
 import { makeForEl, makeIfEl, makeLine, makeNamespaceEl, anyLine, makeCompileLineInput, stateForFilename, errorWith } from "./test_utils.js";
 describe("compileLine", () => {
     beforeAll(() => {
@@ -114,6 +114,13 @@ describe("addJumpLabels", () => {
     for (const program of Object.values(addLabelsTests)) {
         it(program.message, () => {
             expect(addJumpLabels(program.source)).toEqual(program.expectedOutput);
+        });
+    }
+});
+describe("porting", () => {
+    for (const [name, program] of Object.entries(testPortPrograms)) {
+        it(`should compile ${name} with expected output`, () => {
+            expect(portCode(program.program, program.mode)).toEqual(program.expectedOutput);
         });
     }
 });

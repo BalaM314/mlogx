@@ -11,6 +11,7 @@ Contains sample programs and other data used for tests.
 
 import { Settings } from "../src/settings.js";
 import { StackElement } from "../src/stack_elements.js";
+import { PortingMode } from "../src/types.js";
 import { makeNamespaceEl } from "./test_utils.js";
 
 export const allMlogCommands:string[] =`\
@@ -150,6 +151,30 @@ export const namespaceTests: [input:string, stack:StackElement[], output:string]
 	[`radar enemy distance scatter1 0 unit`, [makeNamespaceEl("nametest")], `radar enemy any any distance scatter1 0 _nametest_unit`],
 	[`radar enemy distance scatter1 0 unit`, [makeNamespaceEl("nametest"), makeNamespaceEl("othername")], `radar enemy any any distance scatter1 0 _nametest_othername_unit`],
 ];
+
+export const testPortPrograms: {
+	[index: string]: {
+		program: string[];
+		expectedOutput: string[];
+		mode: PortingMode;
+	};
+} = {
+	emptyProgram: {
+		program: [],
+		expectedOutput: [],
+		mode: PortingMode.modernSyntax,
+	},
+	mostlyEmptyProgram: {
+		program: [
+			``,
+			``,
+			` `,
+			`\t \t`
+		],
+		expectedOutput: [],
+		mode: PortingMode.modernSyntax,
+	},
+};
 
 export const testPrograms: {
 	[index: string]: {

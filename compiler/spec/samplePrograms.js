@@ -1,3 +1,4 @@
+import { PortingMode } from "../src/types.js";
 import { makeNamespaceEl } from "./test_utils.js";
 export const allMlogCommands = `\
 read result cell1 0
@@ -128,6 +129,23 @@ export const namespaceTests = [
     [`radar enemy distance scatter1 0 unit`, [makeNamespaceEl("nametest")], `radar enemy any any distance scatter1 0 _nametest_unit`],
     [`radar enemy distance scatter1 0 unit`, [makeNamespaceEl("nametest"), makeNamespaceEl("othername")], `radar enemy any any distance scatter1 0 _nametest_othername_unit`],
 ];
+export const testPortPrograms = {
+    emptyProgram: {
+        program: [],
+        expectedOutput: [],
+        mode: PortingMode.modernSyntax,
+    },
+    mostlyEmptyProgram: {
+        program: [
+            ``,
+            ``,
+            ` `,
+            `\t \t`
+        ],
+        expectedOutput: [],
+        mode: PortingMode.modernSyntax,
+    },
+};
 export const testPrograms = {
     emptyProgram: {
         program: [],
