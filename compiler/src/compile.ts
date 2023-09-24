@@ -511,12 +511,16 @@ export function portCode(program:string[], mode:PortingMode):string[] {
 			cleanedLine.text = tokens.join(" ");
 			commandDefinition = getCommandDefinition(cleanedLine.text);
 		}
+		let rawLine;
 		if(commandDefinition == null){
 			Log.printMessage("cannot port invalid line", {line: cleanedLine});
+			rawLine = tokens.join(" ");
 		} else if(commandDefinition.port) {
-			output.push(leadingTabsOrSpaces + commandDefinition.port(tokens, mode) + comment);
+			rawLine = commandDefinition.port(tokens, mode);
+		} else {
+			rawLine = tokens.join(" ");
 		}
-		output.push(leadingTabsOrSpaces + tokens.join(" ") + comment);
+		output.push(leadingTabsOrSpaces + rawLine + comment);
 	}
 	return output;
 }
