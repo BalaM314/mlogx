@@ -91,7 +91,7 @@ export function compileDirectory(directory:string, stdlibPath:string, icons:Map<
 		}
 		//Write .mlog files to output
 		fs.writeFileSync(
-			path.join(outputDirectory, filename.replace(/\.mlogx$/, ".mlog")),
+			path.join(outputDirectory, filename.replace(/\.mlogx$/, ".mlog")), //this is safe because only files ending in .mlogx are on the list
 			outputData.join("\r\n")
 		);
 		if(globalState.compilerOptions.mode == "project"){
@@ -195,7 +195,10 @@ export function compileFile(name:string, icons:Map<string, string>, options:Opti
 		return;
 	}
 
-	fs.writeFileSync(name.slice(0, -1), outputData.join("\r\n"));
+	let outputFileName;
+	if(name.match(/\.mlogx$/)) outputFileName = name.slice(0, -1);
+	else outputFileName = name + ".out";
+	fs.writeFileSync(outputFileName, outputData.join("\r\n"));
 }
 
 export async function createProject(name:string|undefined){

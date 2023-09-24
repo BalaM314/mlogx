@@ -137,7 +137,12 @@ export function compileFile(name, icons, options) {
         }
         return;
     }
-    fs.writeFileSync(name.slice(0, -1), outputData.join("\r\n"));
+    let outputFileName;
+    if (name.match(/\.mlogx$/))
+        outputFileName = name.slice(0, -1);
+    else
+        outputFileName = name + ".out";
+    fs.writeFileSync(outputFileName, outputData.join("\r\n"));
 }
 export async function createProject(name) {
     if (!name) {
