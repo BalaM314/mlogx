@@ -489,6 +489,15 @@ export const commands = processCommands({
 						case "damaged":
 							return `ulocate damaged ${tokens[5]} ${tokens[6]} ${tokens[7]} ${tokens[8]}`;
 						case "building":
+							if(tokens[5] == `${tokens[8]}.x` && tokens[6] == `${tokens[8]}.y` && (tokens[7] == `${tokens[2]}.found` || ["_", "0"].includes(tokens[7]))){
+								if(tokens[8] == "core") {
+									if(tokens[3] == "false") return `ulocate core`;
+									else return `ulocate core ${tokens[3]}`;
+								} else {
+									if(tokens[3] == "false") return `ulocate building ${tokens[2]} ${tokens[8]}`;
+									else return `ulocate building ${tokens[2]} ${tokens[8]} ${tokens[3]}`;
+								}
+							}
 							return `ulocate building ${tokens[2]} ${tokens[3]} ${tokens[5]} ${tokens[6]} ${tokens[7]} ${tokens[8]}`;
 						default:
 							Log.printMessage("statement port failed", {
