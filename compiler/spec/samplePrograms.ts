@@ -264,6 +264,29 @@ export const testPortPrograms: {
 		],
 		mode: PortingMode.shortenSyntax,
 	},
+	modernSyntax: {
+		program: [
+			`print "oo fancy"`,
+			`set x false`,
+			`jump label always x false`,
+			`jump label greaterThanEq x 2`,
+			`op add y 2 2`,
+			`op abs y y 0`,
+			`op idiv z y 30`,
+			`setrule unitBuildSpeed 1.2 @sharded 0 0 0`
+		],
+		expectedOutput: [
+			`print "oo fancy"`,
+			`set x false`,
+			`jump label`,
+			`jump label x >= 2`,
+			`set y 2 + 2`,
+			`op abs y`,
+			`set z y // 30`,
+			`setrule unitBuildSpeed @sharded 1.2`
+		],
+		mode: PortingMode.modernSyntax,
+	},
 };
 
 export const testPrograms: {
