@@ -620,7 +620,7 @@ export const commands = processCommands({
 			args: "rule:ruleAny value:number xOrTeam:any y:number width:number height:number",
 			description: "Default setrule signature. Bad.",
 			isWorldProc: true,
-			port([rule, value, xOrTeam, y, w, h], mode){
+			port([, rule, value, xOrTeam, y, w, h], mode){
 				if(rule == "mapArea" && mode >= PortingMode.removeZeroes){
 					return `setrule mapArea ${xOrTeam} ${y} ${w} ${h}`;
 				} else if((GenericArgs.get("ruleTeam")!.validator as string[]).includes(rule) && mode >= PortingMode.removeZeroes){
