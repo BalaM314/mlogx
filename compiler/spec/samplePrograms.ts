@@ -282,7 +282,7 @@ export const testPortPrograms: {
 			`jump label x >= 2`,
 			`set y 2 + 2`,
 			`op abs y`,
-			`set z y // 30`,
+			`set z y \\ 30`,
 			`setrule unitBuildSpeed @sharded 1.2`
 		],
 		mode: PortingMode.modernSyntax,

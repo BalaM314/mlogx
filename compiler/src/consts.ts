@@ -61,7 +61,7 @@ export const shortOperandMappings: {
 		"-": "sub",
 		"*": "mul",
 		"/": "div",
-		"//": "idiv",
+		"\\": "idiv",
 		"**": "pow",
 		"~=": "equal",
 		"==": "strictEqual",
