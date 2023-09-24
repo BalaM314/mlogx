@@ -145,6 +145,47 @@ export const testPortPrograms = {
         expectedOutput: [],
         mode: PortingMode.modernSyntax,
     },
+    verySimpleNoChanges: {
+        program: [
+            `print "amogus"`,
+        ],
+        expectedOutput: [
+            `print "amogus"`,
+        ],
+        mode: PortingMode.modernSyntax,
+    },
+    simpleNoChanges: {
+        program: [
+            `print "amogus"`,
+            `printflush message1`,
+            `set x false`,
+            `read value cell1 7`,
+        ],
+        expectedOutput: [
+            `print "amogus"`,
+            `printflush message1`,
+            `set x false`,
+            `read value cell1 7`,
+        ],
+        mode: PortingMode.modernSyntax,
+    },
+    removeZeroes: {
+        program: [
+            `draw clear 0 0 0`,
+            `draw clear 0 0 0 0`,
+            `draw clear 0 0 0 0 0 0`,
+            `draw linePoly 50 50 6 30 10`,
+            `jump label always x false`,
+        ],
+        expectedOutput: [
+            `draw clear 0 0 0`,
+            `draw clear 0 0 0`,
+            `draw clear 0 0 0`,
+            `draw linePoly 50 50 6 30 10`,
+            `jump label always`,
+        ],
+        mode: PortingMode.removeZeroes,
+    },
 };
 export const testPrograms = {
     emptyProgram: {
