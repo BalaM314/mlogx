@@ -577,11 +577,23 @@ export const commands = processCommands({
             isWorldProc: true
         }
     ],
-    spawnwave: [{
+    spawnwave: [
+        {
             args: "x:number y:number natural:boolean",
-            description: "Spawns a wave at (x,y).",
+            description: "Spawns a wave at (x,y). If natural is true, triggers a normal wave and ignores the coordinates given.",
             isWorldProc: true
-        }],
+        }, {
+            args: "x:number y:number",
+            description: "Spawns a wave at (x,y).",
+            isWorldProc: true,
+            replace: ["spawnwave %1 %2 false"]
+        }, {
+            args: "natural",
+            description: "Spawns a natural wave.",
+            isWorldProc: true,
+            replace: ["spawnwave 0 0 true"]
+        }
+    ],
     setrule: [
         {
             args: "rule:ruleNormal value:number",
