@@ -151,15 +151,16 @@ export async function createProject(name) {
     if (process.cwd().split(path.sep).at(-1)?.toLowerCase() == name.toLowerCase()) {
         name = ".";
     }
-    if (fs.existsSync(path.join(process.cwd(), name))) {
-        throw new Error(`Directory ${name} already exists.`);
+    if (fs.existsSync(path.join(process.cwd(), name, "config.json"))) {
+        throw new Error(`Directory ${name} already has a config.json file.`);
     }
     if (/[./\\]/.test(name) && name != ".") {
         throw new Error(`Name ${name} contains invalid characters.`);
     }
     const authors = (await askQuestion("Authors: ")).split(" ");
     const isSingleFiles = await askQuestion("Single files [y/n]:");
-    fs.mkdirSync(path.join(process.cwd(), name));
+    if (!fs.existsSync(path.join(process.cwd(), name)))
+        fs.mkdirSync(path.join(process.cwd(), name));
     if (!isSingleFiles)
         fs.mkdirSync(path.join(process.cwd(), name, "src"));
     fs.writeFileSync(path.join(process.cwd(), name, "config.json"), JSON.stringify(settingsSchema.validateSync({
