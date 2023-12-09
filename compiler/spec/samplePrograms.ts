@@ -124,6 +124,11 @@ export const allShorthandCommands: [input:string, output:string][] = [
 	[`sensor unit.x`, `sensor unit.x @unit @x`], //deprecated
 	[`op abs xDiff`, `op abs xDiff xDiff 0`],
 	[`op add x 1`, `op add x x 1`],
+	[`set x 5 + 4`, `op add x 5 4`],
+	[`set x 5 % 4`, `op mod x 5 4`],
+	[`set x 5 ** 4`, `op pow x 5 4`],
+	[`set x 5 \\ 4`, `op idiv x 5 4`],
+	[`set x abs 5`, `op abs x 5 0`],
 	[`ulocate ore @copper ore.x ore.y ore.found`, `ulocate ore core _ @copper ore.x ore.y ore.found _`],
 	[`ulocate spawn spawn.x spawn.y spawn.found`, `ulocate spawn core _ _ spawn.x spawn.y spawn.found _`],
 	[`ulocate damaged damaged.x damaged.y damaged.found damaged`, `ulocate damaged core _ _ damaged.x damaged.y damaged.found damaged`],
