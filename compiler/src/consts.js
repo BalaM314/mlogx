@@ -28,6 +28,7 @@ export const shortOperandMappings = {
         "*": "mul",
         "/": "div",
         "\\": "idiv",
+        "%": "mod",
         "**": "pow",
         "~=": "equal",
         "==": "strictEqual",
