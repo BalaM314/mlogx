@@ -49,8 +49,9 @@ describe("compileLine", () => {
 	it("should process all shorthands", () => {
 		for(const [input, output] of allShorthandCommands){
 			expect(
-				compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line.text)
-			).toEqual([output]);
+				compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, [])
+					.compiledCode.map(line => line.text).join("\n")
+			).toEqual(output);
 		}
 	});
 
@@ -194,8 +195,8 @@ describe("compileMlogxToMlog", () => {
 			expect(
 				compileMlogxToMlog([input],
 					stateForFilename("sample3.mlogx")
-				).outputProgram.map(line => line.text)
-			).toEqual([output]);
+				).outputProgram.map(line => line.text).join("\n")
+			).toEqual(output);
 		}
 	});
 });

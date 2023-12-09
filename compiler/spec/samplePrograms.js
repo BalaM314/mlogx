@@ -126,6 +126,11 @@ export const allShorthandCommands = [
     [`effect blockFall 30 40 @core-nucleus`, `effect blockFall 30 40 0 0 @core-nucleus`],
     [`effect placeBlockSpark 30 40 20`, `effect placeBlockSpark 30 40 20 0 0`],
     [`effect vapor 30 40 %aaffaa`, `effect vapor 30 40 0 %aaffaa 0`],
+    [`printf "amogus"`, `print "amogus"`],
+    [`printf "amogus {x}"`, `print "amogus "\nprint x`],
+    [`printf "amogus {x} sus"`, `print "amogus "\nprint x\nprint " sus"`],
+    [`printf "amogus {x}{y} sus"`, `print "amogus "\nprint x\nprint y\nprint " sus"`],
+    [`println "amogus"`, `println "amogus\n"`],
 ];
 export const startNamespace = `namespace testname {`;
 export const namespaceTests = [
