@@ -261,6 +261,10 @@ export const commands = processCommands({
 			args: "variable:*number arg1:number operand:sOperandDouble arg2:number",
 			description: "Alternative syntax for the op statement: sets (variable) to (arg1) (operand) (arg2). Example: set reactor.tooHot reactor.heat => 0.1 will compile to op greaterThanEq reactor.tooHot reactor.heat 0.1",
 			replace: (tokens) => [`op ${shortOperandMappings.double[tokens[3]]} ${tokens[1]} ${tokens[2]} ${tokens[4]}`]
+		},{
+			args: "variable:*number operand:operandSingle arg:number",
+			description: "Alternative syntax for the op statement: sets (variable) to (operand) (arg). Example: set sqrt_x sqrt x will compile to op sqrt sqrt_x x 0",
+			replace: [ "op %2 %1 %3 0" ]
 		}
 	],
 	op: [
