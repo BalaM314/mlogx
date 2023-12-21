@@ -101,6 +101,10 @@ async function print(message) {
 }
 async function main(argv) {
     process.chdir(path.join(fileURLToPath(import.meta.url), "..", ".."));
+    if (argv[2] == "--help" || argv[2] == "help" || argv[2] == "-h" || argv[2] == "h" || argv[2] == "-?") {
+        print("Usage: (build) version=<version> [--publish]\n <version>\teg 2.3.0\n --publish\tpublishes to NPM registry with npm publish\n\n");
+        return;
+    }
     let version = process.argv.find(arg => arg.match(/version=(\d\.\d\.\d)/))?.match(/version=(\d\.\d\.\d)/)[1];
     print(version ? `\nBuilding MLOGX v${version}\n` : "\nBuilding MLOGX\n");
     print("Cleaning build directory...");
