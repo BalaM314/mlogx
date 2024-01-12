@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { GenericArgs } from "./args.js";
-import { extend, formatLineWithPrefix, isKey } from "./funcs.js";
-export const logLevels = extend()({
+import { formatLineWithPrefix, isKey } from "./funcs.js";
+export const logLevels = {
     "debug": [chalk.gray, "[DEBUG]"],
     "info": [chalk.white, "[INFO]"],
     "warn": [chalk.yellow, "[WARN]"],
@@ -9,8 +9,8 @@ export const logLevels = extend()({
     "fatal": [chalk.bgRed.white, "[FATAL]"],
     "announce": [chalk.blueBright, ""],
     "none": [m => m, ""],
-});
-export const messages = extend()({
+};
+export const messages = {
     "unknown require": { for: (d) => `Unknown require ${d.requiredVar}`, level: "warn" },
     "wrong file ran": { for: (d) => `Running index.js is deprecated, please run cli.js instead.`, level: "warn" },
     "statement port failed": { for: (d) => `Cannot port ${d.name} statement "${d.statement}" because ${d.reason ?? "it is invalid"}`, level: "err" },
@@ -72,7 +72,7 @@ ${formatLineWithPrefix(d.line)}`,
     "for loop invalid bound": { for: (d) => `Invalid for loop syntax: ${d.bound} bound(${d.value}) is invalid`, level: "throw" },
     "for loop too many loops": { for: (d) => `Invalid for loop syntax: number of loops(${d.numLoops}) is greater than 200`, level: "throw" },
     "for loop negative loops": { for: (d) => `Invalid for loop syntax: number of loops(${d.numLoops}) is negative`, level: "throw" },
-});
+};
 export class Logger {
     constructor(logLevels, messages) {
         this.logLevels = logLevels;

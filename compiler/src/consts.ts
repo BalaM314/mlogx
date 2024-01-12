@@ -8,7 +8,6 @@ You should have received a copy of the GNU Lesser General Public License along w
 Contains various constants.
 */
 
-import { Log } from "./Log.js";
 import type { ArgType, GAT } from "./args.js";
 import type { Line } from "./types.js";
 

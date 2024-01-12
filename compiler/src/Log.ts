@@ -1,5 +1,5 @@
 /**
-Copyright © <BalaM314>, 2023.
+Copyright © <BalaM314>, 2024.
 This file is part of mlogx.
 The Mindustry Logic Extended Compiler(mlogx) is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 mlogx is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
@@ -18,7 +18,7 @@ import type { CommandError, Line, none } from "./types.js";
 export interface LogLevels {
 	[index:string]: [color: (input:string) => string, tag:string]
 }
-export const logLevels = extend<LogLevels>()({
+export const logLevels = {
 	"debug": [chalk.gray, "[DEBUG]"],
 	"info": [chalk.white, "[INFO]"],
 	"warn": [chalk.yellow, "[WARN]"],
@@ -26,7 +26,8 @@ export const logLevels = extend<LogLevels>()({
 	"fatal": [chalk.bgRed.white, "[FATAL]"],
 	"announce": [chalk.blueBright, ""],
 	"none": [m => m, ""],
-});
+} satisfies LogLevels;
+
 export type logLevel = keyof typeof logLevels;
 
 export interface Messages {
@@ -36,7 +37,7 @@ export interface Messages {
 	}
 }
 
-export const messages = extend<Messages>()({
+export const messages = {
 	"unknown require": {for:(d:{requiredVar:string}) => `Unknown require ${d.requiredVar}`, level: "warn"},
 	"wrong file ran": {for:(d:none) => `Running index.js is deprecated, please run cli.js instead.`, level: "warn"},
 	"statement port failed": {for:(d:{name:string, statement:string, reason?:string}) => `Cannot port ${d.name} statement "${d.statement}" because ${d.reason ?? "it is invalid"}`, level: "err"},
@@ -102,7 +103,7 @@ ${formatLineWithPrefix(d.line)}`
 	"for loop too many loops": {for:(d:{numLoops:number}) => `Invalid for loop syntax: number of loops(${d.numLoops}) is greater than 200`, level:"throw"},
 	"for loop negative loops": {for:(d:{numLoops:number}) => `Invalid for loop syntax: number of loops(${d.numLoops}) is negative`, level:"throw"},
 	//"": {for:(d:{}) => ``, level:"throw"},
-});
+} satisfies Messages;
 
 export class Logger<_LogLevels extends LogLevels, _Messages extends Messages> {
 	level:keyof _LogLevels = "info";
