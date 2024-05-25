@@ -2,7 +2,9 @@ A transpiler for Mindustry Logic.
 
 ![logo](logo.png)
 
-Installation: `npm i -g mlogx`
+## Installation
+* Install the dependencies if you don't have them yet: NodeJS, NPM, Git
+* Run `npm i -g mlogx`
 
 Usage: `mlogx`
 
