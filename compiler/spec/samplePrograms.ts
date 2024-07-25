@@ -129,6 +129,7 @@ export const allShorthandCommands: [input:string, output:string][] = [
 	[`set x 5 ** 4`, `op pow x 5 4`],
 	[`set x 5 \\ 4`, `op idiv x 5 4`],
 	[`set x abs 5`, `op abs x 5 0`],
+	//TODO decide what `set x not y` should do
 	[`ulocate ore @copper ore.x ore.y ore.found`, `ulocate ore core _ @copper ore.x ore.y ore.found _`],
 	[`ulocate spawn spawn.x spawn.y spawn.found`, `ulocate spawn core _ _ spawn.x spawn.y spawn.found _`],
 	[`ulocate damaged damaged.x damaged.y damaged.found damaged`, `ulocate damaged core _ _ damaged.x damaged.y damaged.found damaged`],
@@ -150,7 +151,7 @@ export const allShorthandCommands: [input:string, output:string][] = [
 	[`printf "amogus {x}"`, `print "amogus "\nprint x`],
 	[`printf "amogus {x} sus"`, `print "amogus "\nprint x\nprint " sus"`],
 	[`printf "amogus {x}{y} sus"`, `print "amogus "\nprint x\nprint y\nprint " sus"`],
-	[`println "amogus"`, `println "amogus\n"`],
+	[`println "amogus"`, `print "amogus\\n"`],
 ];
 
 export const startNamespace = `namespace testname {`;
@@ -445,6 +446,17 @@ print "amogus d 6"
 print "sus E"
 print "amogus E 5"
 print "amogus E 6"`.split("\n"),
+		compilerConsts: {}
+	},
+	sensorshorthand: {
+		program:
+`set core nucleus1
+sensor core[item]
+set x core[item] + 5`.split("\n"),
+		expectedOutput:
+`set core nucleus1
+sensor core[item] core item
+op add x core[item] 5`.split("\n"),
 		compilerConsts: {}
 	},
 	throughputCounter: {

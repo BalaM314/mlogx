@@ -130,7 +130,7 @@ export const allShorthandCommands = [
     [`printf "amogus {x}"`, `print "amogus "\nprint x`],
     [`printf "amogus {x} sus"`, `print "amogus "\nprint x\nprint " sus"`],
     [`printf "amogus {x}{y} sus"`, `print "amogus "\nprint x\nprint y\nprint " sus"`],
-    [`println "amogus"`, `println "amogus\n"`],
+    [`println "amogus"`, `print "amogus\\n"`],
 ];
 export const startNamespace = `namespace testname {`;
 export const namespaceTests = [
@@ -397,6 +397,15 @@ print "amogus d 6"
 print "sus E"
 print "amogus E 5"
 print "amogus E 6"`.split("\n"),
+        compilerConsts: {}
+    },
+    sensorshorthand: {
+        program: `set core nucleus1
+sensor core[item]
+set x core[item] + 5`.split("\n"),
+        expectedOutput: `set core nucleus1
+sensor core[item] core item
+op add x core[item] 5`.split("\n"),
         compilerConsts: {}
     },
     throughputCounter: {
