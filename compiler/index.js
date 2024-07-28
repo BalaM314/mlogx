@@ -14,6 +14,7 @@ export * from "./src/funcs.js";
 export * from "./src/args.js";
 export { mlogx as app } from "./src/mlogx.js";
 export * from "./src/types.js";
+export * from "./src/settings.js";
 if (process.argv[1] == fileURLToPath(import.meta.url)) {
     Log.printMessage("wrong file ran", {});
     mlogx.run(process.argv);

@@ -88,7 +88,7 @@ export function compileDirectory(directory, stdlibPath, icons, options) {
     }
     Log.printMessage("compilation complete", {});
 }
-function getSettings(directory, ignoreMissing) {
+export function getSettings(directory, ignoreMissing) {
     try {
         let settings;
         fs.accessSync(path.join(directory, "config.json"), fs.constants.R_OK);
