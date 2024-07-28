@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "mlogx",
-	"version": "2.3.4-beta",
+	"version": "2.3.5-beta",
 	"description": "MLOGX transpiler targeting Mindustry Logic.",
 	"main": "./compiler/index.js",
 	"scripts": {
@@ -31,7 +31,7 @@
 		"testRegex": "(\\.|/)(test|spec)\\.js$"
 	},
 	"bin": {
-		"mlogx": "./compiler/cli.js"
+		"mlogx": "compiler/cli.js"
 	},
 	"dependencies": {
 		"chalk": "^5.0.1",
