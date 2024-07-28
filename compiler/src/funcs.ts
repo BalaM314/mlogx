@@ -680,31 +680,30 @@ export function range(min:number, max:number, strings?:true):number[] | string[]
 }
 
 export function getCompilerConsts(
-	icons:Map<string, string>, state:GlobalState, projectInfo:State["project"]
+	icons:Map<string, string>, state:GlobalState, projectInfo:State["project"], overrideConsts?:CompilerConsts
 ):CompilerConsts {
-	const outputMap = new Map<string, CompilerConst>();
-	for(const [key, value] of icons){
-		outputMap.set(key, value);
-	}
-	outputMap.set("name", projectInfo.name);
-	outputMap.set("authors", projectInfo.authors.join(", "));
-	outputMap.set("filename", projectInfo.filename);
-	for(const [key, value] of Object.entries(state.compilerConstants)){
-		if(isObject(value)){
-			for(const [k, v] of Object.entries(flattenObject(value))){
-				outputMap.set(key + "." + k, v);
-			}
-		} else if(Array.isArray(value)){
-			for(const [k, v] of value.entries()){
-				outputMap.set(`${key}[${k + 1}]`, v);
-			}
-			outputMap.set(`${key}.length`, value.length);
-			outputMap.set(key, value);
-		} else {	
-			outputMap.set(key, value);
-		}
-	}
-	return outputMap;
+	return new Map<string, CompilerConst>([
+		...icons,
+		["name", projectInfo.name],
+		["authors", projectInfo.authors.join(", ")],
+		["filename", projectInfo.filename],
+		...Object.entries(state.compilerConstants).map<[string, CompilerConst][]>(([key, value]) =>
+			isObject(value) ?
+				Object.entries(flattenObject(value)).map(([k, v]) =>
+					[key + "." + k, v]
+				) :
+			Array.isArray(value) ?
+				[
+					...[...value.entries()].map<[string, CompilerConst]>(([k, v]) => 
+						[`${key}[${k + 1}]`, v]
+					),
+					[`${key}.length`, value.length],
+					[key, value],
+				] :
+				[[key, value]]
+		).flat(),
+		...(overrideConsts ?? [])
+	]);
 }
 
 export function getState(settings:Settings, directory:string, options:Options):GlobalState {
@@ -724,7 +723,7 @@ export function getState(settings:Settings, directory:string, options:Options):G
 	};
 }
 
-export function getLocalState(state:GlobalState, filename:string, icons:Map<string, string>):State {
+export function getLocalState(state:GlobalState, filename:string, icons:Map<string, string>, overrideConsts?:CompilerConsts):State {
 	const project = {
 		...state.project,
 		filename
@@ -732,7 +731,7 @@ export function getLocalState(state:GlobalState, filename:string, icons:Map<stri
 	return {
 		...state,
 		project,
-		compilerConstants: getCompilerConsts(icons, state, project)
+		compilerConstants: getCompilerConsts(icons, state, project, overrideConsts)
 	};
 }
 

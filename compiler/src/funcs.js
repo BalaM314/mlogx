@@ -498,32 +498,23 @@ export function range(min, max, strings) {
         ? [...Array(max + 1 - min).keys()].map(i => (i + min).toString())
         : [...Array(max + 1 - min).keys()].map(i => i + min);
 }
-export function getCompilerConsts(icons, state, projectInfo) {
-    const outputMap = new Map();
-    for (const [key, value] of icons) {
-        outputMap.set(key, value);
-    }
-    outputMap.set("name", projectInfo.name);
-    outputMap.set("authors", projectInfo.authors.join(", "));
-    outputMap.set("filename", projectInfo.filename);
-    for (const [key, value] of Object.entries(state.compilerConstants)) {
-        if (isObject(value)) {
-            for (const [k, v] of Object.entries(flattenObject(value))) {
-                outputMap.set(key + "." + k, v);
-            }
-        }
-        else if (Array.isArray(value)) {
-            for (const [k, v] of value.entries()) {
-                outputMap.set(`${key}[${k + 1}]`, v);
-            }
-            outputMap.set(`${key}.length`, value.length);
-            outputMap.set(key, value);
-        }
-        else {
-            outputMap.set(key, value);
-        }
-    }
-    return outputMap;
+export function getCompilerConsts(icons, state, projectInfo, overrideConsts) {
+    return new Map([
+        ...icons,
+        ["name", projectInfo.name],
+        ["authors", projectInfo.authors.join(", ")],
+        ["filename", projectInfo.filename],
+        ...Object.entries(state.compilerConstants).map(([key, value]) => isObject(value) ?
+            Object.entries(flattenObject(value)).map(([k, v]) => [key + "." + k, v]) :
+            Array.isArray(value) ?
+                [
+                    ...[...value.entries()].map(([k, v]) => [`${key}[${k + 1}]`, v]),
+                    [`${key}.length`, value.length],
+                    [key, value],
+                ] :
+                [[key, value]]).flat(),
+        ...(overrideConsts ?? [])
+    ]);
 }
 export function getState(settings, directory, options) {
     return {
@@ -541,7 +532,7 @@ export function getState(settings, directory, options) {
         verbose: "verbose" in options.namedArgs
     };
 }
-export function getLocalState(state, filename, icons) {
+export function getLocalState(state, filename, icons, overrideConsts) {
     const project = {
         ...state.project,
         filename
@@ -549,7 +540,7 @@ export function getLocalState(state, filename, icons) {
     return {
         ...state,
         project,
-        compilerConstants: getCompilerConsts(icons, state, project)
+        compilerConstants: getCompilerConsts(icons, state, project, overrideConsts)
     };
 }
 export function impossible() {
