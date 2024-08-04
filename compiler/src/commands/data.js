@@ -204,7 +204,7 @@ export const commands = processCommands({
                     const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)\]$/i);
                     if (target == null || property == null)
                         impossible();
-                    return [`sensor ${tokens[1]} ${target == "unit" ? "@unit" : target} ${property}`];
+                    return [`sensor ${tokens[1]} ${target} ${property}`];
                 }
                 else {
                     CompilerError.throw("invalid sensor shorthand", { token: tokens[1] });
