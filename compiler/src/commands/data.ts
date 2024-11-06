@@ -386,6 +386,9 @@ export const commands = processCommands({
 			args: "stop",
 			description: "Tells the bound unit to stop all actions."
 		},{
+			args: "unbind",
+			description: "Resets the unit controller, resuming standard behavior. Does not change @unit."
+		},{
 			args: "move x:number y:number",
 			description: "Tells the bound unit to move to (x,y). Does not wait for the unit to reach."
 		},{
