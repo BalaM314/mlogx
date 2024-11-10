@@ -17,9 +17,9 @@ import { compilerMark } from "./consts.js";
 import { Log } from "./Log.js";
 import { askQuestion, getLocalState, getState } from "./funcs.js";
 import { Settings, settingsSchema } from "./settings.js";
-import { Options } from "cli-app";
+import type { CompileOptions } from "./types.js";
 
-export function compileDirectory(directory:string, stdlibPath:string, icons:Map<string, string>, options:Options){
+export function compileDirectory(directory:string, stdlibPath:string, icons:Map<string, string>, options:CompileOptions){
 
 	const settings = getSettings(directory);
 	const globalState = getState(settings, directory, options);
@@ -165,7 +165,7 @@ export function getSettings(directory:string, ignoreMissing?:true):Settings {
 }
 
 
-export function compileFile(name:string, icons:Map<string, string>, options:Options){
+export function compileFile(name:string, icons:Map<string, string>, options:CompileOptions){
 
 	const extension = path.extname(name);
 	if(extension == ".mlog"){

@@ -10,7 +10,6 @@ Contains a lot of utility functions.
 
 import chalk from "chalk";
 import * as readline from "readline";
-import { Options } from "cli-app";
 import {
 	Arg, ArgType, GenericArgs, isTokenValidForType, isTokenValidForGAT, isGenericArg, guessTokenType
 } from "./args.js";
@@ -21,7 +20,7 @@ import { Log } from "./Log.js";
 import type { GlobalState, Settings, State } from "./settings.js";
 import { hasElement, NamespaceStackElement, StackElement } from "./stack_elements.js";
 import {
-	CommandError, CommandErrorType, CompilerConst, CompilerConsts, Line, TData, ValuesRecursive
+	CommandError, CommandErrorType, CompileOptions, CompilerConst, CompilerConsts, Line, TData, ValuesRecursive
 } from "./types.js";
 
 
@@ -688,25 +687,25 @@ export function getCompilerConsts(
 		["authors", projectInfo.authors.join(", ")],
 		["filename", projectInfo.filename],
 		...Object.entries(state.compilerConstants).map<[string, CompilerConst][]>(([key, value]) =>
-			isObject(value) ?
-				Object.entries(flattenObject(value)).map(([k, v]) =>
+			isObject(value)
+				? Object.entries(flattenObject(value)).map(([k, v]) =>
 					[key + "." + k, v]
-				) :
-			Array.isArray(value) ?
-				[
-					...[...value.entries()].map<[string, CompilerConst]>(([k, v]) => 
-						[`${key}[${k + 1}]`, v]
-					),
-					[`${key}.length`, value.length],
-					[key, value],
-				] :
-				[[key, value]]
+				)
+				: Array.isArray(value) ?
+					[
+						...[...value.entries()].map<[string, CompilerConst]>(([k, v]) => 
+							[`${key}[${k + 1}]`, v]
+						),
+						[`${key}.length`, value.length],
+						[key, value],
+					]
+					: [[key, value]]
 		).flat(),
 		...(overrideConsts ?? [])
 	]);
 }
 
-export function getState(settings:Settings, directory:string, options:Options):GlobalState {
+export function getState(settings:Settings, directory:string, options:CompileOptions):GlobalState {
 	return {
 		project: {
 			name: settings.name,
@@ -719,7 +718,7 @@ export function getState(settings:Settings, directory:string, options:Options):G
 		compilerConstants: {
 			...settings.compilerConstants,
 		},
-		verbose: "verbose" in options.namedArgs
+		verbose: options.namedArgs.verbose
 	};
 }
 

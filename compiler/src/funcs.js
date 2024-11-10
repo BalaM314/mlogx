@@ -504,15 +504,15 @@ export function getCompilerConsts(icons, state, projectInfo, overrideConsts) {
         ["name", projectInfo.name],
         ["authors", projectInfo.authors.join(", ")],
         ["filename", projectInfo.filename],
-        ...Object.entries(state.compilerConstants).map(([key, value]) => isObject(value) ?
-            Object.entries(flattenObject(value)).map(([k, v]) => [key + "." + k, v]) :
-            Array.isArray(value) ?
+        ...Object.entries(state.compilerConstants).map(([key, value]) => isObject(value)
+            ? Object.entries(flattenObject(value)).map(([k, v]) => [key + "." + k, v])
+            : Array.isArray(value) ?
                 [
                     ...[...value.entries()].map(([k, v]) => [`${key}[${k + 1}]`, v]),
                     [`${key}.length`, value.length],
                     [key, value],
-                ] :
-                [[key, value]]).flat(),
+                ]
+                : [[key, value]]).flat(),
         ...(overrideConsts ?? [])
     ]);
 }
@@ -529,7 +529,7 @@ export function getState(settings, directory, options) {
         compilerConstants: {
             ...settings.compilerConstants,
         },
-        verbose: "verbose" in options.namedArgs
+        verbose: options.namedArgs.verbose
     };
 }
 export function getLocalState(state, filename, icons, overrideConsts) {

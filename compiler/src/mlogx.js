@@ -2,7 +2,7 @@ import chalk from "chalk";
 import * as fs from "fs";
 import path from "path";
 import * as os from "os";
-import { Application } from "cli-app";
+import { Application, arg } from "@balam314/cli-app";
 import { argToString, GenericArgs } from "./args.js";
 import { commands, compilerCommands } from "./commands.js";
 import { addJumpLabels, portCode } from "./compile.js";
@@ -11,7 +11,22 @@ import { isKey, parseIcons } from "./funcs.js";
 import { Log } from "./Log.js";
 import { PortingMode } from "./types.js";
 export const mlogx = new Application("mlogx", "A Mindustry Logic transpiler.");
-mlogx.command("info", "Shows information about a logic command or arg type", (opts) => {
+mlogx.command("info", "Shows information about a logic command or arg type").aliases("i").args({
+    namedArgs: {
+        mlogOnly: arg().description("Whether to only show info for mlog commands.")
+            .aliases("mlog", "m").valueless(),
+    },
+    positionalArgs: [
+        {
+            name: "command",
+            description: "The command to get information about",
+        }, {
+            name: "subcommand",
+            description: "A subcommand, such as 'itemTake' for 'ucontrol itemTake'.",
+            optional: true,
+        },
+    ]
+}).impl((opts) => {
     const name = opts.positionalArgs[0];
     const commandName = name + (opts.positionalArgs[1] ? " " + opts.positionalArgs[1] : "");
     if (name.includes(" ")) {
@@ -19,7 +34,7 @@ mlogx.command("info", "Shows information about a logic command or arg type", (op
         return 1;
     }
     if (isKey(commands, name)) {
-        const matchingCommands = commands[name].filter(c => ("mlogOnly" in opts.namedArgs ? c.isMlog : true) &&
+        const matchingCommands = commands[name].filter(c => (opts.namedArgs.mlogOnly ? c.isMlog : true) &&
             (opts.positionalArgs[1] ? c.args[0].type.startsWith(opts.positionalArgs[1]) : true));
         if (matchingCommands.length == 0) {
             Log.none(chalk.red(`No commands found for "${commandName}".`));
@@ -66,26 +81,8 @@ ${arg.validator instanceof Array
         Log.printMessage("unknown command or gat", { name });
         return 1;
     }
-}, false, {
-    namedArgs: {
-        mlogOnly: {
-            description: "Whether to only show info for mlog commands.",
-            needsValue: false
-        }
-    },
-    positionalArgs: [
-        {
-            name: "command",
-            description: "The command to get information about",
-            required: true,
-        }, {
-            name: "subcommand",
-            description: "A subcommand, such as 'itemTake' for 'ucontrol itemTake'.",
-            required: false
-        },
-    ]
-}, ["i"]);
-mlogx.command("version", "Displays the version of mlogx", (opts, app) => {
+});
+mlogx.command("version", "Displays the version of mlogx").aliases("v").args({}).impl((opts, app) => {
     try {
         const packageJsonFilepath = fs.existsSync(path.join(app.sourceDirectory, "package.json"))
             ? path.join(app.sourceDirectory, "package.json")
@@ -96,29 +93,33 @@ mlogx.command("version", "Displays the version of mlogx", (opts, app) => {
     catch (err) {
         Log.err(`This should not happen. ${err.message}`);
     }
-}, false, {}, ["v"]);
-mlogx.command("init", "Creates a new project", (opts) => {
-    createProject(opts.positionalArgs[0])
-        .catch(err => Log.err(err?.message ?? err));
-}, false, {
-    positionalArgs: [
-        {
+});
+mlogx.command("init", "Creates a new project").aliases("new", "n").args({
+    positionalArgs: [{
             name: "projectname",
             description: "Name of the project to create",
-            required: false
-        }
-    ],
+            optional: true,
+        }],
     namedArgs: {}
-}, ["new", "n"]);
-mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
-    if ("init" in opts.namedArgs) {
-        Log.printMessage("command moved", { appname: app.name, command: "init" });
-        return 1;
+}).impl((opts) => {
+    createProject(opts.positionalArgs[0])
+        .catch(err => Log.err(err?.message ?? err));
+});
+mlogx.command("compile", "Compiles a file or directory").default().aliases("build").args({
+    positionalArgs: [{
+            name: "target",
+            description: "Thing to compile",
+            optional: true,
+        }],
+    namedArgs: {
+        watch: arg().description("Whether to watch for and compile on file changes instead of exiting immediately.")
+            .valueless()
+            .aliases("w"),
+        verbose: arg().description("Whether to be verbose and output error messages for all overloads.")
+            .valueless()
+            .aliases("v"),
     }
-    if ("info" in opts.namedArgs) {
-        Log.printMessage("command moved", { appname: app.name, command: "info" });
-        return 1;
-    }
+}).impl((opts, app) => {
     const target = path.resolve(opts.positionalArgs[0] ?? process.cwd());
     if (target == os.homedir() || target == path.resolve("/")) {
         Log.printMessage("cannot compile dir", { dirname: "your home directory" });
@@ -135,10 +136,10 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
         ? path.join(app.sourceDirectory, "cache")
         : path.join(app.sourceDirectory, "../cache");
     const icons = parseIcons(fs.readFileSync(path.join(cacheDirectory, "icons.properties"), "utf-8").split(/\r?\n/));
-    if ("verbose" in opts.namedArgs) {
+    if (opts.namedArgs.verbose) {
         Log.printMessage("verbose mode on", {});
     }
-    if ("watch" in opts.namedArgs) {
+    if (opts.namedArgs.watch) {
         let lastCompiledTime = Date.now();
         compileDirectory(target, stdlibDirectory, icons, opts);
         fs.watch(target, {
@@ -187,26 +188,17 @@ mlogx.command("compile", "Compiles a file or directory", (opts, app) => {
         compileFile(target, icons, opts);
         return 0;
     }
-}, true, {
-    positionalArgs: [{
-            name: "target",
-            description: "Thing to compile",
-            required: false
-        }],
+});
+mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded jumps.").aliases("generateLabels", "gen-labels", "genLabels", "gl").args({
     namedArgs: {
-        watch: {
-            description: "Whether to watch for and compile on file changes instead of exiting immediately.",
-            needsValue: false,
-            aliases: ["w"]
-        },
-        verbose: {
-            description: "Whether to be verbose and output error messages for all overloads.",
-            needsValue: false,
-            aliases: ["v"]
-        }
-    }
-}, ["build"]);
-mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded jumps.", (opts) => {
+        output: arg().description("Output file path")
+            .aliases("out", "o"),
+    },
+    positionalArgs: [{
+            name: "source",
+            description: "File containing the MLOG code",
+        }],
+}).impl((opts) => {
     const target = opts.positionalArgs[0];
     if (!fs.existsSync(target)) {
         Log.printMessage("invalid path", { name: target });
@@ -224,21 +216,18 @@ mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded j
         fs.writeFileSync(opts.namedArgs["output"], output.join("\r\n"));
         return 0;
     }
-}, false, {
+});
+mlogx.command("port", "Ports MLOG code.").args({
     namedArgs: {
-        output: {
-            description: "Output file path",
-            required: true,
-            aliases: ["out", "o"]
-        }
+        output: arg().description("Output file path").aliases("out", "o").optional(),
+        mode: arg().description("Porting mode to be used. removeZeroes to just removes trailing zeroes. shortenSyntax to switch to syntax with improved argument order. modernSyntax to switch to the modern op syntax (op add x 5 5 => set x 5 + 5).")
+            .default("shortenSyntax").aliases("m", "pm", "portingMode"),
     },
     positionalArgs: [{
             name: "source",
-            description: "File containing the MLOG code",
-            required: true
-        }],
-}, ["generateLabels", "gen-labels", "genLabels", "gl"]);
-mlogx.command("port", "Ports MLOG code.", (opts) => {
+            description: "File containing the MLOG code to be ported",
+        }]
+}).impl((opts) => {
     const sourcePath = opts.positionalArgs[0];
     const outputPath = opts.namedArgs.output ?? (sourcePath.endsWith(".mlog") ? sourcePath + "x" : sourcePath + ".mlogx");
     try {
@@ -282,21 +271,4 @@ mlogx.command("port", "Ports MLOG code.", (opts) => {
     fs.writeFileSync(outputPath, portedProgram.join("\r\n"), "utf-8");
     Log.printMessage("port successful", { filename: sourcePath });
     return 0;
-}, false, {
-    namedArgs: {
-        output: {
-            description: "Output file path",
-            aliases: ["out", "o"]
-        },
-        mode: {
-            description: "Porting mode to be used. removeZeroes to just removes trailing zeroes. shortenSyntax to switch to syntax with improved argument order. modernSyntax to switch to the modern op syntax (op add x 5 5 => set x 5 + 5).",
-            default: "shortenSyntax",
-            aliases: ["m", "pm", "portingMode"],
-        }
-    },
-    positionalArgs: [{
-            name: "source",
-            description: "File containing the MLOG code to be ported",
-            required: true
-        }]
 });

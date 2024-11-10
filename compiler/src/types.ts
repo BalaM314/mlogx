@@ -107,3 +107,11 @@ export interface TypeCheckingData {
 	jumpLabelsUsed: TData.jumpLabelsUsed;
 	jumpLabelsDefined: TData.jumpLabelsDefined;
 }
+
+export type CompileOptions = {
+	readonly namedArgs: {
+		readonly watch: boolean;
+		readonly verbose: boolean;
+	};
+}
+

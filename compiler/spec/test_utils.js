@@ -52,9 +52,10 @@ export function stateForFilename(name, compilerConsts = {}, icons = new Map(), c
         },
         compilerConstants: compilerConsts
     }), name, {
-        commandName: "compile",
-        positionalArgs: [name],
-        namedArgs: {}
+        namedArgs: {
+            verbose: false,
+            watch: false,
+        }
     }), name, icons);
 }
 export const anyLine = {

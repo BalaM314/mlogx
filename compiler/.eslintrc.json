@@ -25,10 +25,7 @@
 				]
 			}
 		],
-		"linebreak-style": [
-			"error",
-			"windows"
-		],
+		"linebreak-style": "off",
 		"semi": [
 			"error",
 			"always"

@@ -71,9 +71,10 @@ export function stateForFilename(name:string, compilerConsts:Settings["compilerC
 		},
 		compilerConstants: compilerConsts
 	}), name, {
-		commandName: "compile",
-		positionalArgs: [name],
-		namedArgs: {}
+		namedArgs: {
+			verbose: false,
+			watch: false,
+		}
 	}), name, icons);
 }
 
