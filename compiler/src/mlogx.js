@@ -123,11 +123,15 @@ mlogx.command("compile", "Compiles a file or directory").default().aliases("buil
     const target = path.resolve(opts.positionalArgs[0] ?? process.cwd());
     if (target == os.homedir() || target == path.resolve("/")) {
         Log.printMessage("cannot compile dir", { dirname: "your home directory" });
-        return 1;
+        return 2;
+    }
+    if (!fs.existsSync(target)) {
+        Log.printMessage("invalid path", { name: target });
+        return 3;
     }
     if (target == app.sourceDirectory || target == path.join(app.sourceDirectory, "src")) {
         Log.printMessage("cannot compile dir", { dirname: "mlogx's installation location" });
-        return 1;
+        return 2;
     }
     const stdlibDirectory = fs.existsSync(path.join(app.sourceDirectory, "stdlib"))
         ? path.join(app.sourceDirectory, "stdlib")
@@ -172,21 +176,14 @@ mlogx.command("compile", "Compiles a file or directory").default().aliases("buil
                 }
             }
         });
-        return -1;
-    }
-    if (!fs.existsSync(target)) {
-        Log.printMessage("invalid path", { name: target });
-        return 1;
     }
     if (fs.lstatSync(target).isDirectory()) {
         Log.printMessage("compiling folder", { name: target });
         compileDirectory(target, stdlibDirectory, icons, opts);
-        return 0;
     }
     else {
         Log.printMessage("compiling file", { filename: target });
         compileFile(target, icons, opts);
-        return 0;
     }
 });
 mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded jumps.").aliases("generateLabels", "gen-labels", "genLabels", "gl").args({
@@ -202,11 +199,11 @@ mlogx.command("generate-labels", "Adds jump labels to MLOG code with hardcoded j
     const target = opts.positionalArgs[0];
     if (!fs.existsSync(target)) {
         Log.printMessage("invalid path", { name: target });
-        return 1;
+        return 3;
     }
     if (fs.lstatSync(target).isDirectory()) {
         Log.printMessage("invalid path", { name: target, reason: "is a directory" });
-        return 1;
+        return 3;
     }
     else {
         Log.printMessage("adding jump labels", { filename: target });
@@ -237,7 +234,7 @@ mlogx.command("port", "Ports MLOG code.").args({
         if (err.message.startsWith("ENOENT")) {
             Log.printMessage("invalid path", { name: outputPath, reason: "does not exist or cannot be written to" });
         }
-        return 1;
+        return 3;
     }
     if (sourcePath.endsWith(".mlogx")) {
         Log.printMessage("cannot port mlogx", { path: sourcePath });
