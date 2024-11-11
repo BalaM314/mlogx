@@ -121,7 +121,8 @@ export const allShorthandCommands: [input:string, output:string][] = [
 	[`uradar enemy distance 0 unit`, `uradar enemy any any distance 0 0 unit`],
 	[`sensor arc1.shootX`, `sensor arc1.shootX arc1 @shootX`],
 	[`sensor nucleus1[item]`, `sensor nucleus1[item] nucleus1 item`],
-	[`sensor unit.x`, `sensor unit.x @unit @x`], //deprecated
+	[`sensor unit.x`, `sensor unit.x unit @x`],
+	[`sensor @unit.x`, `sensor @unit.x @unit @x`],
 	[`op abs xDiff`, `op abs xDiff xDiff 0`],
 	[`op add x 1`, `op add x x 1`],
 	[`set x 5 + 4`, `op add x 5 4`],
@@ -583,10 +584,10 @@ main_loop:
 		bind_unit$n:
 		#Bind a unit, but check if it's alive and unflagged.
 		ubind unitType
-		sensor unit.flag
-		sensor unit.controlled
-		jump bind_unit$n notEqual unit.flag 0
-		jump bind_unit$n greaterThan unit.controlled 1
+		sensor @unit.flag
+		sensor @unit.controlled
+		jump bind_unit$n notEqual @unit.flag 0
+		jump bind_unit$n greaterThan @unit.controlled 1
 		ucontrol flag cookie
 		set unit$n @unit
 		jump unit$n_ok
@@ -698,55 +699,55 @@ unit6_moved:
 jump main_loop always 0 0
 bind_unit1:
 ubind unitType
-sensor unit.flag @unit @flag
-sensor unit.controlled @unit @controlled
-jump bind_unit1 notEqual unit.flag 0
-jump bind_unit1 greaterThan unit.controlled 1
+sensor @unit.flag @unit @flag
+sensor @unit.controlled @unit @controlled
+jump bind_unit1 notEqual @unit.flag 0
+jump bind_unit1 greaterThan @unit.controlled 1
 ucontrol flag cookie
 set unit1 @unit
 jump unit1_ok always 0 0
 bind_unit2:
 ubind unitType
-sensor unit.flag @unit @flag
-sensor unit.controlled @unit @controlled
-jump bind_unit2 notEqual unit.flag 0
-jump bind_unit2 greaterThan unit.controlled 1
+sensor @unit.flag @unit @flag
+sensor @unit.controlled @unit @controlled
+jump bind_unit2 notEqual @unit.flag 0
+jump bind_unit2 greaterThan @unit.controlled 1
 ucontrol flag cookie
 set unit2 @unit
 jump unit2_ok always 0 0
 bind_unit3:
 ubind unitType
-sensor unit.flag @unit @flag
-sensor unit.controlled @unit @controlled
-jump bind_unit3 notEqual unit.flag 0
-jump bind_unit3 greaterThan unit.controlled 1
+sensor @unit.flag @unit @flag
+sensor @unit.controlled @unit @controlled
+jump bind_unit3 notEqual @unit.flag 0
+jump bind_unit3 greaterThan @unit.controlled 1
 ucontrol flag cookie
 set unit3 @unit
 jump unit3_ok always 0 0
 bind_unit4:
 ubind unitType
-sensor unit.flag @unit @flag
-sensor unit.controlled @unit @controlled
-jump bind_unit4 notEqual unit.flag 0
-jump bind_unit4 greaterThan unit.controlled 1
+sensor @unit.flag @unit @flag
+sensor @unit.controlled @unit @controlled
+jump bind_unit4 notEqual @unit.flag 0
+jump bind_unit4 greaterThan @unit.controlled 1
 ucontrol flag cookie
 set unit4 @unit
 jump unit4_ok always 0 0
 bind_unit5:
 ubind unitType
-sensor unit.flag @unit @flag
-sensor unit.controlled @unit @controlled
-jump bind_unit5 notEqual unit.flag 0
-jump bind_unit5 greaterThan unit.controlled 1
+sensor @unit.flag @unit @flag
+sensor @unit.controlled @unit @controlled
+jump bind_unit5 notEqual @unit.flag 0
+jump bind_unit5 greaterThan @unit.controlled 1
 ucontrol flag cookie
 set unit5 @unit
 jump unit5_ok always 0 0
 bind_unit6:
 ubind unitType
-sensor unit.flag @unit @flag
-sensor unit.controlled @unit @controlled
-jump bind_unit6 notEqual unit.flag 0
-jump bind_unit6 greaterThan unit.controlled 1
+sensor @unit.flag @unit @flag
+sensor @unit.controlled @unit @controlled
+jump bind_unit6 notEqual @unit.flag 0
+jump bind_unit6 greaterThan @unit.controlled 1
 ucontrol flag cookie
 set unit6 @unit
 jump unit6_ok always 0 0`.split("\n"),

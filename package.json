@@ -5,7 +5,7 @@
 	"description": "MLOGX transpiler targeting Mindustry Logic.",
 	"main": "./compiler/index.js",
 	"scripts": {
-		"test": "jasmine",
+		"test": "cd compiler && jasmine",
 		"build": "node scripts/build.js",
 		"watch": "tsc -w"
 	},
