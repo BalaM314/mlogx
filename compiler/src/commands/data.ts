@@ -192,28 +192,10 @@ export const commands = processCommands({
 		},
 	],
 	sensor: [
-		{
-			args: "output:*number objectType:objectType @id",
-			description: "Stores the logic ID for (objectType) in (output). Inverse of the lookup statement.",
+		{ //TODO split this up into each variant of senseTarget, properly type "output"
+			args: "output:*any target:senseTarget value:senseable",
+			description: "Gets information about (target) and stores it in (output), does not need to be linked or on the same team.",
 			port(tokens, mode){
-				if(tokens[1] == `${tokens[2]}.${tokens[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
-					return `sensor ${tokens[1]}`;
-				else
-					return tokens.join(" ");
-			},
-		},{
-			args: "output:*any building:building value:senseable",
-			description: "Gets information about (building) and stores it in (output), does not need to be linked or on the same team.",
-			port(tokens, mode){
-				if(tokens[1] == `${tokens[2]}.${tokens[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
-					return `sensor ${tokens[1]}`;
-				else
-					return tokens.join(" ");
-			},
-		},{
-			args: "output:*any unit:unit value:senseable",
-			description: "Gets information about (unit) and stores it in (output), does not need to be on the same team.",
-			port(tokens, mode) {
 				if(tokens[1] == `${tokens[2]}.${tokens[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
 					return `sensor ${tokens[1]}`;
 				else
