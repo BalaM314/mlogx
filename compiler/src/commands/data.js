@@ -1,4 +1,4 @@
-import { GenericArgs, guessTokenType } from "../args.js";
+import { GenericArgs, guessTokenType, SenseTargets, sensorMapping } from "../args.js";
 import { CompilerError, Statement } from "../classes.js";
 import { maxLoops, MindustryContent, shortOperandMappings, shortOperandMappingsReversed } from "../consts.js";
 import { Log } from "../Log.js";
@@ -171,6 +171,25 @@ export const commands = processCommands({
         },
     ],
     sensor: [
+        ...SenseTargets.map(t => ({
+            args: `output:*any target:${t} value:senseable`,
+            description: t == "building"
+                ? "Gets information about (target) and stores it in (output), does not need to be linked or on the same team."
+                : "Gets information about (target) and stores it in (output).",
+            port(tokens, mode) {
+                if (tokens[1] == `${tokens[2]}.${tokens[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
+                    return `sensor ${tokens[1]}`;
+                else
+                    return tokens.join(" ");
+            },
+            getVariablesDefined: (tokens) => {
+                const sensorType = guessTokenType(tokens[3]) == "variable" ? null : tokens[3].replace(/^@/, "");
+                const outType = sensorType && sensorMapping[t][sensorType] || "any";
+                return [
+                    [tokens[1], outType instanceof Array ? "any" : outType]
+                ];
+            },
+        })),
         {
             args: "output:*any target:senseTarget value:senseable",
             description: "Gets information about (target) and stores it in (output), does not need to be linked or on the same team.",
@@ -180,7 +199,8 @@ export const commands = processCommands({
                 else
                     return tokens.join(" ");
             },
-        }, {
+        },
+        {
             args: "thing.property:*any",
             replace(tokens) {
                 if (tokens[1].match(/^([\w@_$()-]+?)\.([\w@_$()-]+?)$/i)) {
