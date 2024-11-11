@@ -58,19 +58,19 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             alsoAccepts: ["variable"],
             description: "Represents a type of unit, like @gamma."
         }],
-    ["objectType", {
+    ["senseTarget", {
             validator: (arg) => arg.startsWith("@") &&
                 (MindustryContent.buildings.includes(arg.slice(1)) ||
                     MindustryContent.fluids.includes(arg.slice(1)) ||
                     MindustryContent.items.includes(arg.slice(1)) ||
                     MindustryContent.units.includes(arg.slice(1))),
-            alsoAccepts: ["variable"],
+            alsoAccepts: ["variable", "unit", "building", "buildingType", "itemType", "unitType", "fluidType"],
             description: "Represents a type of item, liquid, unit, or building."
         }],
     ["imageType", {
             validator: (arg) => arg.startsWith("@") &&
                 (MindustryContent.buildings.includes(arg.slice(1)) || MindustryContent.fluids.includes(arg.slice(1)) || MindustryContent.items.includes(arg.slice(1)) || MindustryContent.units.includes(arg.slice(1))),
-            alsoAccepts: ["variable"],
+            alsoAccepts: ["variable", "buildingType", "itemType", "unitType", "fluidType"],
             description: "Represents anything that has an image and can be drawn on a display, like @meltdown, @cryofluid, etc."
         }],
     ["team", {

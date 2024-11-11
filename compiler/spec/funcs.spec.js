@@ -418,11 +418,11 @@ describe("getAllPossibleVariablesUsed", () => {
     });
     it("should return multiple possible types for certain commands", () => {
         expect(getAllPossibleVariablesUsed(makeStatement("sensor x thing @x")))
-            .toEqual([["thing", ["building", "unit"]]]);
+            .toEqual([["thing", ["senseTarget"]]]);
     });
     it("should work for commands that replace", () => {
         expect(getAllPossibleVariablesUsed(makeStatement("sensor building.x building @x", "sensor building.x")))
-            .toEqual([["building", ["building", "unit"]]]);
+            .toEqual([["building", ["senseTarget"]]]);
     });
 });
 describe("getJumpLabelsUsed", () => {
@@ -503,7 +503,7 @@ describe("getCommandDefinitions", () => {
             commands.ulocate[3]
         ]);
         expect(getCommandDefinitions(`sensor x thing @x`)).toEqual([
-            commands.sensor[1], commands.sensor[2]
+            commands.sensor[0]
         ]);
         expect(getCommandDefinitions(`print x`)).toEqual([
             commands.print[0]
