@@ -204,9 +204,13 @@ export const commands = processCommands({
 				else
 					return tokens.join(" ");
 			},
-			getVariablesDefined: (tokens) => {
+			getVariablesDefined: (tokens, line) => {
 				const sensorType = guessTokenType(tokens[3]) == "variable" ? null : tokens[3].replace(/^@/, "");
-				const outType:GAT | GAT[] = sensorType && sensorMapping[t][sensorType] || "any";
+				let outType:GAT | GAT[] | undefined = sensorType ? sensorMapping[t][sensorType] : "any";
+				if(outType == undefined){
+					Log.printMessage("invalid sensor", { sensor: sensorType!, type: t, line });
+					outType = "any";
+				}
 				return [
 					[tokens[1], outType instanceof Array ? "any" : outType] as const
 				];
