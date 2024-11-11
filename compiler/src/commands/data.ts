@@ -222,15 +222,15 @@ export const commands = processCommands({
 		},{
 			args: "thing.property:*any",
 			replace(tokens) {
-				if(tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)){
+				if(tokens[1].match(/^([\w@_$()-]+?)\.([\w@_$()-]+?)$/i)){
 					//sensor thing.property
-					const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\.([\w@_$()-]+?)$/i)!;
+					const [, target, property] = tokens[1].match(/^([\w@_$()-]+?)\.([\w@_$()-]+?)$/i)!;
 					if(target == null || property == null) impossible();
 					if(!MindustryContent.senseables.includes(property)) CompilerError.throw("property not senseable", {property});
 					return [`sensor ${tokens[1]} ${target} @${property}`];
-				} else if(tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)\]$/i)){
+				} else if(tokens[1].match(/^([\w@_$()-]+?)\[([\w@_$()-]+?)\]$/i)){
 					//sensor thing[property]
-					const [, target, property] = tokens[1].match(/^([\w@_$-()]+?)\[([\w@_$()-]+?)\]$/i)!;
+					const [, target, property] = tokens[1].match(/^([\w@_$()-]+?)\[([\w@_$()-]+?)\]$/i)!;
 					if(target == null || property == null) impossible();
 					return [`sensor ${tokens[1]} ${target} ${property}`];
 				} else {
