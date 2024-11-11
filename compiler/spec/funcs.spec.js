@@ -503,7 +503,7 @@ describe("getCommandDefinitions", () => {
             commands.ulocate[3]
         ]);
         expect(getCommandDefinitions(`sensor x thing @x`)).toEqual([
-            commands.sensor[0], commands.sensor[1]
+            commands.sensor[1], commands.sensor[2]
         ]);
         expect(getCommandDefinitions(`print x`)).toEqual([
             commands.print[0]

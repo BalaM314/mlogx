@@ -106,6 +106,7 @@ export const allShorthandCommands = [
     [`sensor nucleus1[item]`, `sensor nucleus1[item] nucleus1 item`],
     [`sensor unit.x`, `sensor unit.x unit @x`],
     [`sensor @unit.x`, `sensor @unit.x @unit @x`],
+    [`sensor @flare.id`, `sensor @flare.id @flare @id`],
     [`op abs xDiff`, `op abs xDiff xDiff 0`],
     [`op add x 1`, `op add x x 1`],
     [`set x 5 + 4`, `op add x 5 4`],
