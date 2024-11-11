@@ -13,7 +13,8 @@ Contains tests of all functions.
 import {
 	Arg,
 	arg, argToString, GAT, GenericArgs, isTokenValidForType, isTokenValidForGAT, isTokenValidForValidator,
-	isGenericArg, makeArg, guessTokenType
+	isGenericArg, makeArg, guessTokenType,
+	SenseTargets
 } from "../src/args.js";
 import { Statement } from "../src/classes.js";
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
@@ -512,6 +513,24 @@ describe("getVariablesDefined", () => {
 			);
 		}).toThrow();
 	});
+	it("should infer type in a sensor statement", () => {
+		expect(getVariablesDefined(makeStatement("sensor @core-nucleus.id @core-nucleus @id"), commands["sensor"][SenseTargets.indexOf("buildingType")]))
+			.toEqual([["@core-nucleus.id", "number"]]);
+		expect(getVariablesDefined(makeStatement("sensor @flare.health @flare @health"), commands["sensor"][SenseTargets.indexOf("unitType")]))
+			.toEqual([["@flare.health", "number"]]);
+		expect(getVariablesDefined(makeStatement("sensor @water.name @water @name"), commands["sensor"][SenseTargets.indexOf("fluidType")]))
+			.toEqual([["@water.name", "string"]]);
+		expect(getVariablesDefined(makeStatement("sensor @copper.color @copper @color"), commands["sensor"][SenseTargets.indexOf("itemType")]))
+			.toEqual([["@copper.color", "color"]]);
+		expect(getVariablesDefined(makeStatement("sensor @unit.copper @unit @copper"), commands["sensor"][SenseTargets.indexOf("unit")]))
+			.toEqual([["@unit.copper", "number"]]);
+		expect(getVariablesDefined(makeStatement("sensor @unit.firstItem @unit @firstItem"), commands["sensor"][SenseTargets.indexOf("unit")]))
+			.toEqual([["@unit.firstItem", "itemType"]]);
+		expect(getVariablesDefined(makeStatement("sensor scatter1.shooting scatter1 @shooting"), commands["sensor"][SenseTargets.indexOf("building")]))
+			.toEqual([["scatter1.shooting", "boolean"]]);
+		expect(getVariablesDefined(makeStatement("sensor @this.x @this @x"), commands["sensor"][SenseTargets.indexOf("building")]))
+			.toEqual([["@this.x", "number"]]);
+	});
 });
 
 describe("getVariablesUsed", () => {
@@ -533,11 +552,11 @@ describe("getAllPossibleVariablesUsed", () => {
 	});
 	it("should return multiple possible types for certain commands", () => {
 		expect(getAllPossibleVariablesUsed(makeStatement("sensor x thing @x")))
-			.toEqual([["thing", ["senseTarget"]]]);
+			.toEqual([["thing", [...SenseTargets, "senseTarget"]]]);
 	});
 	it("should work for commands that replace", () => {
 		expect(getAllPossibleVariablesUsed(makeStatement("sensor building.x building @x", "sensor building.x")))
-			.toEqual([["building", ["senseTarget"]]]);
+			.toEqual([["building", [...SenseTargets, "senseTarget"]]]);
 	});
 });
 
@@ -629,7 +648,7 @@ describe("getCommandDefinitions", () => {
 			commands.ulocate[3]
 		]);
 		expect(getCommandDefinitions(`sensor x thing @x`)).toEqual([
-			commands.sensor[0]
+			...commands.sensor.slice(0, -1)
 		]);
 		expect(getCommandDefinitions(`print x`)).toEqual([
 			commands.print[0]
