@@ -83,6 +83,16 @@ export const GenericArgs = (
 		alsoAccepts: ["variable"],
 		description: "Represents a type of unit, like @gamma."
 	}],
+	["objectType", {
+		validator: (arg:string) =>
+			arg.startsWith("@") &&
+			(MindustryContent.buildings.includes(arg.slice(1)) ||
+				MindustryContent.fluids.includes(arg.slice(1)) ||
+				MindustryContent.items.includes(arg.slice(1)) ||
+				MindustryContent.units.includes(arg.slice(1))),
+		alsoAccepts: ["variable"],
+		description: "Represents a type of item, liquid, unit, or building."
+	}],
 	["imageType", {
 		validator: (arg:string) =>
 			arg.startsWith("@") &&

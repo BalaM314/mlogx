@@ -58,6 +58,15 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             alsoAccepts: ["variable"],
             description: "Represents a type of unit, like @gamma."
         }],
+    ["objectType", {
+            validator: (arg) => arg.startsWith("@") &&
+                (MindustryContent.buildings.includes(arg.slice(1)) ||
+                    MindustryContent.fluids.includes(arg.slice(1)) ||
+                    MindustryContent.items.includes(arg.slice(1)) ||
+                    MindustryContent.units.includes(arg.slice(1))),
+            alsoAccepts: ["variable"],
+            description: "Represents a type of item, liquid, unit, or building."
+        }],
     ["imageType", {
             validator: (arg) => arg.startsWith("@") &&
                 (MindustryContent.buildings.includes(arg.slice(1)) || MindustryContent.fluids.includes(arg.slice(1)) || MindustryContent.items.includes(arg.slice(1)) || MindustryContent.units.includes(arg.slice(1))),

@@ -193,6 +193,15 @@ export const commands = processCommands({
 	],
 	sensor: [
 		{
+			args: "output:*number objectType:objectType @id",
+			description: "Stores the logic ID for (objectType) in (output). Inverse of the lookup statement.",
+			port(tokens, mode){
+				if(tokens[1] == `${tokens[2]}.${tokens[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
+					return `sensor ${tokens[1]}`;
+				else
+					return tokens.join(" ");
+			},
+		},{
 			args: "output:*any building:building value:senseable",
 			description: "Gets information about (building) and stores it in (output), does not need to be linked or on the same team.",
 			port(tokens, mode){
@@ -228,7 +237,7 @@ export const commands = processCommands({
 					CompilerError.throw("invalid sensor shorthand", {token: tokens[1]});
 				}
 			},
-			description: "Gets information about a unit or building and stores it in (thing.property), does not need to be linked or on the same team. Example usage: sensor player.shootX will read the player's shootX into the variable player.shootX",
+			description: "Gets information about a unit, building, or object type, and stores it in (thing.property), does not need to be linked or on the same team. Example usage: sensor player.shootX will read the player's shootX into the variable player.shootX",
 		}
 	],
 	set: [
