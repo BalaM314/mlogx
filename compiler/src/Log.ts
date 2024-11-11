@@ -86,6 +86,7 @@ ${formatLineWithPrefix(d.line)}`
 	"port successful": {for:(d:{filename:string}) => `Ported file ${d.filename} to mlogx.`, level:"announce"},
 	"bad arg string": {for:(d:{name:string}) => `Possibly bad arg string "${d.name}", assuming it means a non-generic arg`, level:"warn"},
 	"cannot compile dir": {for:(d:{dirname:string}) => `Cannot compile ${d.dirname}. For help, run "mlogx help".`, level:"err"},
+	"invalid sensor": {for:(d:{sensor:string; type:string; line:Line;}) => `Sensor "${d.sensor}" is not valid on a target of type "${d.type}".\n${formatLineWithPrefix(d.line)}`, level:"warn"},
 	"cannot compile mlog file": {for:(d:none) => `Cannot compile a .mlog file. If you are trying to port it, use mlogx port. If you really want to compile it, change the extension to .mlogx.`, level:"err"},
 	"unclosed blocks": {for:(d:none) => `There were unclosed blocks.`, level:"throw"},
 	"type checking invalid commands": {for:(d:none) => `Type checking aborted because the program contains invalid commands.`, level:"throw"},

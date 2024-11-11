@@ -243,10 +243,10 @@ export function parsePreprocessorDirectives(data) {
 }
 export function getVariablesDefined(statement, compiledCommandDefinition) {
     if (statement.modifiedSource.commandDefinitions[0].getVariablesDefined) {
-        return statement.modifiedSource.commandDefinitions[0].getVariablesDefined(statement.modifiedSource.tokens);
+        return statement.modifiedSource.commandDefinitions[0].getVariablesDefined(statement.modifiedSource.tokens, statement.cleanedSourceLine());
     }
     if (compiledCommandDefinition.getVariablesDefined) {
-        return compiledCommandDefinition.getVariablesDefined(statement.tokens);
+        return compiledCommandDefinition.getVariablesDefined(statement.tokens, statement.cleanedSourceLine());
     }
     return statement.tokens
         .slice(compiledCommandDefinition.checkFirstTokenAsArg ? 0 : 1)
