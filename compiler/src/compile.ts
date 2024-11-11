@@ -9,7 +9,7 @@ Contains pure-ish functions related to compiling.
 */
 
 import deepmerge from "deepmerge";
-import { Arg } from "./args.js";
+import { Arg, SenseTargets } from "./args.js";
 import { CompilerError, Statement } from "./classes.js";
 import { CommandDefinition, CompilerCommandDefinition } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
@@ -226,17 +226,20 @@ export function printTypeErrors({variableDefinitions, variableUsages, jumpLabels
 	for(const [name, definitions] of Object.entries(variableDefinitions)){
 		//Create a list of each definition's type and remove duplicates.
 		//If this list has more than one element there are definitions of conflicting types.
-		const types = [
-			...new Set(
-				definitions.map(el => el.variableType)
-					.filter(el =>
-						el != "any" && el != "variable" &&
-						el != "null"
-					).map(el => el == "boolean" ? "number" : el)
-			)
-		];
+		const typesSet = new Set(
+			definitions.map(el => el.variableType)
+				.filter(el =>
+					el != "any" && el != "variable" &&
+					el != "null"
+				).map(el => el == "boolean" || el == "color" ? "number" : el)
+		);
+		if(typesSet.has("senseTarget")){
+			//If the variable was defined as sense target, ignore subsequent definitions as unit or building type
+			SenseTargets.forEach(s => typesSet.delete(s));
+		}
 		//TODO do this properly
-		if(types.length > 1){
+		if(typesSet.size > 1){
+			const types = [...typesSet];
 			Log.printMessage("variable redefined with conflicting type", {
 				name, types,
 				firstDefinitionLine: definitions.filter(d => d.variableType == types[0])[0].line,
