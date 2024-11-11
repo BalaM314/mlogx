@@ -83,6 +83,11 @@ export const GenericArgs = (
 		alsoAccepts: ["variable"],
 		description: "Represents a type of unit, like @gamma."
 	}],
+	["objectType", {
+		validator: (_) => false,
+		alsoAccepts: ["variable", "buildingType", "fluidType", "itemType", "unitType"],
+		description: "Represents a type of item, liquid, unit, or building."
+	}],
 	["imageType", {
 		validator: (arg:string) =>
 			arg.startsWith("@") &&
