@@ -1,4 +1,5 @@
 import deepmerge from "deepmerge";
+import { SenseTargets } from "./args.js";
 import { CompilerError, Statement } from "./classes.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
 import { addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToToken, removeUnusedJumps, replaceCompilerConstants, splitLineIntoTokens, transformCommand } from "./funcs.js";
@@ -165,12 +166,14 @@ export function typeCheckStatement(statement, typeCheckingData) {
 }
 export function printTypeErrors({ variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed }) {
     for (const [name, definitions] of Object.entries(variableDefinitions)) {
-        const types = [
-            ...new Set(definitions.map(el => el.variableType)
-                .filter(el => el != "any" && el != "variable" &&
-                el != "null").map(el => el == "boolean" ? "number" : el))
-        ];
-        if (types.length > 1) {
+        const typesSet = new Set(definitions.map(el => el.variableType)
+            .filter(el => el != "any" && el != "variable" &&
+            el != "null").map(el => el == "boolean" || el == "color" ? "number" : el));
+        if (typesSet.has("senseTarget")) {
+            SenseTargets.forEach(s => typesSet.delete(s));
+        }
+        if (typesSet.size > 1) {
+            const types = [...typesSet];
             Log.printMessage("variable redefined with conflicting type", {
                 name, types,
                 firstDefinitionLine: definitions.filter(d => d.variableType == types[0])[0].line,
