@@ -9,7 +9,7 @@ Contains two massive command data structs.
 */
 
 
-import { GAT, GenericArgs, guessTokenType, SenseTargets, sensorMapping } from "../args.js";
+import { GAT, GenericArgs, guessTokenType, sensorMapping } from "../args.js";
 import { CompilerError, Statement } from "../classes.js";
 import { maxLoops, MindustryContent, shortOperandMappings, shortOperandMappingsReversed } from "../consts.js";
 import { Log } from "../Log.js";
@@ -20,7 +20,6 @@ import {
 import { hasDisabledIf, hasElement, topForLoop } from "../stack_elements.js";
 import { PortingMode } from "../types.js";
 import { processCommands, processCompilerCommands } from "./funcs.js";
-import { PreprocessedCommand } from "./types.js";
 
 
 /** Contains the data for all commands.*/
@@ -193,30 +192,7 @@ export const commands = processCommands({
 		},
 	],
 	sensor: [
-		...SenseTargets.map(t => ({
-			args: `output:*any target:${t} value:senseable`,
-			description: t == "building"
-				? "Gets information about (target) and stores it in (output), does not need to be linked or on the same team."
-				: "Gets information about (target) and stores it in (output).",
-			port(tokens, mode){
-				if(tokens[1] == `${tokens[2]}.${tokens[3].slice(1)}` && mode >= PortingMode.shortenSyntax)
-					return `sensor ${tokens[1]}`;
-				else
-					return tokens.join(" ");
-			},
-			getVariablesDefined: (tokens, line) => {
-				const sensorType = guessTokenType(tokens[3]) == "variable" ? null : tokens[3].replace(/^@/, "");
-				let outType:GAT | GAT[] | undefined = sensorType ? sensorMapping[t][sensorType] : "any";
-				if(outType == undefined){
-					Log.printMessage("invalid sensor", { sensor: sensorType!, type: t, line });
-					outType = "any";
-				}
-				return [
-					[tokens[1], outType instanceof Array ? "any" : outType] as const
-				];
-			},
-		} satisfies PreprocessedCommand)),
-		{ // fallback
+		{
 			args: "output:*any target:senseTarget value:senseable",
 			description: "Gets information about (target) and stores it in (output), does not need to be linked or on the same team.",
 			port(tokens, mode){
@@ -224,6 +200,21 @@ export const commands = processCommands({
 					return `sensor ${tokens[1]}`;
 				else
 					return tokens.join(" ");
+			},
+			getVariablesDefined: (tokens, line, getVariableType) => {
+				const targetType = getVariableType(tokens[2]) ?? "any";
+				const sensorType = guessTokenType(tokens[3]) == "variable" ? null : tokens[3].replace(/^@/, "");
+				let outType:GAT | GAT[] | undefined = sensorType && isKey(sensorMapping, targetType) ?
+					sensorMapping[targetType][sensorType]
+					: "any";
+				if(outType == undefined){
+					Log.printMessage("invalid sensor", { sensor: sensorType!, type: targetType, line });
+					outType = "any";
+				}
+				if(outType instanceof Array) outType = "any";
+				return [
+					[tokens[1], outType] as const
+				];
 			},
 		},
 		{

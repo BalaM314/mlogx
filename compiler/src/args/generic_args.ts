@@ -299,10 +299,10 @@ export const GenericArgs = (
 	}],
 ]);
 
-export const SenseTargets = ["unit", "building", "buildingType", "itemType", "unitType", "fluidType"] as const;
+export const SenseTargets = ["building", "unit", "buildingType", "itemType", "unitType", "fluidType"] as const;
 export type SenseTarget = (typeof SenseTargets)[number];
 
-export const sensorMapping:Record<SenseTarget, Record<string, GAT | GAT[]>> = {
+export const sensorMapping:Record<SenseTarget | "any", Record<string, GAT | GAT[]>> = {
 	itemType: {
 		"color": "color",
 		"id": "number",
@@ -420,6 +420,10 @@ export const sensorMapping:Record<SenseTarget, Record<string, GAT | GAT[]>> = {
 
 		...Object.fromEntries([...MindustryContent.items, ...MindustryContent.fluids].map(n => [n, "number"]))
 	},
+	any: {}
 };
+sensorMapping.any = Object.assign({},
+	...Object.values(sensorMapping)
+);
 Object.values(sensorMapping).forEach(o => Object.setPrototypeOf(o, null));
 

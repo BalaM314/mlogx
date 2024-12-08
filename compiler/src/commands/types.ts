@@ -39,7 +39,7 @@ export interface CommandDefinition {
 	/**Whether the first token should be checked for. Used for jump labels and "x ++" syntax. */
 	checkFirstTokenAsArg: boolean;
 	/**Returns all variables defined by a command. */
-	getVariablesDefined?: (tokens:string[], line:Line) => [name:string, type:ArgType][];
+	getVariablesDefined?: (tokens:string[], line:Line, getVariableType:(name:string) => ArgType | undefined) => [name:string, type:ArgType][];
 	/**Returns all variables used by a command. */
 	getVariablesUsed?: (tokens:string[]) => [name:string, types:ArgType[]][];
 	/**Returns all variables defined by a command. */
@@ -66,7 +66,7 @@ export interface PreprocessedCommand {
 	/**Whether this command definition is for a world proc only command. */
 	isWorldProc?: boolean;
 	/**Returns all variables defined by a command. */
-	getVariablesDefined?: (tokens:string[], line:Line) => [name:string, type:ArgType][]
+	getVariablesDefined?: (tokens:string[], line:Line, getVariableType:(name:string) => ArgType | undefined) => [name:string, type:ArgType][]
 	/**Returns all variables used by a command. */
 	getVariablesUsed?: (tokens:string[]) => [name:string, types:ArgType[]][]
 }

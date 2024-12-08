@@ -59,7 +59,7 @@ export function compileMlogxToMlog(mlogxProgram, state, typeDefinitions = {
                     modifiedLine = outputData.output;
                 }
             }
-            const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData } = compileLine([modifiedLine, sourceLine], state, isMain, stack);
+            const { compiledCode, modifiedStack, skipTypeChecks } = compileLine([modifiedLine, sourceLine], state, isMain, stack);
             if (modifiedStack)
                 stack = modifiedStack;
             let doTypeChecks = !skipTypeChecks;
@@ -92,8 +92,6 @@ ${formatLineWithPrefix(sourceLine)}`);
                 }
             }
             compiledProgram.push(...modifiedCode);
-            if (outputTypeCheckingData)
-                typeCheckingData = deepmerge(typeCheckingData, outputTypeCheckingData);
         }
         catch (err) {
             if (err instanceof CompilerError) {
@@ -148,8 +146,15 @@ export function typeCheckStatement(statement, typeCheckingData) {
             line: statement.cleanedSourceLine()
         });
     }
+    function getVariableType(name) {
+        const types = [...new Set(typeCheckingData.variableDefinitions[name]?.map(d => d.variableType) ?? [])];
+        if (types.length == 1)
+            return types[0];
+        else
+            return undefined;
+    }
     for (const commandDefinition of statement.commandDefinitions) {
-        getVariablesDefined(statement, commandDefinition).forEach(([variableName, variableType]) => {
+        getVariablesDefined(statement, commandDefinition, getVariableType).forEach(([variableName, variableType]) => {
             typeCheckingData.variableDefinitions[variableName] ??= [];
             typeCheckingData.variableDefinitions[variableName].push({
                 variableType,
@@ -164,7 +169,6 @@ export function typeCheckStatement(statement, typeCheckingData) {
             line: statement.cleanedSourceLine()
         });
     });
-    return;
 }
 export function printTypeErrors({ variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed }) {
     for (const [name, definitions] of Object.entries(variableDefinitions)) {

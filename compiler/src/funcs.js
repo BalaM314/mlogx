@@ -241,12 +241,12 @@ export function parsePreprocessorDirectives(data) {
     }
     return [program_type, required_vars, author];
 }
-export function getVariablesDefined(statement, compiledCommandDefinition) {
+export function getVariablesDefined(statement, compiledCommandDefinition, getVariableType) {
     if (statement.modifiedSource.commandDefinitions[0].getVariablesDefined) {
-        return statement.modifiedSource.commandDefinitions[0].getVariablesDefined(statement.modifiedSource.tokens, statement.cleanedSourceLine());
+        return statement.modifiedSource.commandDefinitions[0].getVariablesDefined(statement.modifiedSource.tokens, statement.cleanedSourceLine(), getVariableType);
     }
     if (compiledCommandDefinition.getVariablesDefined) {
-        return compiledCommandDefinition.getVariablesDefined(statement.tokens, statement.cleanedSourceLine());
+        return compiledCommandDefinition.getVariablesDefined(statement.tokens, statement.cleanedSourceLine(), getVariableType);
     }
     return statement.tokens
         .slice(compiledCommandDefinition.checkFirstTokenAsArg ? 0 : 1)

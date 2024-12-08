@@ -9,7 +9,7 @@ Contains pure-ish functions related to compiling.
 */
 
 import deepmerge from "deepmerge";
-import { Arg, SenseTargets } from "./args.js";
+import { Arg, ArgType, SenseTargets } from "./args.js";
 import { CompilerError, Statement } from "./classes.js";
 import { CommandDefinition, CompilerCommandDefinition } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
@@ -97,7 +97,7 @@ export function compileMlogxToMlog(
 					modifiedLine = outputData.output;
 				}
 			}
-			const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData }
+			const { compiledCode, modifiedStack, skipTypeChecks }
 				= compileLine([modifiedLine, sourceLine], state, isMain, stack);
 			if(modifiedStack) stack = modifiedStack;
 			let doTypeChecks = !skipTypeChecks;
@@ -128,7 +128,6 @@ ${formatLineWithPrefix(sourceLine)}`
 				}
 			}
 			compiledProgram.push(...modifiedCode);
-			if(outputTypeCheckingData) typeCheckingData = deepmerge(typeCheckingData, outputTypeCheckingData);
 		} catch(err){
 			if(err instanceof CompilerError){
 				Log.err(
@@ -204,8 +203,15 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 		});
 	}
 
+	function getVariableType(name:string):ArgType | undefined {
+		const types = [...new Set(
+			typeCheckingData.variableDefinitions[name]?.map(d => d.variableType) ?? []
+		)];
+		if(types.length == 1) return types[0];
+		else return undefined;
+	}
 	for(const commandDefinition of statement.commandDefinitions){
-		getVariablesDefined(statement, commandDefinition).forEach(([variableName, variableType]) => {
+		getVariablesDefined(statement, commandDefinition, getVariableType).forEach(([variableName, variableType]) => {
 			typeCheckingData.variableDefinitions[variableName] ??= [];
 			typeCheckingData.variableDefinitions[variableName].push({
 				variableType,
@@ -222,7 +228,6 @@ export function typeCheckStatement(statement:Statement, typeCheckingData:TypeChe
 		});
 	});
 
-	return;
 }
 
 export function printTypeErrors({variableDefinitions, variableUsages, jumpLabelsDefined, jumpLabelsUsed}: TypeCheckingData){
@@ -314,12 +319,11 @@ export function compileLine(
 	[cleanedLine, sourceLine]: [cleanedLine:Line, sourceLine:Line],
 	state:State,
 	isMain:boolean,
-	stack:StackElement[]
+	stack:StackElement[],
 ): {
 	compiledCode:Statement[];
 	modifiedStack?:StackElement[];
 	skipTypeChecks?:boolean;
-	typeCheckingData?:TypeCheckingData;
 } {
 
 	

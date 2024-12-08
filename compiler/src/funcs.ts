@@ -332,15 +332,16 @@ export function parsePreprocessorDirectives(
 
 /**Gets the variables defined by a command, given a list of arguments and a command definition. */
 export function getVariablesDefined(
-	statement:Statement, compiledCommandDefinition:CommandDefinition
+	statement:Statement, compiledCommandDefinition:CommandDefinition,
+	getVariableType:(name:string) => ArgType | undefined
 ): [name:string, type:ArgType][]{
 	if(statement.modifiedSource.commandDefinitions[0].getVariablesDefined){
 		//TODO check for edge cases.
-		return statement.modifiedSource.commandDefinitions[0].getVariablesDefined(statement.modifiedSource.tokens, statement.cleanedSourceLine());
+		return statement.modifiedSource.commandDefinitions[0].getVariablesDefined(statement.modifiedSource.tokens, statement.cleanedSourceLine(), getVariableType);
 	}
 	if(compiledCommandDefinition.getVariablesDefined){
 		//TODO check for edge cases.
-		return compiledCommandDefinition.getVariablesDefined(statement.tokens, statement.cleanedSourceLine());
+		return compiledCommandDefinition.getVariablesDefined(statement.tokens, statement.cleanedSourceLine(), getVariableType);
 	}
 	return statement.tokens
 		.slice(compiledCommandDefinition.checkFirstTokenAsArg ? 0 : 1)

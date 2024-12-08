@@ -267,7 +267,7 @@ export const GenericArgs = ((stuff) => new Map(stuff.map(([key, obj]) => [key, {
             description: "A logic effect."
         }],
 ]);
-export const SenseTargets = ["unit", "building", "buildingType", "itemType", "unitType", "fluidType"];
+export const SenseTargets = ["building", "unit", "buildingType", "itemType", "unitType", "fluidType"];
 export const sensorMapping = {
     itemType: {
         "color": "color",
@@ -384,5 +384,7 @@ export const sensorMapping = {
         "shield": "number",
         ...Object.fromEntries([...MindustryContent.items, ...MindustryContent.fluids].map(n => [n, "number"]))
     },
+    any: {}
 };
+sensorMapping.any = Object.assign({}, ...Object.values(sensorMapping));
 Object.values(sensorMapping).forEach(o => Object.setPrototypeOf(o, null));
