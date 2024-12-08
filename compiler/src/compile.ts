@@ -99,7 +99,7 @@ export function compileMlogxToMlog(
 			}
 			const { compiledCode, modifiedStack, skipTypeChecks, typeCheckingData: outputTypeCheckingData }
 				= compileLine([modifiedLine, sourceLine], state, isMain, stack);
-			if(modifiedStack) stack = modifiedStack; //ew mutable data
+			if(modifiedStack) stack = modifiedStack;
 			let doTypeChecks = !skipTypeChecks;
 			let modifiedCode = compiledCode;
 			for(const def of stack.map(el => el.commandDefinition).reverse()){
@@ -135,6 +135,10 @@ ${formatLineWithPrefix(sourceLine)}`
 `${err.message}
 ${formatLineWithPrefix(sourceLine)}`
 				);
+				hasInvalidStatements = true;
+				compiledProgram.push(
+					...addSourcesToCode([cleanedLine.text], cleanedLine, cleanedLine, sourceLine)
+				);
 			} else {
 				throw err;
 			}
@@ -160,7 +164,7 @@ ${formatLineWithPrefix(element.line)}`
 		printTypeErrors(typeCheckingData);
 	
 	const outputProgram =
-		state.compilerOptions.removeUnusedJumpLabels ?
+		(state.compilerOptions.removeUnusedJumpLabels && !hasInvalidStatements) ?
 			removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed) :
 			compiledProgram;
 

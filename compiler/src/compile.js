@@ -99,6 +99,8 @@ ${formatLineWithPrefix(sourceLine)}`);
             if (err instanceof CompilerError) {
                 Log.err(`${err.message}
 ${formatLineWithPrefix(sourceLine)}`);
+                hasInvalidStatements = true;
+                compiledProgram.push(...addSourcesToCode([cleanedLine.text], cleanedLine, cleanedLine, sourceLine));
             }
             else {
                 throw err;
@@ -116,7 +118,7 @@ ${formatLineWithPrefix(element.line)}`);
     }
     if (state.compilerOptions.checkTypes && !hasInvalidStatements)
         printTypeErrors(typeCheckingData);
-    const outputProgram = state.compilerOptions.removeUnusedJumpLabels ?
+    const outputProgram = (state.compilerOptions.removeUnusedJumpLabels && !hasInvalidStatements) ?
         removeUnusedJumps(compiledProgram, typeCheckingData.jumpLabelsUsed) :
         compiledProgram;
     if (outputProgram.length > maxLines) {
