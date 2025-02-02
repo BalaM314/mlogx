@@ -278,7 +278,7 @@ mlogx.command("port", "Ports MLOG code.").args({
 	const mode = (arg => {switch(arg.toLowerCase()){ //match() please... https://github.com/tc39/proposal-pattern-matching
 		case "r": case "1": case "rm": case "rm0": case "removezero": case "removezeroes": case "removezeros": return PortingMode.removeZeroes;
 		case "s": case "2": case "sh": case "short": case "shorten": case "shortensyntax": return PortingMode.shortenSyntax;
-		case "m": case "3": case "modern": case "max": case "modernSyntax": return PortingMode.modernSyntax;
+		case "m": case "3": case "modern": case "max": case "modernsyntax": return PortingMode.modernSyntax;
 		default: throw new Error(`Invalid porting mode ${arg}`);
 	}})(opts.namedArgs.mode);
 	const portedProgram = portCode(program, mode);

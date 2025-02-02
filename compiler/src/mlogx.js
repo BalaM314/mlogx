@@ -260,7 +260,7 @@ mlogx.command("port", "Ports MLOG code.").args({
             case "3":
             case "modern":
             case "max":
-            case "modernSyntax": return PortingMode.modernSyntax;
+            case "modernsyntax": return PortingMode.modernSyntax;
             default: throw new Error(`Invalid porting mode ${arg}`);
         }
     })(opts.namedArgs.mode);
