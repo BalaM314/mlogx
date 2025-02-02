@@ -512,7 +512,7 @@ export function portCode(program:string[], mode:PortingMode):string[] {
 		};
 		if(cleanedLine.text == "") continue;
 		const leadingTabsOrSpaces = line.match(/^[ \t]*/) ?? "";
-		const comment = line.match(/#.*$/) ?? "";
+		const comment = line.replace(/".*?"/, "").match(/#.*$/) ?? "";
 		let commandDefinition = getCommandDefinition(cleanedLine.text);
 		const tokens = splitLineIntoTokens(cleanedLine.text);
 
