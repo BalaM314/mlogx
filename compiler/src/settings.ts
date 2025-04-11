@@ -79,12 +79,12 @@ export interface State extends Omit<GlobalState, "compilerConstants"> {
 
 export const settingsSchema = yup.object({
 	name: yup.string().default("Untitled Project"),
-	authors: yup.array(yup.string() as yup.StringSchema<string, AnyObject, string>).default(["Unknown"]),
+	authors: yup.array(yup.string().required()).default(["Unknown"]),
 	compilerOptions: yup.object({
-		include: yup.array(yup.string() as yup.StringSchema<string, AnyObject, string>).default([]),
+		include: yup.array(yup.string().required()).default([]),
 		removeComments: yup.bool().default(true),
 		compileWithErrors: yup.bool().default(false),
-		mode: (yup.string() as yup.StringSchema<Settings["compilerOptions"]["mode"], AnyObject, Settings["compilerOptions"]["mode"]>).oneOf(["project", "single"]),
+		mode: (yup.string().oneOf(["project", "single"]) as yup.StringSchema<Settings["compilerOptions"]["mode"], AnyObject, Settings["compilerOptions"]["mode"]>).default("single"),
 		prependFileName: yup.bool().default(true),
 		checkTypes: yup.bool().default(true),
 		removeUnusedJumpLabels: yup.bool().default(true),
