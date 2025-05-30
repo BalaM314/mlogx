@@ -27,7 +27,7 @@ export const commands = processCommands({
 	call: [{
 		args: "function:variable",
 		replace: [
-			"op add @counter _stack1 1",
+			"op add _stack1 @counter 1",
 			"jump %1 always"
 		],
 		description: "Calls (function)."
