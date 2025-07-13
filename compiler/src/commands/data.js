@@ -42,6 +42,39 @@ export const commands = processCommands({
             ],
             description: "Binds and flags a unit of type (type). Requires you to include \"flag_unit\"."
         }],
+    push: [{
+            args: "checked value:number stack:building",
+            replace: [
+                "sensor %3.memoryCapacity %3 @memoryCapacity",
+                "jump err greaterThanEq _stackptr %3.memoryCapacity",
+                "write %2 %3 _stackptr",
+                "op add _stackptr _stackptr 1",
+            ],
+            description: "Pushes a value to the stack, and jumps to \"err\" in case of a stack overflow."
+        }, {
+            args: "value:number stack:building",
+            replace: [
+                "write %1 %2 _stackptr",
+                "op add _stackptr _stackptr 1",
+            ],
+            description: "Pushes a value to the stack. Does not handle stack overflows."
+        }],
+    pop: [{
+            args: "checked output:*number stack:building",
+            replace: [
+                "op sub _stackptr _stackptr 1",
+                "jump err lessThan _stackptr 0",
+                "read %1 %2 _stackptr",
+            ],
+            description: "Pushes a value to the stack, and jumps to \"err\" in case of a stack overflow."
+        }, {
+            args: "output:*number stack:building",
+            replace: [
+                "op sub _stackptr _stackptr 1",
+                "read %1 %2 _stackptr",
+            ],
+            description: "Pushes a value to the stack. Does not handle stack underflows."
+        }],
     printf: [{
             args: "message:string",
             replace(tokens) {
