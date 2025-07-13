@@ -128,6 +128,13 @@ export const commands = processCommands({
 		args: "message:any",
 		description: "Prints (message) to the message buffer."
 	}],
+	printchar: [{
+		args: "codepoint:number",
+		description: "Adds the character corresponding to (codepoint) to the message buffer."
+	},{
+		args: "content:type",
+		description: "Adds the character corresponding to (codepoint) to the message buffer."
+	}],
 	printflush: [
 		{
 			args: "messageblock:building",
@@ -407,6 +414,9 @@ export const commands = processCommands({
 		},{
 			args: "pathfind x:number y:number",
 			description: "Tells the bound unit to pathfind to (x,y)."
+		},{
+			args: "autoPathfind",
+			description: "Tells the bound unit to follow flowfield-based pathfinding towards the nearest enemy core. If no enemy cores exist, units will approach wave spawnpoints."
 		},{
 			args: "target x:number y:number shoot:boolean",
 			description: "Tells the bound unit to target/shoot (x,y).\nWill not shoot if the position is outside the unit's range."
@@ -821,7 +831,7 @@ export const commands = processCommands({
 	}],
 	sync: [{
 		args: "var:variable",
-		description: "Syncs the value of a variable from the server.",
+		description: "Syncs the value of a variable. Whenever the server runs this instruction, it will send a packet to update the value of (var) on the client.",
 		isWorldProc: true,
 	}]
 

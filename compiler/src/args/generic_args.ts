@@ -30,14 +30,15 @@ export const GenericArgs = (
 	["number", {
 		validator: [
 			/^-?\d+((\.\d+)|(e-?\d+))?$/,
+			/[+-]?0[bx]\d+/,
 			"@thisx", "@thisy", "@ipt", "@links",
 			"@mapw", "@maph",
 			"@pi", "π", "@e", "@degToRad", "@radToDeg",
 			"@time", "@tick", "@second", "@minute", "@waveNumber", "@waveTime",
 			"@ctrlProcessor", "@ctrlPlayer", "@ctrlCommand",
-			"@itemCount", "@liquidCount", "@buildingCount", "@unitCount"
+			"@itemCount", "@liquidCount", "@buildingCount", "@unitCount",
 		],
-		alsoAccepts: ["variable", "boolean", "color"],
+		alsoAccepts: ["variable", "boolean", "color", "wait"],
 		description: "Any numeric value. Can be a regular number like 5, -3.6, or a number in exponential notation like 1e2, which means 1 times 10 ^ 2."
 	}],
 	["color", {
@@ -45,13 +46,23 @@ export const GenericArgs = (
 		alsoAccepts: ["variable", "number"],
 		description: "Represents a color. Can be a hex code starting with a % sign, or a number."
 	}],
+	["wait", {
+		validator: ["@wait"],
+		description: `Special value used for the "flush message" instruction.`
+	}],
 	["string", {
-		validator: /^"(?:[^"]|(\\"))*"$/,
+		validator: [
+			/^"(?:[^"]|(\\"))*"$/,
+			"@clientLocale", "@clientUnit", "@clientName"
+		],
 		alsoAccepts: ["variable"],
 		description: "A string of characters. Quotes within a string must be escaped by putting a backslash before them."
 	}],
 	["boolean", {
-		validator: ["true", "false"],
+		validator: [
+			"true", "false",
+			"@server", "@client", "@clientMobile"
+		],
 		alsoAccepts: ["variable", "number"],
 		description: "Represents a value that is either true or false."
 	}],
@@ -90,7 +101,7 @@ export const GenericArgs = (
 				MindustryContent.fluids.includes(arg.slice(1)) ||
 				MindustryContent.items.includes(arg.slice(1)) ||
 				MindustryContent.units.includes(arg.slice(1))),
-		alsoAccepts: ["variable", "unit", "building", "buildingType", "itemType", "unitType", "fluidType"],
+		alsoAccepts: ["variable", "unit", "building", "buildingType", "itemType", "unitType", "fluidType", "string"],
 		description: "Represents a type of item, liquid, unit, or building."
 	}],
 	["imageType", {
@@ -99,6 +110,10 @@ export const GenericArgs = (
 			(MindustryContent.buildings.includes(arg.slice(1)) || MindustryContent.fluids.includes(arg.slice(1)) || MindustryContent.items.includes(arg.slice(1)) || MindustryContent.units.includes(arg.slice(1))),
 		alsoAccepts: ["variable", "buildingType", "itemType", "unitType", "fluidType"],
 		description: "Represents anything that has an image and can be drawn on a display, like @meltdown, @cryofluid, etc."
+	}],
+	["hasEmoji", {
+		validator: () => false,
+		alsoAccepts: ["variable", "buildingType", "itemType", "unitType", "fluidType"],
 	}],
 	["team", {
 		validator: (arg:string) =>
@@ -110,16 +125,23 @@ export const GenericArgs = (
 	["senseable", {
 		validator: (arg:string) =>
 			arg.startsWith("@") &&
-			(MindustryContent.senseables.includes(arg.slice(1))),
+			MindustryContent.senseables.includes(arg.slice(1)),
 		alsoAccepts: ["variable", "itemType", "fluidType"],
 		description: "Represents any piece of information that can be accessed about a building or unit, like x position(@x), whether it is shooting, (@shooting), the amount of lead it contains(@lead), etc."
 	}],
 	["settable", {
 		validator: (arg:string) =>
 			arg.startsWith("@") &&
-			(MindustryContent.settables.includes(arg.slice(1))),
+			MindustryContent.settables.includes(arg.slice(1)),
 		alsoAccepts: ["variable", "itemType", "fluidType"],
 		description: "Represents any piece of information that can be set for a building or unit, like x position(@x), rotation, (@rotation), the amount of lead it contains(@lead), etc."
+	}],
+	["sound", {
+		validator: (arg:string) =>
+			arg.startsWith("@sfx-") &&
+			MindustryContent.sounds.includes(arg.slice(5)),
+		alsoAccepts: ["variable", "buildingType", "itemType", "unitType", "fluidType"],
+		description: "Represents anything that has an image and can be drawn on a display, like @meltdown, @cryofluid, etc."
 	}],
 	["building", {
 		validator: [buildingNameRegex, "@this", "@air", "@ground"],
@@ -299,7 +321,7 @@ export const GenericArgs = (
 	}],
 ]);
 
-export const SenseTargets = ["building", "unit", "buildingType", "itemType", "unitType", "fluidType"] as const;
+export const SenseTargets = ["building", "unit", "buildingType", "itemType", "unitType", "fluidType", "string"] as const;
 export type SenseTarget = (typeof SenseTargets)[number];
 
 export const sensorMapping:Record<SenseTarget | "any", Record<string, GAT | GAT[]>> = {
@@ -333,6 +355,7 @@ export const sensorMapping:Record<SenseTarget | "any", Record<string, GAT | GAT[
 		"size": "number",
 		"itemCapacity": "number",
 		"speed": "number",
+		"payloadCapacity": "number",
 	},
 	unit: {
 		"totalItems": "number",
@@ -373,6 +396,8 @@ export const sensorMapping:Record<SenseTarget | "any", Record<string, GAT | GAT[
 		"firstItem": "itemType",
 		"controller": ["unit", "building"],
 		"payloadType": ["unitType", "buildingType"],
+		"payloadCapacity": "number",
+		"totalPayload": "number",
 		...Object.fromEntries([...MindustryContent.items].map(n => [n, "number"]))
 	},
 	building: {
@@ -410,6 +435,7 @@ export const sensorMapping:Record<SenseTarget | "any", Record<string, GAT | GAT[
 		"firstItem": "itemType",
 		"config": "any",
 		"payloadType": ["unitType", "buildingType"],
+		"memoryCapacity": "number",
 
 		"progress": "number",
 		"shootX": "number",
@@ -417,8 +443,12 @@ export const sensorMapping:Record<SenseTarget | "any", Record<string, GAT | GAT[
 		"shooting": "boolean",
 		"heat": "number",
 		"shield": "number",
+		"currentAmmoType": "itemType",
 
 		...Object.fromEntries([...MindustryContent.items, ...MindustryContent.fluids].map(n => [n, "number"]))
+	},
+	string: {
+		"size": "number",
 	},
 	any: {}
 };
