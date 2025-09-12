@@ -352,6 +352,20 @@ export const commands = processCommands({
 			replace: [ "op %1 %2 %2 0" ]
 		}
 	],
+	select: [
+		{
+			args: "result:*any op:operandTest comp0:any comp1:any a:any b:any",
+			description: "Set (result) to (a) if (comp0) (op) (comp1), otherwise to (b).",
+			getVariablesDefined: (tokens) => {
+				const aType = guessTokenType(tokens[5]);
+				return [[tokens[1], aType == guessTokenType(tokens[6]) ? aType : "any"]];
+			}
+		},{
+			args: "result:*any comp0:any op:sOperandTest comp1:any a:any b:any",
+			description: "Alternative select syntax: sets (result) to (a) if (comp0) (op) (comp1), otherwise to (b). Uses short operands like <= instead of lessThanEq.",
+			replace: (tokens:string[]) => [`select ${tokens[1]} ${shortOperandMappings.test[tokens[3]]} ${tokens[2]} ${tokens[4]} ${tokens[5]} ${tokens[6]}`]
+		},
+	],
 	wait: [{
 		args: "seconds:number",
 		description: "Waits for (seconds) seconds."
