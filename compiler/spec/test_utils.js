@@ -71,3 +71,11 @@ export function errorWith(callback, errorMessage) {
         throw new Error(err.message + "\n" + errorMessage);
     }
 }
+export function typeCheckingData() {
+    return {
+        jumpLabelsDefined: {},
+        jumpLabelsUsed: {},
+        variableDefinitions: {},
+        variableUsages: {},
+    };
+}

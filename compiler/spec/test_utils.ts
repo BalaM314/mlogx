@@ -13,7 +13,7 @@ import { compilerCommands } from "../src/commands.js";
 import { getLocalState, getState } from "../src/funcs.js";
 import { Settings, settingsSchema, State } from "../src/settings.js";
 import { ForStackElement, IfStackElement, NamespaceStackElement } from "../src/stack_elements.js";
-import { CommandError, CommandErrorType, Line } from "../src/types.js";
+import { CommandError, CommandErrorType, Line, TypeCheckingData } from "../src/types.js";
 
 
 
@@ -91,3 +91,13 @@ export function errorWith<T>(callback:() => T, errorMessage:string):T {
 		throw new Error((err as Error).message + "\n" + errorMessage);
 	}
 }
+
+export function typeCheckingData():TypeCheckingData {
+	return {
+		jumpLabelsDefined: {},
+		jumpLabelsUsed: {},
+		variableDefinitions: {},
+		variableUsages: {},
+	};
+}
+

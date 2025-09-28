@@ -14,7 +14,6 @@ import {
 	Arg,
 	arg, argToString, GAT, GenericArgs, isTokenValidForType, isTokenValidForGAT, isTokenValidForValidator,
 	isGenericArg, makeArg, guessTokenType,
-	SenseTargets
 } from "../src/args.js";
 import { Statement } from "../src/classes.js";
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
@@ -551,7 +550,7 @@ describe("getVariablesUsed", () => {
 
 describe("getAllPossibleVariablesUsed", () => {
 	it("should get variables used by a statement", () => {
-		expect(getAllPossibleVariablesUsed(makeStatement("read x cell1 y"))).toEqual([["y", ["number"]]]);
+		expect(getAllPossibleVariablesUsed(makeStatement("read x cell1 y"))).toEqual([["y", ["number", "string"]]]);
 		expect(getAllPossibleVariablesUsed(makeStatement("ucontrol within x y 10 close")))
 			.toEqual([["x", ["number"]], ["y", ["number"]]]);
 		expect(getAllPossibleVariablesUsed(makeStatement("ulocate building core true outX outY found building")))

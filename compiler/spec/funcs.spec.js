@@ -1,4 +1,4 @@
-import { arg, argToString, GenericArgs, isTokenValidForType, isTokenValidForGAT, isTokenValidForValidator, isGenericArg, makeArg, guessTokenType } from "../src/args.js";
+import { arg, argToString, GenericArgs, isTokenValidForType, isTokenValidForGAT, isTokenValidForValidator, isGenericArg, makeArg, guessTokenType, } from "../src/args.js";
 import { Statement } from "../src/classes.js";
 import { commands, compilerCommands, processCommands } from "../src/commands.js";
 import { acceptsVariable, addNamespacesToLine, addNamespacesToVariable, addSourcesToCode, areAnyOfInputsAcceptedByType, cleanLine, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, getParameters, getVariablesDefined, getVariablesUsed, interpolateString, isCommand, isInputAcceptedByAnyType, parseIcons, parsePreprocessorDirectives, prependFilenameToToken, range, removeComments, removeTrailingSpaces, removeUnusedJumps, replaceCompilerConstants, splitLineIntoTokens, splitLineOnSemicolons, transformCommand, transformVariables, typeIsAccepted } from "../src/funcs.js";
@@ -431,7 +431,7 @@ describe("getVariablesUsed", () => {
 });
 describe("getAllPossibleVariablesUsed", () => {
     it("should get variables used by a statement", () => {
-        expect(getAllPossibleVariablesUsed(makeStatement("read x cell1 y"))).toEqual([["y", ["number"]]]);
+        expect(getAllPossibleVariablesUsed(makeStatement("read x cell1 y"))).toEqual([["y", ["number", "string"]]]);
         expect(getAllPossibleVariablesUsed(makeStatement("ucontrol within x y 10 close")))
             .toEqual([["x", ["number"]], ["y", ["number"]]]);
         expect(getAllPossibleVariablesUsed(makeStatement("ulocate building core true outX outY found building")))

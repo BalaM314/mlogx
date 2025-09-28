@@ -21,9 +21,8 @@ import {
 } from "./samplePrograms.js";
 import {
 	makeForEl, makeIfEl, makeLine, makeNamespaceEl, anyLine, makeCompileLineInput, stateForFilename,
-	errorWith
+	errorWith, typeCheckingData
 } from "./test_utils.js";
-
 
 
 describe("compileLine", () => {
@@ -33,7 +32,7 @@ describe("compileLine", () => {
 	it("should not change any mlog commands", () => {
 		for (const line of allMlogCommands) {
 			expect(errorWith(() =>
-				compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line.text)
+				compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, [], typeCheckingData()).compiledCode.map(line => line.text)
 			, `Line ${line}`)).toEqual([line]);
 		}
 	});
@@ -41,7 +40,7 @@ describe("compileLine", () => {
 	it("should mark all mlogx commands as valid", () => {
 		for (const line of allMlogxCommands) {
 			expect(() =>
-				compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, []).compiledCode.map(line => line.text)
+				compileLine(makeCompileLineInput(line), stateForFilename("sample1.mlogx"), false, [], typeCheckingData()).compiledCode.map(line => line.text)
 			).not.toThrow();
 		}
 	});
@@ -49,7 +48,7 @@ describe("compileLine", () => {
 	it("should process all shorthands", () => {
 		for(const [input, output] of allShorthandCommands){
 			expect(
-				compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, [])
+				compileLine(makeCompileLineInput(input), stateForFilename("sample1.mlogx"), false, [], typeCheckingData())
 					.compiledCode.map(line => line.text).join("\n")
 			).toEqual(output);
 		}
@@ -57,13 +56,13 @@ describe("compileLine", () => {
 
 	it("should detect the start of a namespace", () => {
 		expect(
-			compileLine(makeCompileLineInput(startNamespace), stateForFilename("sample.mlogx"), false, []).modifiedStack
+			compileLine(makeCompileLineInput(startNamespace), stateForFilename("sample.mlogx"), false, [], typeCheckingData()).modifiedStack
 		).toEqual([makeNamespaceEl("testname")]);
 	});
 
 	it("should detect the end of a namespace", () => {
 		expect(
-			compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, [makeNamespaceEl("testname")]).modifiedStack
+			compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, [makeNamespaceEl("testname")], typeCheckingData()).modifiedStack
 		).toEqual([]);
 	});
 
@@ -78,7 +77,7 @@ describe("compileLine", () => {
 
 	it("should detect the start of an &for in loop", () => {
 		expect(
-			compileLine(makeCompileLineInput(`&for i in 0 5 {`), stateForFilename("sample.mlogx"), false, []).modifiedStack
+			compileLine(makeCompileLineInput(`&for i in 0 5 {`), stateForFilename("sample.mlogx"), false, [], typeCheckingData()).modifiedStack
 		).toEqual([{
 			type: "&for",
 			commandDefinition: compilerCommands["&for"].overloads[0],
@@ -91,7 +90,7 @@ describe("compileLine", () => {
 
 	it("should detect the start of an &for of loop", () => {
 		expect(
-			compileLine(makeCompileLineInput(`&for i of c d e {`), stateForFilename("sample.mlogx"), false, []).modifiedStack
+			compileLine(makeCompileLineInput(`&for i of c d e {`), stateForFilename("sample.mlogx"), false, [], typeCheckingData()).modifiedStack
 		).toEqual([
 			{
 				type: "&for",
@@ -108,7 +107,7 @@ describe("compileLine", () => {
 		expect(
 			compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, [
 				makeForEl("n", range(1, 3, true), [[`set x 5`, `set x 5`], [`print "n is $n"`, `print "n is $n"`]])
-			]).modifiedStack
+			], typeCheckingData()).modifiedStack
 		).toEqual([]);
 	});
 
@@ -116,7 +115,7 @@ describe("compileLine", () => {
 		expect(
 			compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, [
 				makeForEl("n", ["32", "53", "60"], [[`set x 5`, `set x 5`], [`print "n is $n"`, `print "n is $n"`]])
-			]).compiledCode.map(line => line.text)
+			], typeCheckingData()).compiledCode.map(line => line.text)
 		).toEqual([`set x 5`, `print "n is 32"`, `set x 5`, `print "n is 53"`, `set x 5`, `print "n is 60"`]);
 	});
 
@@ -129,7 +128,7 @@ describe("compileLine", () => {
 				"J", range(5, 6, true), [[`set x 5`, `set x 5`], [`print "j is $J"`, `print "j is $J"`]], makeLine("[test]", 1, "unknown")
 			)
 		];
-		const compiledOutput = compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, stack);
+		const compiledOutput = compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, stack, typeCheckingData());
 		stack = compiledOutput.modifiedStack ?? stack;
 		(stack.at(-1) as ForStackElement)?.loopBuffer.push(...compiledOutput.compiledCode);
 		expect(compiledOutput.compiledCode.map(line => line.text))
@@ -138,7 +137,7 @@ describe("compileLine", () => {
 		// 	makeForEl("I", range(1, 3, true), [[`loop_$I:`, `loop_$I:`], [`set x 5`, `set x 5`], [`print "j is 5"`, `print "j is $J"`], [`set x 5`, `set x 5`], [`print "j is 6"`, `print "j is $J"`]], makeLine("[test]", 1, "unknown"))
 		// ]);
 		//TODO fix this, it requires shenanigans
-		const secondOutput = compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, stack);
+		const secondOutput = compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, stack, typeCheckingData());
 		expect(secondOutput.compiledCode.map(line => line.text))
 			.toEqual([
 				`loop_1:`, `set x 5`, `print "j is 5"`, `set x 5`,
@@ -152,7 +151,7 @@ describe("compileLine", () => {
 
 	it("should detect the start of an &if block", () => {
 		expect(
-			compileLine(makeCompileLineInput(`&if false {`), stateForFilename("sample.mlogx"), false, []).modifiedStack
+			compileLine(makeCompileLineInput(`&if false {`), stateForFilename("sample.mlogx"), false, [], typeCheckingData()).modifiedStack
 		).toEqual([{
 			type: "&if",
 			commandDefinition: compilerCommands["&if"].overloads[0],
@@ -163,7 +162,7 @@ describe("compileLine", () => {
 
 	it("should detect the end of an &if block", () => {
 		expect(
-			compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, [makeIfEl(true)]).modifiedStack
+			compileLine(makeCompileLineInput("}"), stateForFilename("sample.mlogx"), false, [makeIfEl(true)], typeCheckingData()).modifiedStack
 		).toEqual([]);
 	});
 
