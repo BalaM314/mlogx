@@ -1,8 +1,8 @@
 import deepmerge from "deepmerge";
-import { SenseTargets } from "./args.js";
+import { GenericArgs, SenseTargets } from "./args.js";
 import { CompilerError, Statement } from "./classes.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
-import { addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, parsePreprocessorDirectives, prependFilenameToToken, removeUnusedJumps, replaceCompilerConstants, splitLineIntoTokens, transformCommand } from "./funcs.js";
+import { addSourcesToCode, cleanLine, formatLineWithPrefix, getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions, getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons, getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, isKey, parsePreprocessorDirectives, prependFilenameToToken, removeUnusedJumps, replaceCompilerConstants, splitLineIntoTokens, transformCommand } from "./funcs.js";
 import { Log } from "./Log.js";
 import { hasElement } from "./stack_elements.js";
 import { CommandErrorType } from "./types.js";
@@ -59,7 +59,7 @@ export function compileMlogxToMlog(mlogxProgram, state, typeDefinitions = {
                     modifiedLine = outputData.output;
                 }
             }
-            const { compiledCode, modifiedStack, skipTypeChecks } = compileLine([modifiedLine, sourceLine], state, isMain, stack);
+            const { compiledCode, modifiedStack, skipTypeChecks } = compileLine([modifiedLine, sourceLine], state, isMain, stack, typeCheckingData);
             if (modifiedStack)
                 stack = modifiedStack;
             let doTypeChecks = !skipTypeChecks;
@@ -236,7 +236,7 @@ export function cleanProgram(program, state) {
     }
     return outputProgram;
 }
-export function compileLine([cleanedLine, sourceLine], state, isMain, stack) {
+export function compileLine([cleanedLine, sourceLine], state, isMain, stack, typeCheckingData) {
     cleanedLine.text = replaceCompilerConstants(cleanedLine.text, state.compilerConstants, hasElement(stack, '&for'));
     const cleanedText = cleanedLine.text;
     const tokens = splitLineIntoTokens(cleanedText)
@@ -302,6 +302,19 @@ Please copy this and file an issue on Github.`);
             return {
                 compiledCode: []
             };
+        }
+    }
+    if (commandList[0].name == "declare") {
+        const type = tokens[2].slice(1);
+        if (isKey(GenericArgs, type)) {
+            typeCheckingData.variableDefinitions[tokens[1]] ??= [];
+            typeCheckingData.variableDefinitions[tokens[1]].push({
+                variableType: type,
+                line: cleanedLine
+            });
+        }
+        else {
+            CompilerError.throw("invalid type", { type });
         }
     }
     return {

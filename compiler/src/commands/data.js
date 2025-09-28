@@ -273,6 +273,13 @@ export const commands = processCommands({
             description: "Gets information about a unit, building, or object type, and stores it in (thing.property), does not need to be linked or on the same team. Example usage: sensor player.shootX will read the player's shootX into the variable player.shootX",
         }
     ],
+    declare: [
+        {
+            args: "variable:*any type:ctype",
+            description: "Sets the type of (variable) to (type), for type checking—no compiled output is generated.",
+            replace: []
+        }
+    ],
     set: [
         {
             args: "variable:*any value:any",
