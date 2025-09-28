@@ -9,7 +9,7 @@ Contains pure-ish functions related to compiling.
 */
 
 import deepmerge from "deepmerge";
-import { Arg, ArgType, SenseTargets } from "./args.js";
+import { Arg, ArgType, GenericArgs, SenseTargets } from "./args.js";
 import { CompilerError, Statement } from "./classes.js";
 import { CommandDefinition, CompilerCommandDefinition } from "./commands.js";
 import { maxLines, processorVariables, requiredVarCode } from "./consts.js";
@@ -17,7 +17,7 @@ import {
 	addSourcesToCode, cleanLine, formatLineWithPrefix,
 	getAllPossibleVariablesUsed, getCommandDefinition, getCommandDefinitions,
 	getCompilerCommandDefinitions, getJumpLabelsDefined, getJumpLabelsUsed, splitLineOnSemicolons,
-	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType,
+	getParameters, getVariablesDefined, impossible, isInputAcceptedByAnyType, isKey,
 	parsePreprocessorDirectives, prependFilenameToToken, removeUnusedJumps, replaceCompilerConstants,
 	splitLineIntoTokens, transformCommand
 } from "./funcs.js";
@@ -98,7 +98,7 @@ export function compileMlogxToMlog(
 				}
 			}
 			const { compiledCode, modifiedStack, skipTypeChecks }
-				= compileLine([modifiedLine, sourceLine], state, isMain, stack);
+				= compileLine([modifiedLine, sourceLine], state, isMain, stack, typeCheckingData);
 			if(modifiedStack) stack = modifiedStack;
 			let doTypeChecks = !skipTypeChecks;
 			let modifiedCode = compiledCode;
@@ -320,6 +320,7 @@ export function compileLine(
 	state:State,
 	isMain:boolean,
 	stack:StackElement[],
+	typeCheckingData:TypeCheckingData,
 ): {
 	compiledCode:Statement[];
 	modifiedStack?:StackElement[];
@@ -405,6 +406,19 @@ Please copy this and file an issue on Github.`
 			return {
 				compiledCode: []
 			};
+		}
+	}
+	//Variable declarations must be added earlier than getVariablesDefined since the command generates no compiled lines.
+	if(commandList[0].name == "declare"){
+		const type = tokens[2].slice(1);
+		if(isKey(GenericArgs, type)){
+			typeCheckingData.variableDefinitions[tokens[1]] ??= [];
+			typeCheckingData.variableDefinitions[tokens[1]].push({
+				variableType: type,
+				line: cleanedLine
+			});
+		} else {
+			CompilerError.throw("invalid type", {type});
 		}
 	}
 	return {

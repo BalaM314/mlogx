@@ -90,14 +90,26 @@ export const commands = processCommands({
             },
             description: "Print statement with newline appended."
         }],
-    read: [{
+    read: [
+        {
             args: "output:*number cell:building index:number",
             description: "Reads a value at index (index) from memory cell (cell) and stores it in (output)."
-        }],
-    write: [{
+        },
+        {
+            args: "output:*any processor:building variable:string",
+            description: "Reads (variable) from (processor) and stores its value in (output)."
+        }
+    ],
+    write: [
+        {
             args: "value:number cell:building index:number",
             description: "Writes (value) at index (index) to memory cell (cell)."
-        }],
+        },
+        {
+            args: "input:any processor:building variable:string",
+            description: "Writes value (input) to (variable) in (processor)."
+        }
+    ],
     draw: [
         {
             args: "clear r:number g:number b:number",
@@ -259,6 +271,13 @@ export const commands = processCommands({
                 }
             },
             description: "Gets information about a unit, building, or object type, and stores it in (thing.property), does not need to be linked or on the same team. Example usage: sensor player.shootX will read the player's shootX into the variable player.shootX",
+        }
+    ],
+    declare: [
+        {
+            args: "variable:*any type:ctype",
+            description: "Sets the type of (variable) to (type), for type checking—no compiled output is generated.",
+            replace: []
         }
     ],
     set: [
