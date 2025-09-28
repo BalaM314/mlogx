@@ -90,14 +90,26 @@ export const commands = processCommands({
             },
             description: "Print statement with newline appended."
         }],
-    read: [{
+    read: [
+        {
             args: "output:*number cell:building index:number",
             description: "Reads a value at index (index) from memory cell (cell) and stores it in (output)."
-        }],
-    write: [{
+        },
+        {
+            args: "output:*any processor:building variable:string",
+            description: "Reads (variable) from (processor) and stores its value in (output)."
+        }
+    ],
+    write: [
+        {
             args: "value:number cell:building index:number",
             description: "Writes (value) at index (index) to memory cell (cell)."
-        }],
+        },
+        {
+            args: "input:any processor:building variable:string",
+            description: "Writes value (input) to (variable) in (processor)."
+        }
+    ],
     draw: [
         {
             args: "clear r:number g:number b:number",
