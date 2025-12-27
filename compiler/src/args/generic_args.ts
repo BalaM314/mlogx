@@ -436,6 +436,10 @@ export const sensorMapping:Record<SenseTarget | "any", Record<string, GAT | GAT[
 		"config": "any",
 		"payloadType": ["unitType", "buildingType"],
 		"memoryCapacity": "number",
+		"displayWidth": "number",
+		"displayHeight": "number",
+		"bufferSize": "number",
+		"operations": "number",
 
 		"progress": "number",
 		"shootX": "number",
