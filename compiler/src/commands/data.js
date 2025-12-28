@@ -380,7 +380,7 @@ export const commands = processCommands({
             args: "block output:*buildingType n:number",
             description: "Looks up the (n)th building and stores it in (output)."
         }, {
-            args: "liquid output:*liquidType n:number",
+            args: "liquid output:*fluidType n:number",
             description: "Looks up the (n)th fluid and stores it in (output)."
         }, {
             args: "unit output:*unitType n:number",
