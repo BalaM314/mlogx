@@ -518,6 +518,9 @@ export const commands = processCommands({
 			args: "build x:number y:number buildingType:buildingType rotation:number config:any",
 			description: "Tells the unit to build (block) with (rotation) and (config) at (x,y)."
 		},{
+			args: "deconstruct x:number y:number",
+			description: "Tells the unit to break the block at (x,y)."
+		},{
 			args: "getBlock x:number y:number buildingType:*buildingType building:*building",
 			description: "Gets the building type and building at (x,y) and outputs to (buildingType) and (building). Required if you want to get the building object for a building on another team."
 		},{
