@@ -13,7 +13,7 @@ import path from "path";
 import * as yup from "yup";
 import { CompilerError } from "./classes.js";
 import { compileMlogxToMlog } from "./compile.js";
-import { compilerMark } from "./consts.js";
+import { compilerMark, maxLines } from "./consts.js";
 import { Log } from "./Log.js";
 import { askQuestion, getLocalState, getState } from "./funcs.js";
 import { Settings, settingsSchema } from "./settings.js";
@@ -86,7 +86,9 @@ export function compileDirectory(directory:string, stdlibPath:string, icons:Map<
 				Log.dump(err);
 			return;
 		}
-		if(globalState.compilerOptions.mode == "single" && !globalState.compilerOptions.removeCompilerMark){
+		if(globalState.compilerOptions.mode == "single" && !(globalState.compilerOptions.removeCompilerMark ||
+			outputData.length + 1 + compilerMark.length > maxLines
+		)){
 			outputData.push("end", ...compilerMark);
 		}
 		//Write .mlog files to output
